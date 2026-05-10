@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabase'
 import { use } from 'react'
 
-export default function AddEntry({ params }) {
+export default function AddEntry({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
   const [type, setType] = useState('labor')
@@ -15,10 +15,9 @@ export default function AddEntry({ params }) {
   const [hourlyRate, setHourlyRate] = useState('')
   const [amount, setAmount] = useState('')
   const [loading, setLoading] = useState(false)
-
   async function handleSubmit() {
     setLoading(true)
-    const entry = { job_id: id, owner_id: '00000000-0000-0000-0000-000000000000', type, description }
+    const entry: Record<string, unknown> = { job_id: id, owner_id: '00000000-0000-0000-0000-000000000000', type, description }
     if (type === 'labor') {
       entry.worker_name = workerName
       entry.hours = Number(hours)

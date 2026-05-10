@@ -1,7 +1,7 @@
 import { supabase } from '../../lib/supabase'
 import Link from 'next/link'
 
-export default async function JobDetail({ params }) {
+export default async function JobDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const { data: job } = await supabase.from('job_summary').select('*').eq('id', id).single()
   const { data: entries } = await supabase.from('job_entries').select('*').eq('job_id', id).order('created_at', { ascending: false })
