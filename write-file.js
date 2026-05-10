@@ -1,21 +1,6 @@
 const fs = require('fs')
-const content = `'use client'
-
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '../../../lib/supabase'
-import { use } from 'react'
-
-export default function AddEntry({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
-  const router = useRouter()
-  const [type, setType] = useState('labor')
-  const [description, setDescription] = useState('')
-  const [workerName, setWorkerName] = useState('')
-  const [hours, setHours] = useState('')
-  const [hourlyRate, setHourlyRate] = useState('')
-  const [amount, setAmount] = useState('')
-  const [loading, setLoading] = useState(false)
+const content = fs.readFileSync('app/jobs/[id]/add/page.tsx', 'utf8')
+const part2 = `
   async function handleSubmit() {
     setLoading(true)
     const entry: Record<string, unknown> = { job_id: id, owner_id: '00000000-0000-0000-0000-000000000000', type, description }
@@ -40,6 +25,10 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
           <button onClick={() => router.back()} className="text-gray-400">Back</button>
           <h1 className="text-2xl font-bold">Add Entry</h1>
         </div>
+        <label className="flex items-center justify-center w-full bg-gray-800 border-2 border-dashed border-gray-600 rounded-xl p-6 mb-6 cursor-pointer hover:border-blue-500 transition">
+          <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleScan} />
+          {scanning ? <span className="text-blue-400">Scanning receipt...</span> : <span className="text-gray-400">📸 Tap to scan receipt</span>}
+        </label>
         <div className="flex gap-2 mb-6">
           {tabs.map((t) => (
             <button key={t} onClick={() => setType(t)} className={t === type ? 'flex-1 py-2 rounded-lg text-sm bg-blue-600 text-white' : 'flex-1 py-2 rounded-lg text-sm bg-gray-800 text-gray-400'}>{t}</button>
@@ -64,5 +53,5 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
     </main>
   )
 }`
-fs.writeFileSync('app/jobs/[id]/add/page.tsx', content)
-console.log('Done add/page.tsx')
+fs.writeFileSync('app/jobs/[id]/add/page.tsx', content + part2)
+console.log('part2 done lines:' + (content + part2).split('\n').length)
