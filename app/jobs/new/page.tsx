@@ -1,3 +1,4 @@
+alert('Submit clicked! name=' + name)
 'use client'
 
 import { useState } from 'react'
@@ -20,10 +21,11 @@ async function handleSubmit() {
       owner_id: '00000000-0000-0000-0000-000000000000'
     }).select()
 
-    if (error) {
+     if (error) {
       alert('Error: ' + error.message)
     } else {
       router.push('/')
+      router.refresh()
     }
     setLoading(false)
   }
