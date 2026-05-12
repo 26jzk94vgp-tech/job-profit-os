@@ -1,57 +1,55 @@
 const fs = require('fs')
-const content = fs.readFileSync('app/jobs/[id]/add/page.tsx', 'utf8')
-const part2 = `
-  async function handleSubmit() {
-    setLoading(true)
-    const entry: Record<string, unknown> = { job_id: id, owner_id: '00000000-0000-0000-0000-000000000000', type, description }
-    if (type === 'labor') {
-      entry.worker_name = workerName
-      entry.hours = Number(hours)
-      entry.hourly_rate = Number(hourlyRate)
-      entry.amount = Number(hours) * Number(hourlyRate)
-    } else {
-      entry.amount = Number(amount)
-    }
-    const { error } = await supabase.from('job_entries').insert(entry)
-    if (error) { alert('Error: ' + error.message) } else { router.push('/jobs/' + id) }
-    setLoading(false)
+const content = `'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from './lib/supabase'
+import Link from 'next/link'
+
+export default function Home() {
+  const router = useRouter()
+  const [jobs, setJobs] = useState([])
+
+  async function loadJobs() {
+    const { data } = await supabase.from('job_summary').select('*')
+    setJobs(data || [])
   }
 
-  const tabs = ['labor', 'material', 'subcontract', 'invoice']
+  useEffect(() => {
+    loadJobs()
+  }, [])
+
   return (
     <main className="min-h-screen bg-gray-950 text-white p-6">
       <div className="max-w-lg mx-auto">
-        <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => router.back()} className="text-gray-400">Back</button>
-          <h1 className="text-2xl font-bold">Add Entry</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Job Profit OS</h1>
+          <Link href="/jobs/new" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ New Job</Link>
         </div>
-        <label className="flex items-center justify-center w-full bg-gray-800 border-2 border-dashed border-gray-600 rounded-xl p-6 mb-6 cursor-pointer hover:border-blue-500 transition">
-          <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleScan} />
-          {scanning ? <span className="text-blue-400">Scanning receipt...</span> : <span className="text-gray-400">📸 Tap to scan receipt</span>}
-        </label>
-        <div className="flex gap-2 mb-6">
-          {tabs.map((t) => (
-            <button key={t} onClick={() => setType(t)} className={t === type ? 'flex-1 py-2 rounded-lg text-sm bg-blue-600 text-white' : 'flex-1 py-2 rounded-lg text-sm bg-gray-800 text-gray-400'}>{t}</button>
-          ))}
-        </div>
-        <div className="space-y-4">
-          {type === 'labor' ? (
-            <div className="space-y-4">
-              <div><label className="text-gray-400 text-sm">Worker Name</label><input className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="e.g. Tom" value={workerName} onChange={(e) => setWorkerName(e.target.value)} /></div>
-              <div><label className="text-gray-400 text-sm">Hours</label><input type="number" className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="e.g. 8" value={hours} onChange={(e) => setHours(e.target.value)} /></div>
-              <div><label className="text-gray-400 text-sm">Hourly Rate</label><input type="number" className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="e.g. 65" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} /></div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div><label className="text-gray-400 text-sm">Description</label><input className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="e.g. Timber supply" value={description} onChange={(e) => setDescription(e.target.value)} /></div>
-              <div><label className="text-gray-400 text-sm">Amount</label><input type="number" className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="e.g. 1200" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
-            </div>
-          )}
-          <button onClick={handleSubmit} disabled={loading} className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium disabled:opacity-50">{loading ? 'Saving...' : 'Save Entry'}</button>
+        {jobs.length === 0 && <p className="text-gray-400 text-center mt-20">No jobs yet. Create your first job!</p>}
+        <div className="space-y-3">
+          {jobs.map((job: any) => {
+            const profit = Number(job.profit)
+            const isProfit = profit >= 0
+            return (
+              <Link href={"/jobs/" + job.id} key={job.id}>
+                <div className="bg-gray-900 rounded-xl p-4 flex justify-between items-center hover:bg-gray-800 transition">
+                  <div>
+                    <p className="font-semibold">{job.name}</p>
+                    <p className="text-gray-400 text-sm">{job.client_name}</p>
+                  </div>
+                  <span className={isProfit ? 'font-bold text-lg text-green-400' : 'font-bold text-lg text-red-400'}>
+                    {isProfit ? '+' : '-'}{Math.abs(profit).toLocaleString()}
+                  </span>
+                </div>
+              </Link>
+            )
+          })}
         </div>
       </div>
     </main>
   )
 }`
-fs.writeFileSync('app/jobs/[id]/add/page.tsx', content + part2)
-console.log('part2 done lines:' + (content + part2).split('\n').length)
+
+fs.writeFileSync('app/page.tsx', content)
+console.log('Done!')
