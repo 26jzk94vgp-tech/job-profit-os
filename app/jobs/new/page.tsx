@@ -23,10 +23,10 @@ async function handleSubmit() {
 
      if (error) {
       alert('Error: ' + error.message)
-    } else {
-      router.push('/')
-      router.refresh()
+       } else {
+      window.location.href = '/'
     }
+
     setLoading(false)
   }
 
