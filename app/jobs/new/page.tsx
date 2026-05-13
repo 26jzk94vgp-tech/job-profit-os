@@ -1,4 +1,3 @@
-alert('Submit clicked! name=' + name)
 'use client'
 
 import { useState } from 'react'
