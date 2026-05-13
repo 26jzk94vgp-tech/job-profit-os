@@ -30,7 +30,8 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
             <span className={profit >= 0 ? 'font-bold text-lg text-green-400' : 'font-bold text-lg text-red-400'}>{profit} ({margin}%)</span>
           </div>
         </div>
-        <Link href={'/jobs/' + id + '/add'} className="block w-full bg-blue-600 text-white py-3 rounded-lg font-medium text-center mb-6">+ Add Entry</Link>
+        <Link href={'/jobs/' + id + '/add'} className="block w-full bg-blue-600 text-white py-3 rounded-lg font-medium text-center mb-3">+ Add Entry</Link>
+        <Link href={'/jobs/' + id + '/invoice'} className="block w-full bg-gray-700 text-white py-3 rounded-lg font-medium text-center mb-6">🧾 Generate Invoice</Link>
         <div className="space-y-3">
           {entries?.map((entry) => (
             <div key={entry.id} className="bg-gray-900 rounded-xl p-4">
