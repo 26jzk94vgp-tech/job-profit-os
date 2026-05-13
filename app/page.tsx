@@ -1,13 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { supabase } from './lib/supabase'
 import Link from 'next/link'
 
 export default function Home() {
-  const router = useRouter()
-  const [jobs, setJobs] = useState([])
+  const [jobs, setJobs] = useState<any[]>([])
 
   async function loadJobs() {
     const { data } = await supabase.from('job_summary').select('*')

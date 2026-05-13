@@ -14,8 +14,13 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   const [hours, setHours] = useState('')
   const [hourlyRate, setHourlyRate] = useState('')
   const [amount, setAmount] = useState('')
+  const [quantity, setQuantity] = useState('')
+  const [unit, setUnit] = useState('')
+  const [unitPrice, setUnitPrice] = useState('')
   const [loading, setLoading] = useState(false)
   const [scanning, setScanning] = useState(false)
+
+  const totalAmount = quantity && unitPrice ? (Number(quantity) * Number(unitPrice)).toFixed(2) : amount
 
   async function handleScan(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -51,11 +56,16 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
       entry.hours = Number(hours)
       entry.hourly_rate = Number(hourlyRate)
       entry.amount = Number(hours) * Number(hourlyRate)
+    } else if (type === 'material') {
+      entry.quantity = quantity ? Number(quantity) : null
+      entry.unit = unit || null
+      entry.unit_price = unitPrice ? Number(unitPrice) : null
+      entry.amount = quantity && unitPrice ? Number(quantity) * Number(unitPrice) : Number(amount)
     } else {
       entry.amount = Number(amount)
     }
     const { error } = await supabase.from('job_entries').insert(entry)
-    if (error) { alert('Error: ' + error.message) } else { router.push('/jobs/' + id) }
+    if (error) { alert('Error: ' + error.message) } else { window.location.href = '/jobs/' + id }
     setLoading(false)
   }
 
@@ -83,10 +93,21 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
               <div><label className="text-gray-400 text-sm">Hours</label><input type="number" className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="e.g. 8" value={hours} onChange={(e) => setHours(e.target.value)} /></div>
               <div><label className="text-gray-400 text-sm">Hourly Rate</label><input type="number" className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="e.g. 65" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} /></div>
             </div>
+          ) : type === 'material' ? (
+            <div className="space-y-4">
+              <div><label className="text-gray-400 text-sm">Description</label><input className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="e.g. Timber" value={description} onChange={(e) => setDescription(e.target.value)} /></div>
+              <div className="flex gap-3">
+                <div className="flex-1"><label className="text-gray-400 text-sm">Quantity</label><input type="number" className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="e.g. 10" value={quantity} onChange={(e) => setQuantity(e.target.value)} /></div>
+                <div className="w-24"><label className="text-gray-400 text-sm">Unit</label><input className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="m / kg" value={unit} onChange={(e) => setUnit(e.target.value)} /></div>
+              </div>
+              <div><label className="text-gray-400 text-sm">Unit Price ($)</label><input type="number" className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="e.g. 12.50" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} /></div>
+              {quantity && unitPrice && <p className="text-green-400 text-sm font-medium">Total: ${(Number(quantity) * Number(unitPrice)).toLocaleString()}</p>}
+              <div><label className="text-gray-400 text-sm">Or enter total directly</label><input type="number" className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="e.g. 1200" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
+            </div>
           ) : (
             <div className="space-y-4">
-              <div><label className="text-gray-400 text-sm">Description</label><input className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="e.g. Timber supply" value={description} onChange={(e) => setDescription(e.target.value)} /></div>
-              <div><label className="text-gray-400 text-sm">Amount</label><input type="number" className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="e.g. 1200" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
+              <div><label className="text-gray-400 text-sm">Description</label><input className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="e.g. Subcontractor work" value={description} onChange={(e) => setDescription(e.target.value)} /></div>
+              <div><label className="text-gray-400 text-sm">Amount ($)</label><input type="number" className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="e.g. 1200" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
             </div>
           )}
           <button onClick={handleSubmit} disabled={loading} className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium disabled:opacity-50">{loading ? 'Saving...' : 'Save Entry'}</button>
