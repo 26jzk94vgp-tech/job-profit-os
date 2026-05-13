@@ -7,8 +7,9 @@ export default async function Clients() {
   return (
     <main className="min-h-screen bg-gray-950 text-white p-6">
       <div className="max-w-lg mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Clients</h1>
+        <div className="flex items-center gap-3 mb-6">
+          <Link href="/" className="text-gray-400">← Home</Link>
+          <h1 className="text-2xl font-bold flex-1">Clients</h1>
           <Link href="/clients/new" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ New Client</Link>
         </div>
         {clients?.length === 0 && <p className="text-gray-400 text-center mt-20">No clients yet.</p>}
