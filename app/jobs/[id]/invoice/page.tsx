@@ -34,7 +34,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <div className="max-w-2xl mx-auto p-6 print:hidden">
-        <h1 className="text-2xl font-bold mb-6">Invoice Preview</h1>
+        <div className="flex items-center gap-3 mb-6"><a href={"javascript:history.back()"} className="text-gray-400">← Back</a><h1 className="text-2xl font-bold">Invoice Preview</h1></div>
         <div className="space-y-3 mb-6">
           <div><label className="text-gray-400 text-sm">Company Name</label><input className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" value={companyName} onChange={(e) => setCompanyName(e.target.value)} /></div>
           <div><label className="text-gray-400 text-sm">Phone</label><input className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="0400 000 000" value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} /></div>

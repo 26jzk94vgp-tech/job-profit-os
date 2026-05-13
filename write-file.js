@@ -1,8 +1,8 @@
 const fs = require('fs')
-let content = fs.readFileSync('app/jobs/[id]/page.tsx', 'utf8')
+let content = fs.readFileSync('app/jobs/[id]/invoice/page.tsx', 'utf8')
 content = content.replace(
-  "<Link href={'/jobs/' + id + '/add'} className=\"block w-full bg-blue-600 text-white py-3 rounded-lg font-medium text-center mb-6\">+ Add Entry</Link>",
-  "<Link href={'/jobs/' + id + '/add'} className=\"block w-full bg-blue-600 text-white py-3 rounded-lg font-medium text-center mb-3\">+ Add Entry</Link>\n        <Link href={'/jobs/' + id + '/invoice'} className=\"block w-full bg-gray-700 text-white py-3 rounded-lg font-medium text-center mb-6\">🧾 Generate Invoice</Link>"
+  '<h1 className="text-2xl font-bold mb-6">Invoice Preview</h1>',
+  '<div className="flex items-center gap-3 mb-6"><a href={"javascript:history.back()"} className="text-gray-400">← Back</a><h1 className="text-2xl font-bold">Invoice Preview</h1></div>'
 )
-fs.writeFileSync('app/jobs/[id]/page.tsx', content)
+fs.writeFileSync('app/jobs/[id]/invoice/page.tsx', content)
 console.log('done')
