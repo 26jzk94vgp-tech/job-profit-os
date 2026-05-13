@@ -21,7 +21,11 @@ export default function Home() {
       <div className="max-w-lg mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Job Profit OS</h1>
-          <Link href="/jobs/new" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ New Job</Link>
+          <div className="flex gap-2">
+            <Link href="/clients" className="bg-gray-700 text-white px-3 py-2 rounded-lg text-sm font-medium">Clients</Link>
+            <Link href="/quotes" className="bg-gray-700 text-white px-3 py-2 rounded-lg text-sm font-medium">Quotes</Link>
+            <Link href="/jobs/new" className="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium">+ New Job</Link>
+          </div>
         </div>
         {jobs.length === 0 && <p className="text-gray-400 text-center mt-20">No jobs yet. Create your first job!</p>}
         <div className="space-y-3">
