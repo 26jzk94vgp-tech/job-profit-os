@@ -1,105 +1,82 @@
 const fs = require('fs')
-const content = `'use client'
 
-import { useEffect, useState } from 'react'
-import { createClient } from '../utils/supabase/client'
-import Link from 'next/link'
+// clients/new/page.tsx
+const clientsNew = `'use client'
 
-export default function Home() {
-  const [jobs, setJobs] = useState<any[]>([])
-  const [user, setUser] = useState<any>(null)
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '../../../utils/supabase/client'
+
+export default function NewClient() {
+  const router = useRouter()
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [address, setAddress] = useState('')
+  const [loading, setLoading] = useState(false)
   const supabase = createClient()
 
-  async function loadData() {
+  async function handleSubmit() {
+    if (!name) return
+    setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
-    setUser(user)
-    const { data } = await supabase.from('job_summary').select('*')
-    setJobs(data || [])
+    const { error } = await supabase.from('clients').insert({
+      name, email, phone, address, owner_id: user?.id
+    })
+    if (error) { alert('Error: ' + error.message) } else { window.location.href = '/clients' }
+    setLoading(false)
   }
-
-  async function handleSignOut() {
-    await supabase.auth.signOut()
-    window.location.href = '/login'
-  }
-
-  useEffect(() => { loadData() }, [])
-
-  const totalProfit = jobs.reduce((sum, j) => sum + Number(j.profit), 0)
-  const activeJobs = jobs.filter(j => j.status === 'active').length
 
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">JP</span>
-            </div>
-            <span className="font-semibold text-gray-900">Job Profit OS</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/clients" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Clients</Link>
-            <Link href="/quotes" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Quotes</Link>
-            <button onClick={handleSignOut} className="text-gray-500 hover:text-gray-700 text-sm">Sign Out</button>
-            <Link href="/jobs/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">+ New Job</Link>
-          </div>
+        <div className="max-w-2xl mx-auto flex items-center gap-3">
+          <button onClick={() => router.back()} className="text-gray-500 hover:text-gray-700 text-sm">← Back</button>
+          <h1 className="font-semibold text-gray-900">New Client</h1>
         </div>
       </nav>
+      <main className="max-w-2xl mx-auto px-6 py-8">
+        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+          <div><label className="text-gray-700 text-sm font-medium">Name *</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. John Smith" value={name} onChange={(e) => setName(e.target.value)} /></div>
+          <div><label className="text-gray-700 text-sm font-medium">Phone</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="0400 000 000" value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
+          <div><label className="text-gray-700 text-sm font-medium">Email</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="john@email.com" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+          <div><label className="text-gray-700 text-sm font-medium">Address</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="123 Main St, Sydney" value={address} onChange={(e) => setAddress(e.target.value)} /></div>
+          <button onClick={handleSubmit} disabled={loading || !name} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium disabled:opacity-50">{loading ? 'Saving...' : 'Save Client'}</button>
+        </div>
+      </main>
+    </div>
+  )
+}`
 
+// clients/page.tsx
+const clients = `import { createClient } from '../../utils/supabase/server'
+import Link from 'next/link'
+
+export default async function Clients() {
+  const supabase = await createClient()
+  const { data: clientsList } = await supabase.from('clients').select('*').order('created_at', { ascending: false })
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">← Home</Link>
+            <h1 className="font-semibold text-gray-900">Clients</h1>
+          </div>
+          <Link href="/clients/new" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ New Client</Link>
+        </div>
+      </nav>
       <main className="max-w-4xl mx-auto px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500 text-sm mt-1">{user?.email}</p>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-gray-500 text-sm">Total Jobs</p>
-            <p className="text-3xl font-bold text-gray-900 mt-1">{jobs.length}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-gray-500 text-sm">Active Jobs</p>
-            <p className="text-3xl font-bold text-blue-600 mt-1">{activeJobs}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-gray-500 text-sm">Total Profit</p>
-            <p className={totalProfit >= 0 ? 'text-3xl font-bold text-green-600 mt-1' : 'text-3xl font-bold text-red-600 mt-1'}>
-              {totalProfit >= 0 ? '+' : '-'}\${Math.abs(totalProfit).toLocaleString()}
-            </p>
-          </div>
-        </div>
-
         <div className="bg-white rounded-xl border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">Jobs</h2>
-          </div>
-          {jobs.length === 0 && (
-            <div className="px-6 py-16 text-center">
-              <p className="text-gray-400">No jobs yet.</p>
-              <Link href="/jobs/new" className="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">Create your first job</Link>
-            </div>
-          )}
+          {!clientsList?.length && <div className="px-6 py-16 text-center text-gray-400">No clients yet.</div>}
           <div className="divide-y divide-gray-100">
-            {jobs.map((job: any) => {
-              const profit = Number(job.profit)
-              const isProfit = profit >= 0
-              return (
-                <Link href={"/jobs/" + job.id} key={job.id}>
-                  <div className="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition">
-                    <div>
-                      <p className="font-medium text-gray-900">{job.name}</p>
-                      <p className="text-gray-500 text-sm">{job.client_name}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className={isProfit ? 'font-semibold text-green-600' : 'font-semibold text-red-600'}>
-                        {isProfit ? '+' : '-'}\${Math.abs(profit).toLocaleString()}
-                      </p>
-                      <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{job.status}</span>
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
+            {clientsList?.map((client) => (
+              <div key={client.id} className="px-6 py-4">
+                <p className="font-medium text-gray-900">{client.name}</p>
+                <p className="text-gray-500 text-sm">{client.phone} {client.email}</p>
+              </div>
+            ))}
           </div>
         </div>
       </main>
@@ -107,5 +84,46 @@ export default function Home() {
   )
 }`
 
-fs.writeFileSync('app/page.tsx', content)
-console.log('done')
+// quotes/page.tsx
+const quotes = `import { createClient } from '../../utils/supabase/server'
+import Link from 'next/link'
+
+export default async function Quotes() {
+  const supabase = await createClient()
+  const { data: quotesList } = await supabase.from('quotes').select('*, jobs(name), clients(name)').order('created_at', { ascending: false })
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">← Home</Link>
+            <h1 className="font-semibold text-gray-900">Quotes</h1>
+          </div>
+          <Link href="/quotes/new" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ New Quote</Link>
+        </div>
+      </nav>
+      <main className="max-w-4xl mx-auto px-6 py-8">
+        <div className="bg-white rounded-xl border border-gray-200">
+          {!quotesList?.length && <div className="px-6 py-16 text-center text-gray-400">No quotes yet.</div>}
+          <div className="divide-y divide-gray-100">
+            {quotesList?.map((quote) => (
+              <div key={quote.id} className="px-6 py-4 flex justify-between items-center">
+                <div>
+                  <p className="font-medium text-gray-900">{quote.clients?.name || 'No client'}</p>
+                  <p className="text-gray-500 text-sm">{quote.jobs?.name || 'No job'}</p>
+                </div>
+                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">{quote.status}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}`
+
+fs.writeFileSync('app/clients/new/page.tsx', clientsNew)
+fs.writeFileSync('app/clients/page.tsx', clients)
+fs.writeFileSync('app/quotes/page.tsx', quotes)
+console.log('done all pages')
