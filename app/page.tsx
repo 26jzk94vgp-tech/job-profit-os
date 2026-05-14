@@ -1,19 +1,28 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from './lib/supabase'
+import { createClient } from '../utils/supabase/client'
 import Link from 'next/link'
 
 export default function Home() {
   const [jobs, setJobs] = useState<any[]>([])
+  const [user, setUser] = useState<any>(null)
+  const supabase = createClient()
 
-  async function loadJobs() {
+  async function loadData() {
+    const { data: { user } } = await supabase.auth.getUser()
+    setUser(user)
     const { data } = await supabase.from('job_summary').select('*')
     setJobs(data || [])
   }
 
+  async function handleSignOut() {
+    await supabase.auth.signOut()
+    window.location.href = '/login'
+  }
+
   useEffect(() => {
-    loadJobs()
+    loadData()
   }, [])
 
   return (
@@ -27,6 +36,7 @@ export default function Home() {
             <Link href="/jobs/new" className="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium">+ New Job</Link>
           </div>
         </div>
+        {user && <p className="text-gray-500 text-xs mb-4">{user.email}</p>}
         {jobs.length === 0 && <p className="text-gray-400 text-center mt-20">No jobs yet. Create your first job!</p>}
         <div className="space-y-3">
           {jobs.map((job: any) => {
@@ -47,6 +57,7 @@ export default function Home() {
             )
           })}
         </div>
+        <button onClick={handleSignOut} className="w-full mt-8 text-gray-500 text-sm py-2">Sign Out</button>
       </div>
     </main>
   )
