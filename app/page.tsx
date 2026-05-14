@@ -21,44 +21,87 @@ export default function Home() {
     window.location.href = '/login'
   }
 
-  useEffect(() => {
-    loadData()
-  }, [])
+  useEffect(() => { loadData() }, [])
+
+  const totalProfit = jobs.reduce((sum, j) => sum + Number(j.profit), 0)
+  const activeJobs = jobs.filter(j => j.status === 'active').length
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white p-6">
-      <div className="max-w-lg mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Job Profit OS</h1>
-          <div className="flex gap-2">
-            <Link href="/clients" className="bg-gray-700 text-white px-3 py-2 rounded-lg text-sm font-medium">Clients</Link>
-            <Link href="/quotes" className="bg-gray-700 text-white px-3 py-2 rounded-lg text-sm font-medium">Quotes</Link>
-            <Link href="/jobs/new" className="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium">+ New Job</Link>
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">JP</span>
+            </div>
+            <span className="font-semibold text-gray-900">Job Profit OS</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link href="/clients" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Clients</Link>
+            <Link href="/quotes" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Quotes</Link>
+            <button onClick={handleSignOut} className="text-gray-500 hover:text-gray-700 text-sm">Sign Out</button>
+            <Link href="/jobs/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">+ New Job</Link>
           </div>
         </div>
-        {user && <p className="text-gray-500 text-xs mb-4">{user.email}</p>}
-        {jobs.length === 0 && <p className="text-gray-400 text-center mt-20">No jobs yet. Create your first job!</p>}
-        <div className="space-y-3">
-          {jobs.map((job: any) => {
-            const profit = Number(job.profit)
-            const isProfit = profit >= 0
-            return (
-              <Link href={"/jobs/" + job.id} key={job.id}>
-                <div className="bg-gray-900 rounded-xl p-4 flex justify-between items-center hover:bg-gray-800 transition">
-                  <div>
-                    <p className="font-semibold">{job.name}</p>
-                    <p className="text-gray-400 text-sm">{job.client_name}</p>
-                  </div>
-                  <span className={isProfit ? 'font-bold text-lg text-green-400' : 'font-bold text-lg text-red-400'}>
-                    {isProfit ? '+' : '-'}{Math.abs(profit).toLocaleString()}
-                  </span>
-                </div>
-              </Link>
-            )
-          })}
+      </nav>
+
+      <main className="max-w-4xl mx-auto px-6 py-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-500 text-sm mt-1">{user?.email}</p>
         </div>
-        <button onClick={handleSignOut} className="w-full mt-8 text-gray-500 text-sm py-2">Sign Out</button>
-      </div>
-    </main>
+
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <p className="text-gray-500 text-sm">Total Jobs</p>
+            <p className="text-3xl font-bold text-gray-900 mt-1">{jobs.length}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <p className="text-gray-500 text-sm">Active Jobs</p>
+            <p className="text-3xl font-bold text-blue-600 mt-1">{activeJobs}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <p className="text-gray-500 text-sm">Total Profit</p>
+            <p className={totalProfit >= 0 ? 'text-3xl font-bold text-green-600 mt-1' : 'text-3xl font-bold text-red-600 mt-1'}>
+              {totalProfit >= 0 ? '+' : '-'}${Math.abs(totalProfit).toLocaleString()}
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-900">Jobs</h2>
+          </div>
+          {jobs.length === 0 && (
+            <div className="px-6 py-16 text-center">
+              <p className="text-gray-400">No jobs yet.</p>
+              <Link href="/jobs/new" className="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">Create your first job</Link>
+            </div>
+          )}
+          <div className="divide-y divide-gray-100">
+            {jobs.map((job: any) => {
+              const profit = Number(job.profit)
+              const isProfit = profit >= 0
+              return (
+                <Link href={"/jobs/" + job.id} key={job.id}>
+                  <div className="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition">
+                    <div>
+                      <p className="font-medium text-gray-900">{job.name}</p>
+                      <p className="text-gray-500 text-sm">{job.client_name}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className={isProfit ? 'font-semibold text-green-600' : 'font-semibold text-red-600'}>
+                        {isProfit ? '+' : '-'}${Math.abs(profit).toLocaleString()}
+                      </p>
+                      <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{job.status}</span>
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      </main>
+    </div>
   )
 }
