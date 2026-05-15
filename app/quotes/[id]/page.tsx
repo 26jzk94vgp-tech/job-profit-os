@@ -1,5 +1,4 @@
-const fs = require('fs')
-const part1 = `'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { use } from 'react'
@@ -56,11 +55,7 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
   const subTotal = items.reduce((sum, item) => sum + Number(item.quantity) * Number(item.unit_price), 0)
   const gst = subTotal * 0.1
   const totalIncGst = subTotal + gst
-`
-
-fs.writeFileSync('app/quotes/[id]/page.tsx', part1)
-console.log('part1 done')
-const part2 = `  return (
+  return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-4xl mx-auto p-6 print:hidden space-y-3">
         <div className="flex items-center gap-3">
@@ -70,7 +65,7 @@ const part2 = `  return (
         <div className="bg-white rounded-xl border border-gray-200 p-4 flex gap-3 flex-wrap">
           <span className="text-sm text-gray-500">Status:</span>
           {['draft','sent','accepted','declined'].map(s => (
-            <button key={s} onClick={() => updateStatus(s)} className={\`px-3 py-1 rounded-full text-xs font-medium capitalize \${quote.status === s ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}\`}>{s}</button>
+            <button key={s} onClick={() => updateStatus(s)} className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${quote.status === s ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>{s}</button>
           ))}
           <button onClick={() => window.print()} className="ml-auto px-4 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-700">🖨️ Print / PDF</button>
           {quote.job_id && (
@@ -138,8 +133,8 @@ const part2 = `  return (
                 <td className="border border-gray-300 px-2 py-1">{item.item_type || ''}</td>
                 <td className="border border-gray-300 px-2 py-1">{item.item_unit || ''}</td>
                 <td className="border border-gray-300 px-2 py-1 text-right">{item.quantity}</td>
-                <td className="border border-gray-300 px-2 py-1 text-right">\${Number(item.unit_price).toFixed(2)}</td>
-                <td className="border border-gray-300 px-2 py-1 text-right">\${(Number(item.quantity) * Number(item.unit_price)).toFixed(2)}</td>
+                <td className="border border-gray-300 px-2 py-1 text-right">${Number(item.unit_price).toFixed(2)}</td>
+                <td className="border border-gray-300 px-2 py-1 text-right">${(Number(item.quantity) * Number(item.unit_price)).toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
@@ -150,15 +145,15 @@ const part2 = `  return (
             <tbody>
               <tr className="border border-gray-300">
                 <td className="border border-gray-300 px-6 py-1 font-medium">Sub-Total</td>
-                <td className="border border-gray-300 px-6 py-1 text-right w-32">\${subTotal.toFixed(2)}</td>
+                <td className="border border-gray-300 px-6 py-1 text-right w-32">${subTotal.toFixed(2)}</td>
               </tr>
               <tr className="border border-gray-300">
                 <td className="border border-gray-300 px-6 py-1 font-medium">GST</td>
-                <td className="border border-gray-300 px-6 py-1 text-right">\${gst.toFixed(2)}</td>
+                <td className="border border-gray-300 px-6 py-1 text-right">${gst.toFixed(2)}</td>
               </tr>
               <tr className="border border-gray-300 bg-blue-50">
                 <td className="border border-gray-300 px-6 py-1 font-bold">Total Inc GST</td>
-                <td className="border border-gray-300 px-6 py-1 font-bold text-right">\${totalIncGst.toFixed(2)}</td>
+                <td className="border border-gray-300 px-6 py-1 font-bold text-right">${totalIncGst.toFixed(2)}</td>
               </tr>
             </tbody>
           </table>
@@ -179,8 +174,4 @@ const part2 = `  return (
       </div>
     </div>
   )
-}`
-
-const existing = require('fs').readFileSync('app/quotes/[id]/page.tsx', 'utf8')
-require('fs').writeFileSync('app/quotes/[id]/page.tsx', existing + part2)
-console.log('part2 done')
+}
