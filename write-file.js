@@ -1,130 +1,34 @@
 const fs = require('fs')
-const part1 = `'use client'
+const content = `import { Resend } from 'resend'
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '../../../utils/supabase/server'
 
-import { useState, useEffect } from 'react'
-import { use } from 'react'
-import { createClient } from '../../../../utils/supabase/client'
-import Link from 'next/link'
+const resend = new Resend(process.env.RESEND_API_KEY)
 
-export default function Invoice({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
-  const [job, setJob] = useState<any>(null)
-  const [entries, setEntries] = useState<any[]>([])
-  const [companyName, setCompanyName] = useState('')
-  const [companyEmail, setCompanyEmail] = useState('')
-  const [companyPhone, setCompanyPhone] = useState('')
-  const [invoiceNumber, setInvoiceNumber] = useState('INV-001')
-  const [dueDate, setDueDate] = useState('')
-  const [toEmail, setToEmail] = useState('')
-  const [sending, setSending] = useState(false)
-  const [sent, setSent] = useState(false)
-  const supabase = createClient()
-
-  useEffect(() => {
-    supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }) => setJob(data))
-    supabase.from('job_entries').select('*').eq('job_id', id).eq('type', 'invoice').then(({ data }) => setEntries(data || []))
-  }, [id])
-
-  async function handleSendEmail() {
-    if (!toEmail) { alert('Please enter client email'); return }
-    setSending(true)
-    const res = await fetch('/api/send-invoice', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jobId: id, toEmail, toName: job?.client_name, companyName, companyEmail, invoiceNumber, dueDate })
+export async function POST(request: NextRequest) {
+  try {
+    const { jobId, toEmail, toName, companyName, companyEmail, invoiceNumber, dueDate } = await request.json()
+    const supabase = await createClient()
+    const { data: job } = await supabase.from('job_summary').select('*').eq('id', jobId).single()
+    const { data: entries } = await supabase.from('job_entries').select('*').eq('job_id', jobId).eq('type', 'invoice')
+    if (!job) return NextResponse.json({ error: 'Job not found' }, { status: 404 })
+    const revenue = Number(job.revenue)
+    const itemsHtml = entries && entries.length > 0
+      ? entries.map((e: any) => '<tr><td style="padding:8px 0;border-bottom:1px solid #eee">' + (e.description || 'Service') + '</td><td style="padding:8px 0;border-bottom:1px solid #eee;text-align:right">$' + Number(e.amount).toLocaleString() + '</td></tr>').join('')
+      : '<tr><td style="padding:8px 0">' + job.name + ' - Professional Services</td><td style="padding:8px 0;text-align:right">$' + revenue.toLocaleString() + '</td></tr>'
+    const html = '<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:40px 20px"><div style="display:flex;justify-content:space-between;margin-bottom:32px"><div><h2 style="margin:0">' + companyName + '</h2>' + (companyEmail ? '<p style="color:#666">' + companyEmail + '</p>' : '') + '</div><div style="text-align:right"><h1 style="margin:0;color:#2563eb">INVOICE</h1><p style="color:#666">' + invoiceNumber + '</p>' + (dueDate ? '<p style="color:#666">Due: ' + dueDate + '</p>' : '') + '</div></div><div style="margin-bottom:24px"><p style="color:#999;font-size:12px">BILL TO</p><p style="font-weight:600">' + (toName || job.client_name) + '</p></div><table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:2px solid #eee"><th style="text-align:left;padding:8px 0;color:#666">Description</th><th style="text-align:right;padding:8px 0;color:#666">Amount</th></tr></thead><tbody>' + itemsHtml + '</tbody><tfoot><tr><td style="padding:16px 0;font-weight:700">Total</td><td style="padding:16px 0;font-weight:700;text-align:right;color:#2563eb">$' + revenue.toLocaleString() + '</td></tr></tfoot></table><p style="color:#999;margin-top:32px;font-size:14px">Thank you for your business!</p></div>'
+    const { error } = await resend.emails.send({
+      from: 'Invoice <onboarding@resend.dev>',
+      to: toEmail,
+      subject: 'Invoice ' + invoiceNumber + ' from ' + companyName,
+      html,
     })
-    const json = await res.json()
-    if (json.success) { setSent(true) } else { alert('Failed to send: ' + json.error) }
-    setSending(false)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to send email' }, { status: 500 })
   }
-
-  function handlePrint() { window.print() }
-
-  if (!job) return <div className="p-6">Loading...</div>
-
-  const revenue = Number(job.revenue)
-`
-fs.writeFileSync('app/jobs/[id]/invoice/page.tsx', part1)
-console.log('part1 done')
-const part2 = `  return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4 print:hidden">
-        <div className="max-w-4xl mx-auto flex items-center gap-3">
-          <Link href={"/jobs/" + id} className="text-gray-500 hover:text-gray-700 text-sm">← Back</Link>
-          <h1 className="font-semibold text-gray-900">Invoice</h1>
-        </div>
-      </nav>
-
-      <div className="max-w-4xl mx-auto px-6 py-8 flex gap-6">
-        <div className="w-72 shrink-0 print:hidden">
-          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-            <h2 className="font-semibold text-gray-900">Your Details</h2>
-            <div><label className="text-gray-500 text-xs">Company Name</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Your Company" /></div>
-            <div><label className="text-gray-500 text-xs">Your Email</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={companyEmail} onChange={(e) => setCompanyEmail(e.target.value)} placeholder="you@company.com" /></div>
-            <div><label className="text-gray-500 text-xs">Phone</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} placeholder="0400 000 000" /></div>
-            <div><label className="text-gray-500 text-xs">Invoice Number</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} /></div>
-            <div><label className="text-gray-500 text-xs">Due Date</label><input type="date" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></div>
-            <hr />
-            <h2 className="font-semibold text-gray-900">Send to Client</h2>
-            <div><label className="text-gray-500 text-xs">Client Email</label><input type="email" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={toEmail} onChange={(e) => setToEmail(e.target.value)} placeholder="client@email.com" /></div>
-            {sent && <p className="text-green-600 text-sm font-medium">✅ Invoice sent!</p>}
-            <button onClick={handleSendEmail} disabled={sending} className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50">{sending ? 'Sending...' : '📧 Send Invoice'}</button>
-            <button onClick={handlePrint} className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium">🖨️ Print / PDF</button>
-          </div>
-        </div>
-
-        <div className="flex-1 bg-white rounded-xl border border-gray-200 p-8">
-          <div className="flex justify-between items-start mb-8">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">{companyName || 'Your Company'}</h2>
-              {companyEmail && <p className="text-gray-500 text-sm">{companyEmail}</p>}
-              {companyPhone && <p className="text-gray-500 text-sm">{companyPhone}</p>}
-            </div>
-            <div className="text-right">
-              <h1 className="text-3xl font-bold text-blue-600">INVOICE</h1>
-              <p className="text-gray-500 text-sm">{invoiceNumber}</p>
-              {dueDate && <p className="text-gray-500 text-sm">Due: {dueDate}</p>}
-            </div>
-          </div>
-          <div className="mb-8">
-            <p className="text-gray-400 text-xs uppercase mb-1">Bill To</p>
-            <p className="font-semibold text-gray-900">{job.client_name || 'Client'}</p>
-            <p className="text-gray-500 text-sm">{job.name}</p>
-          </div>
-          <table className="w-full">
-            <thead>
-              <tr className="border-b-2 border-gray-200">
-                <th className="text-left py-2 text-gray-500 text-sm font-medium">Description</th>
-                <th className="text-right py-2 text-gray-500 text-sm font-medium">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {entries.length > 0 ? entries.map((e) => (
-                <tr key={e.id} className="border-b border-gray-100">
-                  <td className="py-3 text-gray-900">{e.description || 'Service'}</td>
-                  <td className="py-3 text-right text-gray-900">\${Number(e.amount).toLocaleString()}</td>
-                </tr>
-              )) : (
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 text-gray-900">{job.name} - Professional Services</td>
-                  <td className="py-3 text-right text-gray-900">\${revenue.toLocaleString()}</td>
-                </tr>
-              )}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td className="py-4 font-bold text-gray-900">Total</td>
-                <td className="py-4 text-right font-bold text-blue-600 text-lg">\${revenue.toLocaleString()}</td>
-              </tr>
-            </tfoot>
-          </table>
-          <p className="text-gray-400 text-sm mt-8">Thank you for your business!</p>
-        </div>
-      </div>
-    </div>
-  )
 }`
 
-const existing = require('fs').readFileSync('app/jobs/[id]/invoice/page.tsx', 'utf8')
-require('fs').writeFileSync('app/jobs/[id]/invoice/page.tsx', existing + part2)
-console.log('part2 done')
+fs.writeFileSync('app/api/send-invoice/route.ts', content)
+console.log('done')
