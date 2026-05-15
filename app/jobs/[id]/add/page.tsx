@@ -110,12 +110,12 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 <div><label className="text-gray-700 text-sm font-medium">Worker Name</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. Tom" value={workerName} onChange={(e) => setWorkerName(e.target.value)} /></div>
                 <div>
                   <label className="text-gray-700 text-sm font-medium">Hours</label>
-                  <input type="number" min="0" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 8 (or /)" value={hours} onChange={(e) => { setHours(e.target.value); validatePositive(e.target.value, 'hours') }} />
+                  <input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 8 (or /)" value={hours} onChange={(e) => { setHours(e.target.value); validatePositive(e.target.value, 'hours') }} />
                   {errors.hours && <p className="text-red-500 text-xs mt-1">{errors.hours}</p>}
                 </div>
                 <div>
                   <label className="text-gray-700 text-sm font-medium">Hourly Rate ($)</label>
-                  <input type="number" min="0" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 65 (or /)" value={hourlyRate} onChange={(e) => { setHourlyRate(e.target.value); validatePositive(e.target.value, 'hourlyRate') }} />
+                  <input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 65 (or /)" value={hourlyRate} onChange={(e) => { setHourlyRate(e.target.value); validatePositive(e.target.value, 'hourlyRate') }} />
                   {errors.hourlyRate && <p className="text-red-500 text-xs mt-1">{errors.hourlyRate}</p>}
                 </div>
                 {hours && hourlyRate && hours !== '/' && hourlyRate !== '/' && <p className="text-green-600 text-sm font-medium">Total: ${(Number(hours) * Number(hourlyRate)).toLocaleString()}</p>}
@@ -126,20 +126,20 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 <div className="flex gap-3">
                   <div className="flex-1">
                     <label className="text-gray-700 text-sm font-medium">Quantity</label>
-                    <input type="number" min="0" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 10 (or /)" value={quantity} onChange={(e) => { setQuantity(e.target.value); validatePositive(e.target.value, 'quantity') }} />
+                    <input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 10 (or /)" value={quantity} onChange={(e) => { setQuantity(e.target.value); validatePositive(e.target.value, 'quantity') }} />
                     {errors.quantity && <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>}
                   </div>
                   <div className="w-24"><label className="text-gray-700 text-sm font-medium">Unit</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="m/kg" value={unit} onChange={(e) => setUnit(e.target.value)} /></div>
                 </div>
                 <div>
                   <label className="text-gray-700 text-sm font-medium">Unit Price ($)</label>
-                  <input type="number" min="0" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 12.50 (or /)" value={unitPrice} onChange={(e) => { setUnitPrice(e.target.value); validatePositive(e.target.value, 'unitPrice') }} />
+                  <input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 12.50 (or /)" value={unitPrice} onChange={(e) => { setUnitPrice(e.target.value); validatePositive(e.target.value, 'unitPrice') }} />
                   {errors.unitPrice && <p className="text-red-500 text-xs mt-1">{errors.unitPrice}</p>}
                 </div>
                 {quantity && unitPrice && quantity !== '/' && unitPrice !== '/' && <p className="text-green-600 text-sm font-medium">Total: ${(Number(quantity) * Number(unitPrice)).toLocaleString()}</p>}
                 <div>
                   <label className="text-gray-700 text-sm font-medium">Or enter total directly</label>
-                  <input type="number" min="0" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 1200 (or /)" value={amount} onChange={(e) => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />
+                  <input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 1200 (or /)" value={amount} onChange={(e) => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />
                   {errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}
                 </div>
               </div>
@@ -148,7 +148,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 <div><label className="text-gray-700 text-sm font-medium">Description</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder={type === 'invoice' ? 'e.g. Progress payment' : 'e.g. Subcontractor'} value={description} onChange={(e) => setDescription(e.target.value)} /></div>
                 <div>
                   <label className="text-gray-700 text-sm font-medium">Amount ($)</label>
-                  <input type="number" min="0" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 1200 (or /)" value={amount} onChange={(e) => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />
+                  <input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 1200 (or /)" value={amount} onChange={(e) => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />
                   {errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}
                 </div>
               </div>
