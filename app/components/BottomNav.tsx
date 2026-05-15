@@ -6,7 +6,7 @@ import { useLanguage } from '../../lib/i18n/LanguageContext'
 
 export default function BottomNav() {
   const pathname = usePathname()
-  const { lang, setLang, t } = useLanguage()
+  const { lang } = useLanguage()
 
   if (pathname === '/login') return null
 
@@ -36,13 +36,6 @@ export default function BottomNav() {
             <span className="text-xs font-medium">{tab.label}</span>
           </Link>
         ))}
-        <button
-          onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
-          className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-gray-500"
-        >
-          <span className="text-xl">🌐</span>
-          <span className="text-xs font-medium">{lang === 'en' ? '中文' : 'EN'}</span>
-        </button>
       </div>
     </nav>
   )
