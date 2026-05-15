@@ -1,92 +1,12 @@
 const fs = require('fs')
-const content = `'use client'
+let content = fs.readFileSync('app/page.tsx', 'utf8')
 
-import { useEffect, useState } from 'react'
-import { createClient } from '../utils/supabase/client'
-import Link from 'next/link'
-import { useLanguage, LangToggle } from '../lib/i18n/LanguageContext'
+content = content
+  .replace('>Clients</Link>', '>{t.clients}</Link>')
+  .replace('>Quotes</Link>', '>{t.quotes}</Link>')
+  .replace('>Tax Report</Link>', '>{t.taxReport}</Link>')
+  .replace('>Cash Flow</Link>', '>{t.cashFlow}</Link>')
+  .replace('>Sign Out</button>', '>{t.signOut}</button>')
 
-export default function Home() {
-  const [jobs, setJobs] = useState<any[]>([])
-  const [user, setUser] = useState<any>(null)
-  const supabase = createClient()
-  const { t } = useLanguage()
-
-  async function loadData() {
-    const { data: { user } } = await supabase.auth.getUser()
-    setUser(user)
-    const { data } = await supabase.from('job_summary').select('*')
-    setJobs(data || [])
-  }
-
-  async function handleSignOut() {
-    await supabase.auth.signOut()
-    window.location.href = '/login'
-  }
-
-  useEffect(() => { loadData() }, [])
-
-  const totalProfit = jobs.reduce((sum, j) => sum + Number(j.profit), 0)
-  const activeJobs = jobs.filter(j => j.status === 'active').length
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">JP</span>
-            </div>
-            <span className="font-semibold text-gray-900">Job Profit OS</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/clients" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.clients}</Link>
-            <Link href="/quotes" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.quotes}</Link>
-            <Link href="/reports" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.taxReport}</Link>
-            <Link href="/cashflow" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.cashFlow}</Link>
-            <LangToggle />
-            <button onClick={handleSignOut} className="text-gray-500 hover:text-gray-700 text-sm">{t.signOut}</button>
-            <Link href="/jobs/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">{t.newJob}</Link>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-4xl mx-auto px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">{t.dashboard}</h1>
-          <p className="text-gray-500 text-sm mt-1">{user?.email}</p>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-gray-500 text-sm">{t.totalJobs}</p>
-            <p className="text-3xl font-bold text-gray-900 mt-1">{jobs.length}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-gray-500 text-sm">{t.activeJobs}</p>
-            <p className="text-3xl font-bold text-blue-600 mt-1">{activeJobs}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-gray-500 text-sm">{t.totalProfit}</p>
-            <p className={totalProfit >= 0 ? 'text-3xl font-bold text-green-600 mt-1' : 'text-3xl font-bold text-red-600 mt-1'}>
-              {totalProfit >= 0 ? '+' : '-'}\${Math.abs(totalProfit).toLocaleString()}
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">Jobs</h2>
-          </div>
-          {jobs.length === 0 && (
-            <div className="px-6 py-16 text-center">
-              <p className="text-gray-400">{t.noJobs}</p>
-              <Link href="/jobs/new" className="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">{t.newJob}</Link>
-            </div>
-          )}
-          <div className="divide-y divide-gray-100">
-            {jobs.map((job: any) => {
-              const profit = Number(job.profit)
-              const isProfit = profit >= 0
-              return (
-                <Link href={"/jobs/" + job.id} key={job​​​​​​​​​​​​​​​​
+fs.writeFileSync('app/page.tsx', content)
+console.log('done')

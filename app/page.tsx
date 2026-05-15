@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '../utils/supabase/client'
 import Link from 'next/link'
+import { useLanguage, LangToggle } from '../lib/i18n/LanguageContext'
 
 export default function Home() {
   const [jobs, setJobs] = useState<any[]>([])
   const [user, setUser] = useState<any>(null)
   const supabase = createClient()
+  const { t } = useLanguage()
 
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -37,11 +39,12 @@ export default function Home() {
             <span className="font-semibold text-gray-900">Job Profit OS</span>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/clients" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Clients</Link>
-            <Link href="/quotes" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Quotes</Link>
-            <Link href="/reports" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Tax Report</Link>
-            <Link href="/cashflow" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Cash Flow</Link>
-            <button onClick={handleSignOut} className="text-gray-500 hover:text-gray-700 text-sm">Sign Out</button>
+            <Link href="/clients" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.clients}</Link>
+            <Link href="/quotes" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.quotes}</Link>
+            <Link href="/reports" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.taxReport}</Link>
+            <Link href="/cashflow" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.cashFlow}</Link>
+            <LangToggle />
+            <button onClick={handleSignOut} className="text-gray-500 hover:text-gray-700 text-sm">{t.signOut}</button>
             <Link href="/jobs/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">+ New Job</Link>
           </div>
         </div>
