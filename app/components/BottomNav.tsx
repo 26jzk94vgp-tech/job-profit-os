@@ -2,18 +2,20 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useLanguage } from '../../lib/i18n/LanguageContext'
 
 export default function BottomNav() {
   const pathname = usePathname()
+  const { lang, setLang, t } = useLanguage()
 
   if (pathname === '/login') return null
 
   const tabs = [
-    { href: '/', icon: '🏠', label: '首页', labelEn: 'Home' },
-    { href: '/jobs/new', icon: '➕', label: '新工程', labelEn: 'New Job' },
-    { href: '/tax', icon: '📊', label: '税务', labelEn: 'Tax' },
-    { href: '/cashflow', icon: '💰', label: '现金流', labelEn: 'Cash Flow' },
-    { href: '/clients', icon: '👥', label: '客户', labelEn: 'Clients' },
+    { href: '/', icon: '🏠', label: lang === 'zh' ? '首页' : 'Home' },
+    { href: '/jobs/new', icon: '➕', label: lang === 'zh' ? '新工程' : 'New Job' },
+    { href: '/tax', icon: '📊', label: lang === 'zh' ? '税务' : 'Tax' },
+    { href: '/cashflow', icon: '💰', label: lang === 'zh' ? '现金流' : 'Cash' },
+    { href: '/clients', icon: '👥', label: lang === 'zh' ? '客户' : 'Clients' },
   ]
 
   const isActive = (href: string) => {
@@ -28,12 +30,19 @@ export default function BottomNav() {
           <Link
             key={tab.href}
             href={tab.href}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg ${isActive(tab.href) ? 'text-blue-600' : 'text-gray-500'}`}
+            className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg ${isActive(tab.href) ? 'text-blue-600' : 'text-gray-500'}`}
           >
             <span className="text-xl">{tab.icon}</span>
             <span className="text-xs font-medium">{tab.label}</span>
           </Link>
         ))}
+        <button
+          onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
+          className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-gray-500"
+        >
+          <span className="text-xl">🌐</span>
+          <span className="text-xs font-medium">{lang === 'en' ? '中文' : 'EN'}</span>
+        </button>
       </div>
     </nav>
   )
