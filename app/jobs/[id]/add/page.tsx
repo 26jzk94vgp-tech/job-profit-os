@@ -198,4 +198,10 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 <p className="text-gray-400 text-xs mt-1">Used for BAS and tax reporting</p>
               </div>
             </div>
+            <button onClick={handleSubmit} disabled={loading || Object.keys(errors).length > 0} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium disabled:opacity-50">{loading ? 'Saving...' : 'Save Entry'}</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
 }
