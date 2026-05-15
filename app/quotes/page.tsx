@@ -21,13 +21,20 @@ export default async function Quotes() {
           {!quotesList?.length && <div className="px-6 py-16 text-center text-gray-400">还没有报价单 / No quotes yet.</div>}
           <div className="divide-y divide-gray-100">
             {quotesList?.map((quote) => (
-              <div key={quote.id} className="px-6 py-4 flex justify-between items-center">
-                <div>
-                  <p className="font-medium text-gray-900">{quote.clients?.name || '无客户 / No client'}</p>
-                  <p className="text-gray-500 text-sm">{quote.jobs?.name || '无工程 / No job'}</p>
+              <Link href={"/quotes/" + quote.id} key={quote.id}>
+                <div className="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition cursor-pointer">
+                  <div>
+                    <p className="font-medium text-gray-900">{quote.clients?.name || '无客户 / No client'}</p>
+                    <p className="text-gray-500 text-sm">{quote.jobs?.name || '无工程 / No job'} · {quote.quote_number || 'Q-001'}</p>
+                  </div>
+                  <span className={
+                    quote.status === 'accepted' ? 'text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full' :
+                    quote.status === 'sent' ? 'text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full' :
+                    quote.status === 'declined' ? 'text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full' :
+                    'text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full'
+                  }>{quote.status}</span>
                 </div>
-                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">{quote.status}</span>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
