@@ -42,7 +42,7 @@ export default function Pricing() {
       features: lang === 'zh'
         ? ['无限工程', '收据 OCR 扫描', 'GST & ATO 税务报告', '现金流预测', '家庭办公室记录', '坏账预警', '邮件发票发送']
         : ['Unlimited jobs', 'Receipt OCR scanning', 'GST & ATO tax reports', 'Cash flow forecast', 'Home office tracking', 'Bad debt alerts', 'Email invoice sending'],
-      priceId: 'price_pro_monthly',
+      priceId: 'price_1TXO6o3P1ANC7pny4NcwtJWk',
       cta: lang === 'zh' ? '开始专业版' : 'Start Pro',
       highlight: true
     },

@@ -2,10 +2,11 @@ import Stripe from 'stripe'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '../../../../utils/supabase/server'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+// stripe initialized per request
 
 export async function POST(request: NextRequest) {
   try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

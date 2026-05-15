@@ -2,9 +2,10 @@ import Stripe from 'stripe'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '../../../../utils/supabase/server'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+// stripe initialized per request
 
 export async function POST(request: NextRequest) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
   const body = await request.text()
   const sig = request.headers.get('stripe-signature')!
 
