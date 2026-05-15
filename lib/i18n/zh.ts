@@ -8,7 +8,7 @@ export const zh = {
   signOut: '退出登录',
 
   // Dashboard
-  dashboard: '仪表盘',
+  dashboard: '工程概览',
   totalJobs: '总工程数',
   activeJobs: '进行中',
   totalProfit: '总利润',
