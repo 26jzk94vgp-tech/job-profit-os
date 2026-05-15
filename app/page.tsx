@@ -75,7 +75,7 @@ export default function Home() {
 
         <div className="bg-white rounded-xl border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">Jobs</h2>
+            <h2 className="font-semibold text-gray-900">{t.dashboard === "仪表盘" ? "工程列表" : "Jobs"}</h2>
           </div>
           {jobs.length === 0 && (
             <div className="px-6 py-16 text-center">
