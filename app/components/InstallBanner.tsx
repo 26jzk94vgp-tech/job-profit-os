@@ -6,11 +6,10 @@ export default function InstallBanner() {
   const [show, setShow] = useState(false)
 
   useEffect(() => {
-    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
     const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches
     const dismissed = localStorage.getItem('installBannerDismissed')
     
-    if (isIOS && !isInStandaloneMode && !dismissed) {
+    if (!isInStandaloneMode && !dismissed) {
       setShow(true)
     }
   }, [])
@@ -29,7 +28,7 @@ export default function InstallBanner() {
           <div className="flex-1">
             <p className="font-semibold text-sm">📲 安装到主屏幕 / Add to Home Screen</p>
             <p className="text-blue-100 text-xs mt-1">
-              点底部 <span className="bg-blue-500 px-1 rounded">分享</span> 按钮，选「添加到主屏幕」体验更流畅 / Tap Share then Add to Home Screen for a faster app experience
+              点底部 分享 按钮，选「添加到主屏幕」体验更流畅 / Tap Share then Add to Home Screen for a faster experience
             </p>
           </div>
           <button onClick={handleDismiss} className="text-blue-200 ml-3 text-lg">✕</button>
