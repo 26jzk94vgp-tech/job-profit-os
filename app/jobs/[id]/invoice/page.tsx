@@ -2,99 +2,119 @@
 
 import { useState, useEffect } from 'react'
 import { use } from 'react'
-import { supabase } from '../../../lib/supabase'
+import { createClient } from '../../../../utils/supabase/client'
+import Link from 'next/link'
 
 export default function Invoice({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const [job, setJob] = useState<any>(null)
   const [entries, setEntries] = useState<any[]>([])
-  const [companyName, setCompanyName] = useState('Your Company Name')
-  const [companyPhone, setCompanyPhone] = useState('')
+  const [companyName, setCompanyName] = useState('')
   const [companyEmail, setCompanyEmail] = useState('')
+  const [companyPhone, setCompanyPhone] = useState('')
   const [invoiceNumber, setInvoiceNumber] = useState('INV-001')
   const [dueDate, setDueDate] = useState('')
+  const [toEmail, setToEmail] = useState('')
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
+  const supabase = createClient()
 
   useEffect(() => {
     supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }) => setJob(data))
     supabase.from('job_entries').select('*').eq('job_id', id).eq('type', 'invoice').then(({ data }) => setEntries(data || []))
   }, [id])
 
-  function handlePrint() {
-    window.print()
+  async function handleSendEmail() {
+    if (!toEmail) { alert('Please enter client email'); return }
+    setSending(true)
+    const res = await fetch('/api/send-invoice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId: id, toEmail, toName: job?.client_name, companyName, companyEmail, invoiceNumber, dueDate })
+    })
+    const json = await res.json()
+    if (json.success) { setSent(true) } else { alert('Failed to send: ' + json.error) }
+    setSending(false)
   }
-  if (!job) return <div className="text-white p-6">Loading...</div>
+
+  function handlePrint() { window.print() }
+
+  if (!job) return <div className="p-6">Loading...</div>
 
   const revenue = Number(job.revenue)
-  const labor = Number(job.labor_cost)
-  const material = Number(job.material_cost)
-  const subcontract = Number(job.subcontract_cost)
-  const totalCost = labor + material + subcontract
-  const profit = Number(job.profit)
-
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      <div className="max-w-2xl mx-auto p-6 print:hidden">
-        <div className="flex items-center gap-3 mb-6"><a href={"javascript:history.back()"} className="text-gray-400">← Back</a><h1 className="text-2xl font-bold">Invoice Preview</h1></div>
-        <div className="space-y-3 mb-6">
-          <div><label className="text-gray-400 text-sm">Company Name</label><input className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" value={companyName} onChange={(e) => setCompanyName(e.target.value)} /></div>
-          <div><label className="text-gray-400 text-sm">Phone</label><input className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="0400 000 000" value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} /></div>
-          <div><label className="text-gray-400 text-sm">Email</label><input className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" placeholder="info@company.com" value={companyEmail} onChange={(e) => setCompanyEmail(e.target.value)} /></div>
-          <div><label className="text-gray-400 text-sm">Invoice Number</label><input className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} /></div>
-          <div><label className="text-gray-400 text-sm">Due Date</label><input type="date" className="w-full bg-gray-900 rounded-lg p-3 mt-1 text-white outline-none" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></div>
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white border-b border-gray-200 px-6 py-4 print:hidden">
+        <div className="max-w-4xl mx-auto flex items-center gap-3">
+          <Link href={"/jobs/" + id} className="text-gray-500 hover:text-gray-700 text-sm">← Back</Link>
+          <h1 className="font-semibold text-gray-900">Invoice</h1>
         </div>
-        <button onClick={handlePrint} className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium mb-4">🖨️ Print / Save as PDF</button>
-      </div>
+      </nav>
 
-      <div className="max-w-2xl mx-auto p-8 bg-white text-gray-900 print:p-8">
-        <div className="flex justify-between items-start mb-8">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">{companyName}</h2>
-            {companyPhone && <p className="text-gray-600">{companyPhone}</p>}
-            {companyEmail && <p className="text-gray-600">{companyEmail}</p>}
+      <div className="max-w-4xl mx-auto px-6 py-8 flex gap-6">
+        <div className="w-72 shrink-0 print:hidden">
+          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+            <h2 className="font-semibold text-gray-900">Your Details</h2>
+            <div><label className="text-gray-500 text-xs">Company Name</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Your Company" /></div>
+            <div><label className="text-gray-500 text-xs">Your Email</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={companyEmail} onChange={(e) => setCompanyEmail(e.target.value)} placeholder="you@company.com" /></div>
+            <div><label className="text-gray-500 text-xs">Phone</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} placeholder="0400 000 000" /></div>
+            <div><label className="text-gray-500 text-xs">Invoice Number</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} /></div>
+            <div><label className="text-gray-500 text-xs">Due Date</label><input type="date" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></div>
+            <hr />
+            <h2 className="font-semibold text-gray-900">Send to Client</h2>
+            <div><label className="text-gray-500 text-xs">Client Email</label><input type="email" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={toEmail} onChange={(e) => setToEmail(e.target.value)} placeholder="client@email.com" /></div>
+            {sent && <p className="text-green-600 text-sm font-medium">✅ Invoice sent!</p>}
+            <button onClick={handleSendEmail} disabled={sending} className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50">{sending ? 'Sending...' : '📧 Send Invoice'}</button>
+            <button onClick={handlePrint} className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium">🖨️ Print / PDF</button>
           </div>
-          <div className="text-right">
-            <h1 className="text-3xl font-bold text-blue-600">INVOICE</h1>
-            <p className="text-gray-600">{invoiceNumber}</p>
-            {dueDate && <p className="text-gray-600">Due: {dueDate}</p>}
+        </div>
+
+        <div className="flex-1 bg-white rounded-xl border border-gray-200 p-8">
+          <div className="flex justify-between items-start mb-8">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">{companyName || 'Your Company'}</h2>
+              {companyEmail && <p className="text-gray-500 text-sm">{companyEmail}</p>}
+              {companyPhone && <p className="text-gray-500 text-sm">{companyPhone}</p>}
+            </div>
+            <div className="text-right">
+              <h1 className="text-3xl font-bold text-blue-600">INVOICE</h1>
+              <p className="text-gray-500 text-sm">{invoiceNumber}</p>
+              {dueDate && <p className="text-gray-500 text-sm">Due: {dueDate}</p>}
+            </div>
           </div>
-        </div>
-
-        <div className="mb-8">
-          <h3 className="text-gray-500 text-sm uppercase mb-1">Bill To</h3>
-          <p className="font-semibold">{job.client_name || 'Client Name'}</p>
-          <p className="text-gray-600">{job.name}</p>
-        </div>
-
-        <table className="w-full mb-8">
-          <thead>
-            <tr className="border-b-2 border-gray-200">
-              <th className="text-left py-2 text-gray-600">Description</th>
-              <th className="text-right py-2 text-gray-600">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {entries.length > 0 ? entries.map((e) => (
-              <tr key={e.id} className="border-b border-gray-100">
-                <td className="py-3">{e.description || 'Service'}</td>
-                <td className="py-3 text-right">${Number(e.amount).toLocaleString()}</td>
+          <div className="mb-8">
+            <p className="text-gray-400 text-xs uppercase mb-1">Bill To</p>
+            <p className="font-semibold text-gray-900">{job.client_name || 'Client'}</p>
+            <p className="text-gray-500 text-sm">{job.name}</p>
+          </div>
+          <table className="w-full">
+            <thead>
+              <tr className="border-b-2 border-gray-200">
+                <th className="text-left py-2 text-gray-500 text-sm font-medium">Description</th>
+                <th className="text-right py-2 text-gray-500 text-sm font-medium">Amount</th>
               </tr>
-            )) : (
-              <tr className="border-b border-gray-100">
-                <td className="py-3">{job.name} - Professional Services</td>
-                <td className="py-3 text-right">${revenue.toLocaleString()}</td>
+            </thead>
+            <tbody>
+              {entries.length > 0 ? entries.map((e) => (
+                <tr key={e.id} className="border-b border-gray-100">
+                  <td className="py-3 text-gray-900">{e.description || 'Service'}</td>
+                  <td className="py-3 text-right text-gray-900">${Number(e.amount).toLocaleString()}</td>
+                </tr>
+              )) : (
+                <tr className="border-b border-gray-100">
+                  <td className="py-3 text-gray-900">{job.name} - Professional Services</td>
+                  <td className="py-3 text-right text-gray-900">${revenue.toLocaleString()}</td>
+                </tr>
+              )}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td className="py-4 font-bold text-gray-900">Total</td>
+                <td className="py-4 text-right font-bold text-blue-600 text-lg">${revenue.toLocaleString()}</td>
               </tr>
-            )}
-          </tbody>
-          <tfoot>
-            <tr className="font-bold text-lg">
-              <td className="py-4">Total</td>
-              <td className="py-4 text-right text-blue-600">${revenue.toLocaleString()}</td>
-            </tr>
-          </tfoot>
-        </table>
-
-        <div className="border-t pt-4 text-gray-500 text-sm">
-          <p>Thank you for your business!</p>
+            </tfoot>
+          </table>
+          <p className="text-gray-400 text-sm mt-8">Thank you for your business!</p>
         </div>
       </div>
     </div>
