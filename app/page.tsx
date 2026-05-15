@@ -98,7 +98,7 @@ export default function Home() {
                       <p className={isProfit ? 'font-semibold text-green-600' : 'font-semibold text-red-600'}>
                         {isProfit ? '+' : '-'}${Math.abs(profit).toLocaleString()}
                       </p>
-                      <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{job.status}</span>
+                      <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{job.status === "active" ? (t.dashboard === "仪表盘" ? "进行中" : "active") : job.status === "completed" ? (t.dashboard === "仪表盘" ? "已完成" : "completed") : (t.dashboard === "仪表盘" ? "暂停" : "paused")}</span>
                     </div>
                   </div>
                 </Link>
