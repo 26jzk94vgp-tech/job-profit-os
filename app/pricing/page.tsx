@@ -54,7 +54,7 @@ export default function Pricing() {
       features: lang === 'zh'
         ? ['专业版所有功能', '多用户账号', 'Super 供款优化', 'Year-End 税务清单', '优先客户支持']
         : ['Everything in Pro', 'Multi-user accounts', 'Super contribution optimizer', 'Year-End tax checklist', 'Priority support'],
-      priceId: 'price_business_monthly',
+      priceId: 'price_1TXOES3P1ANC7pnyJ5rPVfnf',
       cta: lang === 'zh' ? '开始商业版' : 'Start Business',
       highlight: false
     }
