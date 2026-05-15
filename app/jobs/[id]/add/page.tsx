@@ -30,8 +30,8 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
 
   function validatePositive(value: string, field: string) {
     if (value === '' || value === '/') { setErrors(e => { const n = {...e}; delete n[field]; return n }); return true }
-    if (!/^\d+(\.5)?$/.test(value)) {
-      setErrors(e => ({ ...e, [field]: 'Only whole numbers, x.5, or / allowed.' }))
+    if (!/^\d+(\.\d{0,2})?$/.test(value)) {
+      setErrors(e => ({ ...e, [field]: 'Only numbers (up to 2 decimal places) or / allowed.' }))
       return false
     }
     const num = Number(value)
