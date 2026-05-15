@@ -1,8 +1,15 @@
 const fs = require('fs')
-let content = fs.readFileSync('app/components/BottomNav.tsx', 'utf8')
+let content = fs.readFileSync('app/layout.tsx', 'utf8')
 content = content.replace(
-  'className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50"',
-  'className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-[100] shadow-lg"'
+  '<body className="min-h-full flex flex-col pb-24 md:pb-0 pt-10 md:pt-0">',
+  `<head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Job Profit OS" />
+        <meta name="theme-color" content="#2563eb" />
+      </head>
+      <body className="min-h-full flex flex-col pb-24 md:pb-0 pt-10 md:pt-0">`
 )
-fs.writeFileSync('app/components/BottomNav.tsx', content)
+fs.writeFileSync('app/layout.tsx', content)
 console.log('done')
