@@ -59,7 +59,10 @@ export default async function Reports() {
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
         <div className="bg-white rounded-xl border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-100">
+            <div className="flex justify-between items-center">
             <h2 className="font-semibold text-gray-900">GST Summary (BAS)</h2>
+            <Link href="/reports/monthly" className="text-blue-600 text-sm hover:text-blue-800">Monthly P&L →</Link>
+          </div>
             <p className="text-gray-400 text-xs mt-1">Based on all entries marked as GST Inclusive</p>
           </div>
           <div className="divide-y divide-gray-100">
