@@ -18,6 +18,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [toEmail, setToEmail] = useState('')
+  const [note, setNote] = useState('Payment due within 14 days. Thank you for your business!')
 
   useEffect(() => {
     supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }) => {
@@ -80,6 +81,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
           <hr />
           <div><label className="text-gray-500 text-xs">Send to Client Email</label><input type="email" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" placeholder="client@email.com" value={toEmail} onChange={(e) => setToEmail(e.target.value)} /></div>
           {sent && <p className="text-green-600 text-sm">✅ Invoice sent!</p>}
+          <div><label className="text-gray-500 text-xs">Note / Payment Terms</label><textarea className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" rows={2} value={note} onChange={(e) => setNote(e.target.value)} /></div>
           <div className="flex gap-3">
             <button onClick={handleSendEmail} disabled={sending} className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50">{sending ? 'Sending...' : '📧 Send Invoice'}</button>
             <button onClick={() => window.print()} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium">🖨️ Print / PDF</button>
@@ -166,6 +168,12 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
             </tbody>
           </table>
         </div>
+        {note && (
+          <div className="mt-6 pt-4 border-t border-gray-300">
+            <p className="text-xs font-medium text-gray-600 mb-1">Note:</p>
+            <p className="text-sm text-gray-700">{note}</p>
+          </div>
+        )}
       </div>
     </div>
   )
