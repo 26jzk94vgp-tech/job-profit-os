@@ -28,7 +28,7 @@ export default function MobileHeader() {
         </button>
         <button
           onClick={handleSignOut}
-          className="text-xs font-medium px-2 py-1 rounded-lg bg-red-50 text-red-600"
+          className="text-xs font-medium px-3 py-2 rounded-lg bg-red-50 text-red-600 active:bg-red-100"
         >
           {lang === 'zh' ? '退出' : 'Log Out'}
         </button>
