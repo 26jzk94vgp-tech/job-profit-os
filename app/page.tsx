@@ -52,21 +52,21 @@ export default function Home() {
 
       <main className="max-w-4xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.dashboard}</h1>
           <p className="text-gray-500 text-sm mt-1">{user?.email}</p>
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-gray-500 text-sm">Total Jobs</p>
+            <p className="text-gray-500 text-sm">{t.totalJobs}</p>
             <p className="text-3xl font-bold text-gray-900 mt-1">{jobs.length}</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-gray-500 text-sm">Active Jobs</p>
+            <p className="text-gray-500 text-sm">{t.activeJobs}</p>
             <p className="text-3xl font-bold text-blue-600 mt-1">{activeJobs}</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-gray-500 text-sm">Total Profit</p>
+            <p className="text-gray-500 text-sm">{t.totalProfit}</p>
             <p className={totalProfit >= 0 ? 'text-3xl font-bold text-green-600 mt-1' : 'text-3xl font-bold text-red-600 mt-1'}>
               {totalProfit >= 0 ? '+' : '-'}${Math.abs(totalProfit).toLocaleString()}
             </p>
