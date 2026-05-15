@@ -12,15 +12,11 @@ export default async function Cashflow() {
   if (!entries) return <div className="p-6">Loading...</div>
 
   const today = new Date()
-  const next90Days = new Date(today)
-  next90Days.setDate(today.getDate() + 90)
 
-  // 未收款发票
   const unpaidInvoices = entries.filter((e: any) =>
     e.type === 'invoice' && e.payment_status !== 'paid'
   )
 
-  // 按月分组预测
   const months: Record<string, { income: number, expenses: number, entries: any[] }> = {}
 
   for (let i = 0; i < 3; i++) {
@@ -49,29 +45,28 @@ export default async function Cashflow() {
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">← Home</Link>
-            <h1 className="font-semibold text-gray-900">Cash Flow</h1>
+            <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">← 首页 / Home</Link>
+            <h1 className="font-semibold text-gray-900">现金流 / Cash Flow</h1>
           </div>
         </div>
       </nav>
 
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
-
         {totalUnpaid > 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5">
             <div className="flex justify-between items-center">
               <div>
-                <p className="font-semibold text-yellow-800">💰 Outstanding Receivables</p>
-                <p className="text-yellow-600 text-sm mt-1">{unpaidInvoices.length} unpaid invoice{unpaidInvoices.length > 1 ? 's' : ''} — chase these up!</p>
+                <p className="font-semibold text-yellow-800">💰 未收款项 / Outstanding Receivables</p>
+                <p className="text-yellow-600 text-sm mt-1">{unpaidInvoices.length} 张未付发票，请跟进！/ unpaid invoice{unpaidInvoices.length > 1 ? 's' : ''} — chase these up!</p>
               </div>
               <span className="text-2xl font-bold text-yellow-800">${totalUnpaid.toLocaleString()}</span>
             </div>
             <div className="mt-4 space-y-2">
               {unpaidInvoices.map((e: any) => (
                 <div key={e.id} className="flex justify-between text-sm">
-                  <span className="text-yellow-700">{e.jobs?.name || 'Unknown job'} — {e.description || 'Invoice'}</span>
+                  <span className="text-yellow-700">{e.jobs?.name || '未知工程 / Unknown job'} — {e.description || '发票 / Invoice'}</span>
                   <div className="flex items-center gap-3">
-                    {e.payment_due_date && <span className={new Date(e.payment_due_date) < new Date() ? 'text-red-600 font-medium' : 'text-yellow-600'}>Due: {e.payment_due_date}</span>}
+                    {e.payment_due_date && <span className={new Date(e.payment_due_date) < new Date() ? 'text-red-600 font-medium' : 'text-yellow-600'}>到期 / Due: {e.payment_due_date}</span>}
                     <span className="font-medium text-yellow-800">${Number(e.amount).toLocaleString()}</span>
                   </div>
                 </div>
@@ -82,8 +77,8 @@ export default async function Cashflow() {
 
         <div className="bg-white rounded-xl border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">3-Month Forecast</h2>
-            <p className="text-gray-400 text-xs mt-1">Based on recorded entries</p>
+            <h2 className="font-semibold text-gray-900">3个月预测 / 3-Month Forecast</h2>
+            <p className="text-gray-400 text-xs mt-1">基于已录入条目 / Based on recorded entries</p>
           </div>
           <div className="divide-y divide-gray-100">
             {Object.entries(months).map(([month, data]) => {
@@ -102,7 +97,7 @@ export default async function Cashflow() {
                             const change = ((net - prevNet) / Math.abs(prevNet)) * 100
                             return (
                               <span className={change >= 0 ? 'text-sm text-green-600 font-medium' : 'text-sm text-red-500 font-medium'}>
-                                {change >= 0 ? '↑' : '↓'} {Math.abs(change).toFixed(0)}% vs last month
+                                {change >= 0 ? '↑' : '↓'} {Math.abs(change).toFixed(0)}% 环比 / vs last month
                               </span>
                             )
                           }
@@ -110,19 +105,19 @@ export default async function Cashflow() {
                         return null
                       })()}
                       <span className={net >= 0 ? 'font-bold text-green-600' : 'font-bold text-red-600'}>
-                        Net: {net >= 0 ? '+' : '-'}${Math.abs(net).toLocaleString()}
+                        净额 / Net: {net >= 0 ? '+' : '-'}${Math.abs(net).toLocaleString()}
                       </span>
                     </div>
                   </div>
                   <div className="flex gap-6 text-sm">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <span className="text-gray-500">Income</span>
+                      <span className="text-gray-500">收入 / Income</span>
                       <span className="font-medium text-green-600">${data.income.toLocaleString()}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                      <span className="text-gray-500">Expenses</span>
+                      <span className="text-gray-500">支出 / Expenses</span>
                       <span className="font-medium text-red-500">${data.expenses.toLocaleString()}</span>
                     </div>
                   </div>
@@ -136,10 +131,9 @@ export default async function Cashflow() {
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
-          <p className="text-blue-800 font-medium text-sm">💡 Tip</p>
-          <p className="text-blue-600 text-xs mt-1">Keep your invoice payment dates up to date to get a more accurate cash flow forecast. Mark invoices as paid when you receive payment.</p>
+          <p className="text-blue-800 font-medium text-sm">💡 提示 / Tip</p>
+          <p className="text-blue-600 text-xs mt-1">保持发票付款日期更新，可以获得更准确的现金流预测。收款后请将发票标记为已付款。/ Keep your invoice payment dates up to date to get a more accurate cash flow forecast.</p>
         </div>
-
       </main>
     </div>
   )
