@@ -26,6 +26,8 @@ export default function EditEntry({ params }: { params: Promise<{ id: string, en
   const [gstStatus, setGstStatus] = useState('inclusive')
   const [taxCategory, setTaxCategory] = useState('')
   const [loading, setLoading] = useState(false)
+  const [paymentDueDate, setPaymentDueDate] = useState('')
+  const [paymentStatus, setPaymentStatus] = useState('unpaid')
 
   useEffect(() => {
     supabase.from('job_entries').select('*').eq('id', entryId).single().then(({ data }) => {
@@ -46,13 +48,15 @@ export default function EditEntry({ params }: { params: Promise<{ id: string, en
         setAtoMethod(data.ato_method || 'cents_per_km')
         setGstStatus(data.gst_status || 'inclusive')
         setTaxCategory(data.tax_category || '')
+        setPaymentStatus(data.payment_status || 'unpaid')
+        setPaymentDueDate(data.payment_due_date || '')
       }
     })
   }, [entryId])
 
   async function handleSubmit() {
     setLoading(true)
-    const update: Record<string, unknown> = { description, gst_status: gstStatus, tax_category: taxCategory || null }
+    const update: Record<string, unknown> = { description, gst_status: gstStatus, tax_category: taxCategory || null, payment_status: type === 'invoice' ? paymentStatus : null, payment_due_date: type === 'invoice' && paymentDueDate ? paymentDueDate : null }
     if (type === 'labor') {
       update.worker_name = workerName
       update.hours = Number(hours)
@@ -126,8 +130,14 @@ export default function EditEntry({ params }: { params: Promise<{ id: string, en
             <div className="space-y-4">
               <div><label className="text-gray-700 text-sm font-medium">Description</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={description} onChange={(e) => setDescription(e.target.value)} /></div>
               <div><label className="text-gray-700 text-sm font-medium">Amount ($)</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
-            </div>
-          )}
+            {type === 'invoice' && (
+              <>
+                <div><label className="text-gray-700 text-sm font-medium">Payment Due Date</label><input type="date" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={paymentDueDate} onChange={(e) => setPaymentDueDate(e.target.value)} /></div>
+                <div><label className="text-gray-700 text-sm font-medium">Payment Status</label><select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)}><option value="unpaid">Unpaid</option><option value="paid">Paid</option><option value="overdue">Overdue</option></select></div>
+              </>
+            )}
+          </div>
+        )}
           <div className="border-t border-gray-100 pt-4 space-y-4">
             <div><label className="text-gray-700 text-sm font-medium">GST Status</label><select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={gstStatus} onChange={(e) => setGstStatus(e.target.value)}><option value="inclusive">Inclusive of GST (10%)</option><option value="exclusive">Exclusive of GST</option><option value="free">GST Free</option><option value="unknown">Unknown</option></select></div>
             <div><label className="text-gray-700 text-sm font-medium">ATO Tax Category</label><select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={taxCategory} onChange={(e) => setTaxCategory(e.target.value)}><option value="">Select category...</option><optgroup label="Income"><option value="other_income">Job Revenue / Income</option></optgroup><optgroup label="Cost of Goods Sold"><option value="cogs_material">Materials (COGS)</option><option value="cogs_labour">Direct Labour (COGS)</option><option value="subcontractor">Subcontractor Costs</option></optgroup><optgroup label="Business Expenses"><option value="vehicle">Vehicle & Travel</option><option value="tools_equipment">Tools & Equipment</option><option value="insurance">Insurance</option><option value="wages">Wages & Salary</option><option value="super">Superannuation</option><option value="other_expense">Other Expense</option></optgroup></select></div>

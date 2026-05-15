@@ -26,6 +26,8 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   const [kilometers, setKilometers] = useState('')
   const [atoMethod, setAtoMethod] = useState('cents_per_km')
   const [gstStatus, setGstStatus] = useState('inclusive')
+  const [paymentDueDate, setPaymentDueDate] = useState('')
+  const [paymentStatus, setPaymentStatus] = useState('unpaid')
   const [taxCategory, setTaxCategory] = useState('')
 
   function validatePositive(value: string, field: string) {
@@ -145,6 +147,12 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
               <div className="space-y-4">
                 <div><label className="text-gray-700 text-sm font-medium">Description</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder={type === 'invoice' ? 'e.g. Progress payment' : 'e.g. Subcontractor'} value={description} onChange={(e) => setDescription(e.target.value)} /></div>
                 <div><label className="text-gray-700 text-sm font-medium">Amount ($)</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 1200 (or /)" value={amount} onChange={(e) => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}</div>
+                {type === 'invoice' && (
+                  <>
+                    <div><label className="text-gray-700 text-sm font-medium">Payment Due Date</label><input type="date" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={paymentDueDate} onChange={(e) => setPaymentDueDate(e.target.value)} /></div>
+                    <div><label className="text-gray-700 text-sm font-medium">Payment Status</label><select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)}><option value="unpaid">Unpaid</option><option value="paid">Paid</option><option value="overdue">Overdue</option></select></div>
+                  </>
+                )}
               </div>
             )}
             <div className="border-t border-gray-100 pt-4 space-y-4">

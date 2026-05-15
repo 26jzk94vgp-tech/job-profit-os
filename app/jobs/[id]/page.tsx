@@ -18,6 +18,9 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
   const profit = Number(job.profit)
   const margin = revenue > 0 ? ((profit / revenue) * 100).toFixed(1) : '0'
 
+  const unpaidInvoices = entries?.filter((e: any) => e.type === 'invoice' && e.payment_status !== 'paid') || []
+  const unpaidTotal = unpaidInvoices.reduce((sum: number, e: any) => sum + Number(e.amount), 0)
+
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
@@ -35,6 +38,16 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
 
       <main className="max-w-4xl mx-auto px-6 py-8">
         <p className="text-gray-500 mb-6">{job.client_name}</p>
+
+        {unpaidTotal > 0 && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 flex justify-between items-center">
+            <div>
+              <p className="font-medium text-yellow-800">💰 Outstanding Payments</p>
+              <p className="text-yellow-600 text-sm">{unpaidInvoices.length} unpaid invoice{unpaidInvoices.length > 1 ? 's' : ''}</p>
+            </div>
+            <span className="font-bold text-yellow-800">${unpaidTotal.toLocaleString()}</span>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -67,14 +80,24 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
             {entries?.map((entry: any) => (
               <div key={entry.id} className="px-6 py-4 flex justify-between items-start">
                 <div className="flex-1">
-                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full uppercase">{entry.type}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full uppercase">{entry.type}</span>
+                    {entry.type === 'invoice' && (
+                      <span className={
+                        entry.payment_status === 'paid' ? 'text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full' :
+                        entry.payment_status === 'overdue' ? 'text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full' :
+                        'text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full'
+                      }>{entry.payment_status || 'unpaid'}</span>
+                    )}
+                  </div>
                   <p className="text-gray-900 mt-1">{entry.description || entry.worker_name || entry.type}</p>
                   {entry.type === 'fuel' && entry.trip_from && <p className="text-gray-400 text-xs">{entry.trip_from} → {entry.trip_to} {entry.kilometers && entry.kilometers + 'km'}</p>}
+                  {entry.type === 'invoice' && entry.payment_due_date && <p className="text-gray-400 text-xs">Due: {entry.payment_due_date}</p>}
                   <p className="text-gray-400 text-sm">{entry.entry_date}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-red-500 font-medium">
-                    -${entry.type === 'labor' ? (Number(entry.hours) * Number(entry.hourly_rate)).toLocaleString() : Number(entry.amount).toLocaleString()}
+                  <span className={entry.type === 'invoice' ? 'text-green-600 font-medium' : 'text-red-500 font-medium'}>
+                    {entry.type === 'invoice' ? '+' : '-'}${entry.type === 'labor' ? (Number(entry.hours) * Number(entry.hourly_rate)).toLocaleString() : Number(entry.amount).toLocaleString()}
                   </span>
                   <Link href={'/jobs/' + id + '/entry/' + entry.id + '/edit'} className="text-blue-500 text-sm hover:text-blue-700">Edit</Link>
                   <DeleteEntry entryId={entry.id} jobId={id} />
