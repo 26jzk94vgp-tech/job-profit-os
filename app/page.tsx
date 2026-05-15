@@ -69,10 +69,8 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <Link href="/clients" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.clients}</Link>
             <Link href="/quotes" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.quotes}</Link>
-            <Link href="/reports" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.taxReport}</Link>
+            <Link href="/tax" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{lang === 'zh' ? '税务中心' : 'Tax Hub'}</Link>
             <Link href="/cashflow" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.cashFlow}</Link>
-            <Link href="/home-office" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{lang === 'zh' ? '家庭办公' : 'Home Office'}</Link>
-            <Link href="/tax-checklist" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{lang === 'zh' ? '年度税务' : 'Tax Checklist'}</Link>
             <LangToggle />
             <button onClick={handleSignOut} className="text-gray-500 hover:text-gray-700 text-sm">{t.signOut}</button>
             <Link href="/jobs/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">{t.newJob}</Link>
