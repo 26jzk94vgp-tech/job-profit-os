@@ -20,12 +20,7 @@ export default function MobileHeader() {
     <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 px-4 py-2 z-50 flex justify-between items-center">
       <span className="font-semibold text-gray-900 text-sm">Job Profit OS</span>
       <div className="flex items-center gap-2">
-        <button
-          onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
-          className="text-xs font-medium px-2 py-1 rounded-lg bg-gray-100 text-gray-700"
-        >
-          {lang === 'en' ? '中文' : 'EN'}
-        </button>
+      
         <a href="/settings" className="text-xs font-medium px-3 py-2 rounded-lg bg-gray-100 text-gray-700">⚙️</a>
         <button
           onClick={handleSignOut}
