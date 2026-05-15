@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation'
 export default function BottomNav() {
   const pathname = usePathname()
 
+  if (pathname === '/login') return null
+
   const tabs = [
     { href: '/', icon: '🏠', label: '首页', labelEn: 'Home' },
     { href: '/jobs/new', icon: '➕', label: '新工程', labelEn: 'New Job' },

@@ -1,44 +1,44 @@
 const fs = require('fs')
-const content = `import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { LanguageProvider } from "../lib/i18n/LanguageContext";
-import BottomNav from "./components/BottomNav";
+const content = `'use client'
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+export default function BottomNav() {
+  const pathname = usePathname()
 
-export const metadata: Metadata = {
-  title: "Job Profit OS",
-  description: "Job-centric profitability system for Australian tradies",
-};
+  if (pathname === '/login') return null
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+  const tabs = [
+    { href: '/', icon: '🏠', label: '首页', labelEn: 'Home' },
+    { href: '/jobs/new', icon: '➕', label: '新工程', labelEn: 'New Job' },
+    { href: '/tax', icon: '📊', label: '税务', labelEn: 'Tax' },
+    { href: '/cashflow', icon: '💰', label: '现金流', labelEn: 'Cash Flow' },
+    { href: '/clients', icon: '👥', label: '客户', labelEn: 'Clients' },
+  ]
+
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/'
+    return pathname.startsWith(href)
+  }
+
   return (
-    <html
-      lang="en"
-      className={\`\${geistSans.variable} \${geistMono.variable} h-full antialiased\`}
-    >
-      <body className="min-h-full flex flex-col pb-16 md:pb-0">
-        <LanguageProvider>
-          {children}
-          <BottomNav />
-        </LanguageProvider>
-      </body>
-    </html>
-  );
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50">
+      <div className="flex justify-around items-center py-2">
+        {tabs.map((tab) => (
+          <Link
+            key={tab.href}
+            href={tab.href}
+            className={\`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg \${isActive(tab.href) ? 'text-blue-600' : 'text-gray-500'}\`}
+          >
+            <span className="text-xl">{tab.icon}</span>
+            <span className="text-xs font-medium">{tab.label}</span>
+          </Link>
+        ))}
+      </div>
+    </nav>
+  )
 }`
 
-fs.writeFileSync('app/layout.tsx', content)
+fs.writeFileSync('app/components/BottomNav.tsx', content)
 console.log('done')
