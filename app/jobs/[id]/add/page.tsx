@@ -23,7 +23,11 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   function validatePositive(value: string, field: string) {
-    if (value === '' || value === '/') return true
+    if (value === '' || value === '/') { setErrors(e => { const n = {...e}; delete n[field]; return n }); return true }
+    if (!/^\d+(\.5)?$/.test(value)) {
+      setErrors(e => ({ ...e, [field]: 'Only whole numbers, x.5, or / allowed.' }))
+      return false
+    }
     const num = Number(value)
     if (num < 0) {
       setErrors(e => ({ ...e, [field]: 'Value cannot be negative. Use / if unknown.' }))
