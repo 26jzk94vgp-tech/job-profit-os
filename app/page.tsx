@@ -40,6 +40,7 @@ export default function Home() {
             <Link href="/clients" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Clients</Link>
             <Link href="/quotes" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Quotes</Link>
             <Link href="/reports" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Tax Report</Link>
+            <Link href="/cashflow" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Cash Flow</Link>
             <button onClick={handleSignOut} className="text-gray-500 hover:text-gray-700 text-sm">Sign Out</button>
             <Link href="/jobs/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">+ New Job</Link>
           </div>
