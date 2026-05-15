@@ -71,6 +71,7 @@ export default function Home() {
             <Link href="/quotes" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.quotes}</Link>
             <Link href="/tax" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{lang === 'zh' ? '税务中心' : 'Tax Hub'}</Link>
             <Link href="/cashflow" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.cashFlow}</Link>
+            <Link href="/pricing" className="text-gray-600 hover:text-gray-900 text-sm font-medium">💳 {lang === 'zh' ? '订阅' : 'Pricing'}</Link>
             <Link href="/settings" className="text-gray-600 hover:text-gray-900 text-sm font-medium">⚙️ Settings</Link>
             <LangToggle />
             

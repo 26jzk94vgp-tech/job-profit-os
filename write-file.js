@@ -1,8 +1,8 @@
 const fs = require('fs')
-let content = fs.readFileSync('app/quotes/[id]/page.tsx', 'utf8')
+let content = fs.readFileSync('app/api/stripe/webhook/route.ts', 'utf8')
 content = content.replace(
-  '<button onClick={() => window.print()} className="ml-auto px-4 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-700">',
-  '<a href={"/quotes/" + id + "/edit"} className="px-4 py-1 rounded-lg text-xs font-medium bg-gray-700 text-white">{lang === \'zh\' ? \'✏️ 编辑\' : \'✏️ Edit\'}</a>\n          <button onClick={() => window.print()} className="ml-auto px-4 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-700">'
+  'const session = event.data.object as Stripe.CheckoutSession',
+  'const session = event.data.object as Stripe.Checkout.Session'
 )
-fs.writeFileSync('app/quotes/[id]/page.tsx', content)
+fs.writeFileSync('app/api/stripe/webhook/route.ts', content)
 console.log('done')
