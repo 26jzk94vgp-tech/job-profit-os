@@ -73,7 +73,7 @@ export default function Home() {
             <Link href="/cashflow" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.cashFlow}</Link>
             <Link href="/settings" className="text-gray-600 hover:text-gray-900 text-sm font-medium">⚙️ Settings</Link>
             <LangToggle />
-            <button onClick={handleSignOut} className="text-gray-500 hover:text-gray-700 text-sm">{t.signOut}</button>
+            
             <Link href="/jobs/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">{t.newJob}</Link>
           </div>
         </div>
