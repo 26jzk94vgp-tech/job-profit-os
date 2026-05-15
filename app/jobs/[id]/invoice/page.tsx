@@ -22,6 +22,17 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   useEffect(() => {
     supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }) => setJob(data))
     supabase.from('job_entries').select('*').eq('job_id', id).eq('type', 'invoice').then(({ data }) => setEntries(data || []))
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        supabase.from('profiles').select('*').eq('id', user.id).single().then(({ data }) => {
+          if (data) {
+            setCompanyName(data.company_name || '')
+            setCompanyEmail(data.company_email || '')
+            setCompanyPhone(data.company_phone || '')
+          }
+        })
+      }
+    })
   }, [id])
 
   async function handleSendEmail() {

@@ -1,43 +1,10 @@
 const fs = require('fs')
-const content = `'use client'
-
-import { useState, useEffect } from 'react'
-
-export default function InstallBanner() {
-  const [show, setShow] = useState(false)
-
-  useEffect(() => {
-    const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches
-    const dismissed = localStorage.getItem('installBannerDismissed')
-    
-    if (!isInStandaloneMode && !dismissed) {
-      setShow(true)
-    }
-  }, [])
-
-  function handleDismiss() {
-    localStorage.setItem('installBannerDismissed', 'true')
-    setShow(false)
-  }
-
-  if (!show) return null
-
-  return (
-    <div className="fixed top-10 left-0 right-0 z-40 md:hidden px-4 pt-2">
-      <div className="bg-blue-600 text-white rounded-xl p-4 shadow-lg">
-        <div className="flex justify-between items-start">
-          <div className="flex-1">
-            <p className="font-semibold text-sm">📲 安装到主屏幕 / Add to Home Screen</p>
-            <p className="text-blue-100 text-xs mt-1">
-              点底部 分享 按钮，选「添加到主屏幕」体验更流畅 / Tap Share then Add to Home Screen for a faster experience
-            </p>
-          </div>
-          <button onClick={handleDismiss} className="text-blue-200 ml-3 text-lg">✕</button>
-        </div>
-      </div>
-    </div>
-  )
-}`
-
-fs.writeFileSync('app/components/InstallBanner.tsx', content)
-console.log('done')
+let content = fs.readFileSync('app/components/MobileHeader.tsx', 'utf8')
+content = content.replace(
+  '<button\n          onClick={handleSignOut}',
+  `<a href="/settings" className="text-xs font-medium px-3 py-2 rounded-lg bg-gray-100 text-gray-700">⚙️</a>
+        <button
+          onClick={handleSignOut}`
+)
+fs.writeFileSync('app/components/MobileHeader.tsx', content)
+console.log('done mobile header')

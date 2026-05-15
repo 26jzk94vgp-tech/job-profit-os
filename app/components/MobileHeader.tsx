@@ -26,6 +26,7 @@ export default function MobileHeader() {
         >
           {lang === 'en' ? '中文' : 'EN'}
         </button>
+        <a href="/settings" className="text-xs font-medium px-3 py-2 rounded-lg bg-gray-100 text-gray-700">⚙️</a>
         <button
           onClick={handleSignOut}
           className="text-xs font-medium px-3 py-2 rounded-lg bg-red-50 text-red-600 active:bg-red-100"
