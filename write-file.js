@@ -1,8 +1,8 @@
 const fs = require('fs')
-let content = fs.readFileSync('app/components/MobileHeader.tsx', 'utf8')
+let content = fs.readFileSync('app/components/BottomNav.tsx', 'utf8')
 content = content.replace(
-  'className="text-xs font-medium px-2 py-1 rounded-lg bg-red-50 text-red-600"',
-  'className="text-xs font-medium px-3 py-2 rounded-lg bg-red-50 text-red-600 active:bg-red-100"'
+  'className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50"',
+  'className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-[100] shadow-lg"'
 )
-fs.writeFileSync('app/components/MobileHeader.tsx', content)
+fs.writeFileSync('app/components/BottomNav.tsx', content)
 console.log('done')
