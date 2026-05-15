@@ -1,5 +1,6 @@
 import { createClient } from '../../../utils/supabase/server'
 import Link from 'next/link'
+import JobStatusToggle from './JobStatusToggle'
 import DeleteEntry from './DeleteEntry'
 
 export default async function JobDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -37,7 +38,10 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
       </nav>
 
       <main className="max-w-4xl mx-auto px-6 py-8">
-        <p className="text-gray-500 mb-6">{job.client_name}</p>
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-gray-500">{job.client_name}</p>
+          <JobStatusToggle jobId={id} currentStatus={job.status} />
+        </div>
 
         {unpaidTotal > 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 flex justify-between items-center">

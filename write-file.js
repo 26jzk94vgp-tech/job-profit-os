@@ -1,8 +1,8 @@
 const fs = require('fs')
-let content = fs.readFileSync('app/page.tsx', 'utf8')
+let content = fs.readFileSync('app/jobs/[id]/JobStatusToggle.tsx', 'utf8')
 content = content.replace(
-  '<nav className="bg-white border-b border-gray-200 px-6 py-4">',
-  '<nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">'
+  "from '../../../../utils/supabase/client'",
+  "from '../../../utils/supabase/client'"
 )
-fs.writeFileSync('app/page.tsx', content)
+fs.writeFileSync('app/jobs/[id]/JobStatusToggle.tsx', content)
 console.log('done')
