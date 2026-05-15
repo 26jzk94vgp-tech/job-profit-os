@@ -75,6 +75,7 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
               {statusLabels[s]}
             </button>
           ))}
+          <a href={"/quotes/" + id + "/edit"} className="px-4 py-1 rounded-lg text-xs font-medium bg-gray-700 text-white">{lang === 'zh' ? '✏️ 编辑' : '✏️ Edit'}</a>
           <button onClick={() => window.print()} className="ml-auto px-4 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-700">
             🖨️ {lang === 'zh' ? '打印/PDF' : 'Print/PDF'}
           </button>
