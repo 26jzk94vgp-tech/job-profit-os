@@ -18,8 +18,8 @@ export async function POST(request: NextRequest) {
       mode: 'subscription',
       customer_email: user.email,
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: process.env.NEXT_PUBLIC_APP_URL + '/settings?subscription=success',
-      cancel_url: process.env.NEXT_PUBLIC_APP_URL + '/pricing',
+      success_url: 'https://job-profit-os-git-main-26jzk94vgp-techs-projects.vercel.app/settings?subscription=success',
+      cancel_url: 'https://job-profit-os-git-main-26jzk94vgp-techs-projects.vercel.app/pricing',
       metadata: { userId: user.id }
     })
 
