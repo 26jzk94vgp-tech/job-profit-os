@@ -1,5 +1,6 @@
 import { createClient } from '../../../utils/supabase/server'
 import Link from 'next/link'
+import DeleteEntry from './DeleteEntry'
 
 export default async function JobDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -65,14 +66,19 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
           <div className="divide-y divide-gray-100">
             {entries?.map((entry: any) => (
               <div key={entry.id} className="px-6 py-4 flex justify-between items-start">
-                <div>
+                <div className="flex-1">
                   <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full uppercase">{entry.type}</span>
                   <p className="text-gray-900 mt-1">{entry.description || entry.worker_name || entry.type}</p>
+                  {entry.type === 'fuel' && entry.trip_from && <p className="text-gray-400 text-xs">{entry.trip_from} → {entry.trip_to} {entry.kilometers && entry.kilometers + 'km'}</p>}
                   <p className="text-gray-400 text-sm">{entry.entry_date}</p>
                 </div>
-                <span className="text-red-500 font-medium">
-                  -${entry.type === 'labor' ? (Number(entry.hours) * Number(entry.hourly_rate)).toLocaleString() : Number(entry.amount).toLocaleString()}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-red-500 font-medium">
+                    -${entry.type === 'labor' ? (Number(entry.hours) * Number(entry.hourly_rate)).toLocaleString() : Number(entry.amount).toLocaleString()}
+                  </span>
+                  <Link href={'/jobs/' + id + '/entry/' + entry.id + '/edit'} className="text-blue-500 text-sm hover:text-blue-700">Edit</Link>
+                  <DeleteEntry entryId={entry.id} jobId={id} />
+                </div>
               </div>
             ))}
           </div>

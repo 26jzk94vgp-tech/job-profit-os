@@ -1,5 +1,4 @@
-const fs = require('fs')
-const part1 = `'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -79,10 +78,7 @@ export default function EditEntry({ params }: { params: Promise<{ id: string, en
   }
 
   if (!entry) return <div className="p-6 text-gray-500">Loading...</div>
-`
-fs.writeFileSync('app/jobs/[id]/entry/[entryId]/edit/page.tsx', part1)
-console.log('part1 done')
-const part2 = `  return (
+  return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
@@ -100,7 +96,7 @@ const part2 = `  return (
               <div><label className="text-gray-700 text-sm font-medium">Worker Name</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={workerName} onChange={(e) => setWorkerName(e.target.value)} /></div>
               <div><label className="text-gray-700 text-sm font-medium">Hours</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={hours} onChange={(e) => setHours(e.target.value)} /></div>
               <div><label className="text-gray-700 text-sm font-medium">Hourly Rate ($)</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} /></div>
-              {hours && hourlyRate && <p className="text-green-600 text-sm">Total: \${(Number(hours) * Number(hourlyRate)).toLocaleString()}</p>}
+              {hours && hourlyRate && <p className="text-green-600 text-sm">Total: ${(Number(hours) * Number(hourlyRate)).toLocaleString()}</p>}
             </div>
           )}
           {type === 'material' && (
@@ -120,7 +116,7 @@ const part2 = `  return (
               <div><label className="text-gray-700 text-sm font-medium">From</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={tripFrom} onChange={(e) => setTripFrom(e.target.value)} /></div>
               <div><label className="text-gray-700 text-sm font-medium">To</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={tripTo} onChange={(e) => setTripTo(e.target.value)} /></div>
               {atoMethod === 'cents_per_km' ? (
-                <div><label className="text-gray-700 text-sm font-medium">Distance (km)</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={kilometers} onChange={(e) => setKilometers(e.target.value)} />{kilometers && <p className="text-green-600 text-sm mt-1">Deduction: \${(Number(kilometers) * 0.88).toFixed(2)}</p>}</div>
+                <div><label className="text-gray-700 text-sm font-medium">Distance (km)</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={kilometers} onChange={(e) => setKilometers(e.target.value)} />{kilometers && <p className="text-green-600 text-sm mt-1">Deduction: ${(Number(kilometers) * 0.88).toFixed(2)}</p>}</div>
               ) : (
                 <div><label className="text-gray-700 text-sm font-medium">Actual Cost ($)</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
               )}
@@ -141,8 +137,4 @@ const part2 = `  return (
       </main>
     </div>
   )
-}`
-
-const existing = require('fs').readFileSync('app/jobs/[id]/entry/[entryId]/edit/page.tsx', 'utf8')
-require('fs').writeFileSync('app/jobs/[id]/entry/[entryId]/edit/page.tsx', existing + part2)
-console.log('part2 done')
+}
