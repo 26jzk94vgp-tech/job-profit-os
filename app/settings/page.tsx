@@ -78,6 +78,10 @@ export default function Settings() {
         </div>
       </nav>
       <main className="max-w-2xl mx-auto px-6 py-8 space-y-6">
+        <div className="md:hidden flex items-center justify-between">
+          <Link href="/" className="text-gray-500 text-sm">← {lang === 'zh' ? '返回首页' : 'Back to Home'}</Link>
+          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '设置' : 'Settings'}</h1>
+        </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
           <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '语言设置 / Language' : 'Language'}</h2>
