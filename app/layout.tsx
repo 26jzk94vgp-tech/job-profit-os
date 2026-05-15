@@ -4,6 +4,7 @@ import "./globals.css";
 import { LanguageProvider } from "../lib/i18n/LanguageContext";
 import BottomNav from "./components/BottomNav";
 import MobileHeader from "./components/MobileHeader";
+import InstallBanner from "./components/InstallBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
