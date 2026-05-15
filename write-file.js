@@ -1,60 +1,47 @@
 const fs = require('fs')
 let content = fs.readFileSync('app/page.tsx', 'utf8')
 
-// 加坏账预警数据
+// 加 super 提醒逻辑（在 statusLabel 函数后面）
 content = content.replace(
-  "    const { data: entryData } = await supabase\n      .from('job_entries')\n      .select('*, jobs(name)')\n      .in('type', ['invoice', 'material', 'subcontract'])\n    setEntries(entryData || [])",
-  `    const { data: entryData } = await supabase
-      .from('job_entries')
-      .select('*, jobs(name)')
-      .in('type', ['invoice', 'material', 'subcontract'])
-    setEntries(entryData || [])
-    const { data: overdueData } = await supabase
-      .from('overdue_invoices')
-      .select('*')
-    setBadDebts(overdueData || [])`
+  `  const statusLabel = (status: string) => {`,
+  `  // Super 供款提醒
+  const SUPER_CAP = 30000 // 2024-25 concessional cap
+  const TAX_THRESHOLD = 45001 // 32.5% tax bracket
+  const superReminder = totalProfit > TAX_THRESHOLD
+
+  const statusLabel = (status: string) => {`
 )
 
-// 加 state
-content = content.replace(
-  "  const [entries, setEntries] = useState<any[]>([])",
-  `  const [entries, setEntries] = useState<any[]>([])
-  const [badDebts, setBadDebts] = useState<any[]>([])`
-)
-
-// 加坏账提醒 UI（在应收账款提醒后面）
+// 加 super 提醒 UI（在坏账预警后面）
 content = content.replace(
   `        {totalReceivable > 0 && (`,
-  `        {badDebts.filter(e => e.days_overdue > 90).length > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-5 mb-6">
-            <div className="flex justify-between items-center mb-3">
+  `        {superReminder && (
+          <div className="bg-purple-50 border border-purple-200 rounded-xl p-5 mb-6">
+            <div className="flex justify-between items-center">
               <div>
-                <p className="font-semibold text-red-800">
-                  🚨 {lang === 'zh' ? '潜在坏账警告' : 'Potential Bad Debt Warning'}
+                <p className="font-semibold text-purple-800">
+                  💰 {lang === 'zh' ? 'Super 供款节税提醒' : 'Super Contribution Tax Tip'}
                 </p>
-                <p className="text-red-600 text-sm mt-1">
-                  {badDebts.filter(e => e.days_overdue > 90).length} {lang === 'zh' ? '张发票逾期超过90天，可申报坏账抵扣' : 'invoices overdue 90+ days — may be claimable as bad debt'}
+                <p className="text-purple-600 text-sm mt-1">
+                  {lang === 'zh'
+                    ? \`您的利润已超过 $\${TAX_THRESHOLD.toLocaleString()}，考虑增加 Super 供款最多可节省 \${((totalProfit * 0.325) - ((totalProfit - Math.min(SUPER_CAP, totalProfit * 0.15)) * 0.325)).toFixed(0)} 澳元税款\`
+                    : \`Your profit exceeds $\${TAX_THRESHOLD.toLocaleString()}. Consider topping up super (up to $\${SUPER_CAP.toLocaleString()} cap) to reduce your tax bill.\`
+                  }
                 </p>
               </div>
-              <span className="text-xl font-bold text-red-800">
-                \${badDebts.filter(e => e.days_overdue > 90).reduce((sum: number, e: any) => sum + Number(e.amount), 0).toLocaleString()}
-              </span>
             </div>
-            <div className="space-y-2">
-              {badDebts.filter(e => e.days_overdue > 90).map((e: any) => (
-                <div key={e.id} className="flex justify-between text-sm bg-white rounded-lg px-3 py-2">
-                  <span className="text-gray-700">{e.job_name} — {e.description || (lang === 'zh' ? '发票' : 'Invoice')}</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-red-600 font-medium text-xs">
-                      {e.days_overdue} {lang === 'zh' ? '天逾期' : 'days overdue'}
-                    </span>
-                    <span className="font-medium text-red-800">\${Number(e.amount).toLocaleString()}</span>
-                  </div>
-                </div>
-              ))}
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="bg-white rounded-lg p-3">
+                <p className="text-xs text-gray-500">{lang === 'zh' ? '2024-25 供款上限' : '2024-25 Concessional Cap'}</p>
+                <p className="font-bold text-purple-700">\$30,000</p>
+              </div>
+              <div className="bg-white rounded-lg p-3">
+                <p className="text-xs text-gray-500">{lang === 'zh' ? 'Super 税率 vs 个人税率' : 'Super Tax Rate vs Personal'}</p>
+                <p className="font-bold text-purple-700">15% vs 32.5%+</p>
+              </div>
             </div>
-            <p className="text-red-500 text-xs mt-3">
-              {lang === 'zh' ? '💡 提示：逾期90天以上的发票可向ATO申报坏账抵扣，请咨询您的税务代理。' : '💡 Tip: Invoices overdue 90+ days may be written off as bad debts for tax purposes. Consult your tax agent.'}
+            <p className="text-purple-500 text-xs mt-3">
+              {lang === 'zh' ? '⚠️ 请在6月30日前供款以抵扣本财年收入。建议咨询税务代理。' : '⚠️ Contribute before 30 June to claim this financial year. Consult your tax agent.'}
             </p>
           </div>
         )}
