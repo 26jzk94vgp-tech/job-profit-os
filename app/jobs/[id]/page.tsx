@@ -1,52 +1,83 @@
-import { supabase } from '../../lib/supabase'
+import { createClient } from '../../../utils/supabase/server'
 import Link from 'next/link'
 
 export default async function JobDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const supabase = await createClient()
+
   const { data: job } = await supabase.from('job_summary').select('*').eq('id', id).single()
   const { data: entries } = await supabase.from('job_entries').select('*').eq('job_id', id).order('created_at', { ascending: false })
-  if (!job) return <div className="text-white p-6">Job not found</div>
+
+  if (!job) return <div className="p-6">Job not found</div>
+
   const revenue = Number(job.revenue)
   const labor = Number(job.labor_cost)
   const material = Number(job.material_cost)
   const subcontract = Number(job.subcontract_cost)
   const profit = Number(job.profit)
   const margin = revenue > 0 ? ((profit / revenue) * 100).toFixed(1) : '0'
+
   return (
-    <main className="min-h-screen bg-gray-950 text-white p-6">
-      <div className="max-w-lg mx-auto">
-        <div className="flex items-center gap-3 mb-6">
-          <Link href="/" className="text-gray-400 hover:text-white">Back</Link>
-          <h1 className="text-2xl font-bold">{job.name}</h1>
-        </div>
-        <p className="text-gray-400 mb-6">{job.client_name}</p>
-        <div className="bg-gray-900 rounded-xl p-5 mb-6 space-y-3">
-          <div className="flex justify-between"><span className="text-gray-400">Revenue</span><span className="text-green-400">{revenue}</span></div>
-          <div className="flex justify-between"><span className="text-gray-400">Labor</span><span className="text-red-400">-{labor}</span></div>
-          <div className="flex justify-between"><span className="text-gray-400">Materials</span><span className="text-red-400">-{material}</span></div>
-          <div className="flex justify-between"><span className="text-gray-400">Subcontract</span><span className="text-red-400">-{subcontract}</span></div>
-          <div className="border-t border-gray-700 pt-3 flex justify-between">
-            <span className="font-bold">Profit</span>
-            <span className={profit >= 0 ? 'font-bold text-lg text-green-400' : 'font-bold text-lg text-red-400'}>{profit} ({margin}%)</span>
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">← Home</Link>
+            <h1 className="font-semibold text-gray-900">{job.name}</h1>
+          </div>
+          <div className="flex gap-2">
+            <Link href={'/jobs/' + id + '/invoice'} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium">🧾 Invoice</Link>
+            <Link href={'/jobs/' + id + '/add'} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium">+ Add Entry</Link>
           </div>
         </div>
-        <Link href={'/jobs/' + id + '/add'} className="block w-full bg-blue-600 text-white py-3 rounded-lg font-medium text-center mb-3">+ Add Entry</Link>
-        <Link href={'/jobs/' + id + '/invoice'} className="block w-full bg-gray-700 text-white py-3 rounded-lg font-medium text-center mb-6">🧾 Generate Invoice</Link>
-        <div className="space-y-3">
-          {entries?.map((entry) => (
-            <div key={entry.id} className="bg-gray-900 rounded-xl p-4">
-              <div className="flex justify-between items-start">
+      </nav>
+
+      <main className="max-w-4xl mx-auto px-6 py-8">
+        <p className="text-gray-500 mb-6">{job.client_name}</p>
+
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <p className="text-gray-500 text-sm">Revenue</p>
+            <p className="text-2xl font-bold text-green-600 mt-1">${revenue.toLocaleString()}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <p className="text-gray-500 text-sm">Profit</p>
+            <p className={profit >= 0 ? 'text-2xl font-bold text-green-600 mt-1' : 'text-2xl font-bold text-red-600 mt-1'}>${profit.toLocaleString()} ({margin}%)</p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 mb-6">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-900">Cost Breakdown</h2>
+          </div>
+          <div className="divide-y divide-gray-100">
+            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">Labor</span><span className="text-red-500">-${labor.toLocaleString()}</span></div>
+            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">Materials</span><span className="text-red-500">-${material.toLocaleString()}</span></div>
+            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">Subcontract</span><span className="text-red-500">-${subcontract.toLocaleString()}</span></div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-900">Entries</h2>
+          </div>
+          {!entries?.length && <div className="px-6 py-8 text-center text-gray-400">No entries yet.</div>}
+          <div className="divide-y divide-gray-100">
+            {entries?.map((entry: any) => (
+              <div key={entry.id} className="px-6 py-4 flex justify-between items-start">
                 <div>
-                  <span className="text-xs bg-gray-700 px-2 py-1 rounded-full uppercase">{entry.type}</span>
-                  <p className="mt-1">{entry.description || entry.worker_name || entry.type}</p>
+                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full uppercase">{entry.type}</span>
+                  <p className="text-gray-900 mt-1">{entry.description || entry.worker_name || entry.type}</p>
                   <p className="text-gray-400 text-sm">{entry.entry_date}</p>
                 </div>
-                <span className="text-red-400 font-medium">-{entry.type === 'labor' ? (Number(entry.hours) * Number(entry.hourly_rate)).toLocaleString() : Number(entry.amount).toLocaleString()}</span>
+                <span className="text-red-500 font-medium">
+                  -${entry.type === 'labor' ? (Number(entry.hours) * Number(entry.hourly_rate)).toLocaleString() : Number(entry.amount).toLocaleString()}
+                </span>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </div>
   )
 }
