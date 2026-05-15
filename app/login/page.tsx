@@ -69,7 +69,7 @@ if (error) { setMessage(error.message) } else { window.location.href = '/' }
 
           <button
             onClick={() => setIsSignUp(!isSignUp)}
-            className="w-full text-gray-400 text-sm"
+            className="w-full text-gray-400 text-sm py-3"
           >
             {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
           </button>
