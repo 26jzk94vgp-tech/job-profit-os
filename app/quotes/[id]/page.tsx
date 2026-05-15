@@ -59,7 +59,7 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-4xl mx-auto p-6 print:hidden space-y-3">
         <div className="flex items-center gap-3">
-          <Link href="/quotes" className="text-gray-500 hover:text-gray-700 text-sm">← Back</Link>
+          <a href="/quotes" className="text-gray-500 hover:text-gray-700 text-sm">← Back</a>
           <h1 className="font-semibold text-gray-900">Quote Detail</h1>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4 flex gap-3 flex-wrap">
