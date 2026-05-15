@@ -1,10 +1,44 @@
 const fs = require('fs')
-let content = fs.readFileSync('app/page.tsx', 'utf8')
+const content = `import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import { LanguageProvider } from "../lib/i18n/LanguageContext";
+import BottomNav from "./components/BottomNav";
 
-content = content
-  .replace('<Link href="/reports" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.taxReport}</Link>', '<Link href="/tax" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{lang === \'zh\' ? \'税务中心\' : \'Tax Hub\'}</Link>')
-  .replace('\n            <Link href="/home-office" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{lang === \'zh\' ? \'家庭办公\' : \'Home Office\'}</Link>', '')
-  .replace('\n            <Link href="/tax-checklist" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{lang === \'zh\' ? \'年度税务\' : \'Tax Checklist\'}</Link>', '')
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
 
-fs.writeFileSync('app/page.tsx', content)
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Job Profit OS",
+  description: "Job-centric profitability system for Australian tradies",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html
+      lang="en"
+      className={\`\${geistSans.variable} \${geistMono.variable} h-full antialiased\`}
+    >
+      <body className="min-h-full flex flex-col pb-16 md:pb-0">
+        <LanguageProvider>
+          {children}
+          <BottomNav />
+        </LanguageProvider>
+      </body>
+    </html>
+  );
+}`
+
+fs.writeFileSync('app/layout.tsx', content)
 console.log('done')
