@@ -17,6 +17,10 @@ export default function Settings() {
   const [companyPhone, setCompanyPhone] = useState('')
   const [companyAddress, setCompanyAddress] = useState('')
   const [abn, setAbn] = useState('')
+  const [bankName, setBankName] = useState('')
+  const [bsb, setBsb] = useState('')
+  const [accountNumber, setAccountNumber] = useState('')
+  const [accountName, setAccountName] = useState('')
   const [userEmail, setUserEmail] = useState('')
 
   useEffect(() => {
@@ -31,6 +35,10 @@ export default function Settings() {
         setCompanyPhone(data.company_phone || '')
         setCompanyAddress(data.company_address || '')
         setAbn(data.abn || '')
+        setBankName(data.bank_name || '')
+        setBsb(data.bsb || '')
+        setAccountNumber(data.account_number || '')
+        setAccountName(data.account_name || '')
       }
     }
     loadProfile()
@@ -47,6 +55,10 @@ export default function Settings() {
       company_phone: companyPhone,
       company_address: companyAddress,
       abn,
+      bank_name: bankName,
+      bsb,
+      account_number: accountNumber,
+      account_name: accountName,
       updated_at: new Date().toISOString()
     })
     if (error) { alert('Error: ' + error.message) } else { setSaved(true); setTimeout(() => setSaved(false), 3000) }
@@ -106,6 +118,18 @@ export default function Settings() {
           <div><label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '邮箱' : 'Email'}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="info@company.com.au" value={companyEmail} onChange={(e) => setCompanyEmail(e.target.value)} /></div>
 
           <div><label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '地址' : 'Address'}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="123 Main St, Brisbane QLD 4000" value={companyAddress} onChange={(e) => setCompanyAddress(e.target.value)} /></div>
+
+          <div className="pt-2 border-t border-gray-100">
+            <p className="text-gray-500 text-xs font-medium mb-3">{lang === 'zh' ? '银行账户 / Bank Details' : 'Bank Details'}</p>
+            <div className="space-y-3">
+              <div><label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '银行名称' : 'Bank Name'}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. Commonwealth Bank" value={bankName} onChange={(e) => setBankName(e.target.value)} /></div>
+              <div><label className="text-gray-700 text-sm font-medium">Account Name</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. SMITH PLUMBING PTY LTD" value={accountName} onChange={(e) => setAccountName(e.target.value)} /></div>
+              <div className="flex gap-3">
+                <div className="flex-1"><label className="text-gray-700 text-sm font-medium">BSB</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. 062-000" value={bsb} onChange={(e) => setBsb(e.target.value)} /></div>
+                <div className="flex-1"><label className="text-gray-700 text-sm font-medium">Account No</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. 12345678" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} /></div>
+              </div>
+            </div>
+          </div>
 
           {saved && <p className="text-green-600 text-sm font-medium">✅ {lang === 'zh' ? '已保存！' : 'Saved!'}</p>}
 

@@ -7,29 +7,28 @@ import Link from 'next/link'
 
 export default function Invoice({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  const supabase = createClient()
   const [job, setJob] = useState<any>(null)
   const [entries, setEntries] = useState<any[]>([])
-  const [companyName, setCompanyName] = useState('')
-  const [companyEmail, setCompanyEmail] = useState('')
-  const [companyPhone, setCompanyPhone] = useState('')
+  const [profile, setProfile] = useState<any>(null)
   const [invoiceNumber, setInvoiceNumber] = useState('INV-001')
   const [dueDate, setDueDate] = useState('')
-  const [toEmail, setToEmail] = useState('')
+  const [toAddress, setToAddress] = useState('')
+  const [toName, setToName] = useState('')
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
-  const supabase = createClient()
+  const [toEmail, setToEmail] = useState('')
 
   useEffect(() => {
-    supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }) => setJob(data))
-    supabase.from('job_entries').select('*').eq('job_id', id).eq('type', 'invoice').then(({ data }) => setEntries(data || []))
+    supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }) => {
+      setJob(data)
+      if (data?.client_name) setToName(data.client_name)
+    })
+    supabase.from('job_entries').select('*').eq('job_id', id).then(({ data }) => setEntries(data || []))
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         supabase.from('profiles').select('*').eq('id', user.id).single().then(({ data }) => {
-          if (data) {
-            setCompanyName(data.company_name || '')
-            setCompanyEmail(data.company_email || '')
-            setCompanyPhone(data.company_phone || '')
-          }
+          if (data) setProfile(data)
         })
       }
     })
@@ -41,91 +40,131 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
     const res = await fetch('/api/send-invoice', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jobId: id, toEmail, toName: job?.client_name, companyName, companyEmail, invoiceNumber, dueDate })
+      body: JSON.stringify({
+        jobId: id,
+        toEmail,
+        toName,
+        companyName: profile?.company_name || '',
+        companyEmail: profile?.company_email || '',
+        invoiceNumber,
+        dueDate
+      })
     })
     const json = await res.json()
-    if (json.success) { setSent(true) } else { alert('Failed to send: ' + json.error) }
+    if (json.success) { setSent(true) } else { alert('Failed: ' + json.error) }
     setSending(false)
   }
 
-  function handlePrint() { window.print() }
-
   if (!job) return <div className="p-6">Loading...</div>
 
-  const revenue = Number(job.revenue)
+  const invoiceEntries = entries.filter(e => e.type !== 'invoice')
+  const subTotal = invoiceEntries.reduce((sum, e) => {
+    return sum + (e.type === 'labor' ? Number(e.hours) * Number(e.hourly_rate) : Number(e.amount))
+  }, 0)
+  const gst = subTotal * 0.1
+  const total = subTotal + gst
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4 print:hidden">
-        <div className="max-w-4xl mx-auto flex items-center gap-3">
+    <div className="min-h-screen bg-gray-100">
+      <div className="max-w-4xl mx-auto p-6 print:hidden">
+        <div className="flex items-center gap-3 mb-6">
           <Link href={"/jobs/" + id} className="text-gray-500 hover:text-gray-700 text-sm">← Back</Link>
-          <h1 className="font-semibold text-gray-900">Invoice</h1>
+          <h1 className="font-semibold text-gray-900">Invoice Preview</h1>
         </div>
-      </nav>
-
-      <div className="max-w-4xl mx-auto px-6 py-8 flex gap-6">
-        <div className="w-72 shrink-0 print:hidden">
-          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-            <h2 className="font-semibold text-gray-900">Your Details</h2>
-            <div><label className="text-gray-500 text-xs">Company Name</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Your Company" /></div>
-            <div><label className="text-gray-500 text-xs">Your Email</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={companyEmail} onChange={(e) => setCompanyEmail(e.target.value)} placeholder="you@company.com" /></div>
-            <div><label className="text-gray-500 text-xs">Phone</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} placeholder="0400 000 000" /></div>
-            <div><label className="text-gray-500 text-xs">Invoice Number</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} /></div>
-            <div><label className="text-gray-500 text-xs">Due Date</label><input type="date" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></div>
-            <hr />
-            <h2 className="font-semibold text-gray-900">Send to Client</h2>
-            <div><label className="text-gray-500 text-xs">Client Email</label><input type="email" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none focus:ring-2 focus:ring-blue-500" value={toEmail} onChange={(e) => setToEmail(e.target.value)} placeholder="client@email.com" /></div>
-            {sent && <p className="text-green-600 text-sm font-medium">✅ Invoice sent!</p>}
-            <button onClick={handleSendEmail} disabled={sending} className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50">{sending ? 'Sending...' : '📧 Send Invoice'}</button>
-            <button onClick={handlePrint} className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium">🖨️ Print / PDF</button>
+        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4 mb-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div><label className="text-gray-500 text-xs">Invoice Number</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} /></div>
+            <div><label className="text-gray-500 text-xs">Due Date</label><input type="date" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></div>
+          </div>
+          <div><label className="text-gray-500 text-xs">Bill To (Client Name)</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={toName} onChange={(e) => setToName(e.target.value)} /></div>
+          <div><label className="text-gray-500 text-xs">Job Address / TO:</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" placeholder="e.g. Unit 6C Lot 188 Coastal Rise" value={toAddress} onChange={(e) => setToAddress(e.target.value)} /></div>
+          <hr />
+          <div><label className="text-gray-500 text-xs">Send to Client Email</label><input type="email" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" placeholder="client@email.com" value={toEmail} onChange={(e) => setToEmail(e.target.value)} /></div>
+          {sent && <p className="text-green-600 text-sm">✅ Invoice sent!</p>}
+          <div className="flex gap-3">
+            <button onClick={handleSendEmail} disabled={sending} className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50">{sending ? 'Sending...' : '📧 Send Invoice'}</button>
+            <button onClick={() => window.print()} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium">🖨️ Print / PDF</button>
           </div>
         </div>
+      </div>
 
-        <div className="flex-1 bg-white rounded-xl border border-gray-200 p-8">
-          <div className="flex justify-between items-start mb-8">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">{companyName || 'Your Company'}</h2>
-              {companyEmail && <p className="text-gray-500 text-sm">{companyEmail}</p>}
-              {companyPhone && <p className="text-gray-500 text-sm">{companyPhone}</p>}
-            </div>
-            <div className="text-right">
-              <h1 className="text-3xl font-bold text-blue-600">INVOICE</h1>
-              <p className="text-gray-500 text-sm">{invoiceNumber}</p>
-              {dueDate && <p className="text-gray-500 text-sm">Due: {dueDate}</p>}
-            </div>
+      <div className="max-w-4xl mx-auto bg-white p-10 print:p-8 shadow-sm">
+        <div className="flex justify-between items-start mb-8">
+          <div>
+            <p className="text-sm text-gray-600">{toAddress || job.name}</p>
           </div>
-          <div className="mb-8">
-            <p className="text-gray-400 text-xs uppercase mb-1">Bill To</p>
-            <p className="font-semibold text-gray-900">{job.client_name || 'Client'}</p>
-            <p className="text-gray-500 text-sm">{job.name}</p>
+          <div className="text-right">
+            <p className="font-bold text-lg">{profile?.company_name || 'Your Company'}</p>
+            {profile?.account_name && (
+              <div className="text-sm text-gray-600 mt-2">
+                <p>Account Name: <span className="font-medium">{profile.account_name}</span></p>
+                {profile.bsb && <p>BSB: <span className="font-medium">{profile.bsb}</span></p>}
+                {profile.account_number && <p>Account No: <span className="font-medium">{profile.account_number}</span></p>}
+                {profile.abn && <p>ABN: <span className="font-medium">{profile.abn}</span></p>}
+              </div>
+            )}
           </div>
-          <table className="w-full">
-            <thead>
-              <tr className="border-b-2 border-gray-200">
-                <th className="text-left py-2 text-gray-500 text-sm font-medium">Description</th>
-                <th className="text-right py-2 text-gray-500 text-sm font-medium">Amount</th>
+        </div>
+
+        {toAddress && <p className="text-sm mb-4"><span className="font-bold">TO: </span>{toAddress}</p>}
+
+        <div className="flex justify-between items-center mb-6">
+          <div></div>
+          <div className="text-right">
+            <p className="text-sm text-gray-600">Invoice Number: <span className="font-bold">{invoiceNumber}</span></p>
+            {dueDate && <p className="text-sm text-gray-600">Due Date: <span className="font-medium">{dueDate}</span></p>}
+          </div>
+        </div>
+
+        <table className="w-full border-collapse mb-6">
+          <thead>
+            <tr className="border border-gray-400 bg-gray-100">
+              <th className="border border-gray-400 px-3 py-2 text-left text-sm font-bold">JOB DESCRIPTION</th>
+              <th className="border border-gray-400 px-3 py-2 text-center text-sm font-bold w-16">QTY</th>
+              <th className="border border-gray-400 px-3 py-2 text-right text-sm font-bold w-28">UNIT PRICE</th>
+              <th className="border border-gray-400 px-3 py-2 text-right text-sm font-bold w-28">PRICE</th>
+            </tr>
+          </thead>
+          <tbody>
+            {invoiceEntries.length > 0 ? invoiceEntries.map((e) => {
+              const qty = e.type === 'labor' ? Number(e.hours) : Number(e.quantity || 1)
+              const unitPrice = e.type === 'labor' ? Number(e.hourly_rate) : (e.unit_price ? Number(e.unit_price) : Number(e.amount))
+              const price = e.type === 'labor' ? qty * unitPrice : Number(e.amount)
+              return (
+                <tr key={e.id} className="border border-gray-300">
+                  <td className="border border-gray-300 px-3 py-2 text-sm">{e.description || e.worker_name || e.type}</td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm text-center">{qty}</td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm text-right">${unitPrice.toFixed(2)}</td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm text-right">${price.toFixed(2)}</td>
+                </tr>
+              )
+            }) : (
+              <tr className="border border-gray-300">
+                <td className="border border-gray-300 px-3 py-2 text-sm">{job.name} - Professional Services</td>
+                <td className="border border-gray-300 px-3 py-2 text-sm text-center">1</td>
+                <td className="border border-gray-300 px-3 py-2 text-sm text-right">${subTotal.toFixed(2)}</td>
+                <td className="border border-gray-300 px-3 py-2 text-sm text-right">${subTotal.toFixed(2)}</td>
               </tr>
-            </thead>
+            )}
+          </tbody>
+        </table>
+
+        <div className="flex justify-end">
+          <table className="border-collapse">
             <tbody>
-              {entries.length > 0 ? entries.map((e) => (
-                <tr key={e.id} className="border-b border-gray-100">
-                  <td className="py-3 text-gray-900">{e.description || 'Service'}</td>
-                  <td className="py-3 text-right text-gray-900">${Number(e.amount).toLocaleString()}</td>
-                </tr>
-              )) : (
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 text-gray-900">{job.name} - Professional Services</td>
-                  <td className="py-3 text-right text-gray-900">${revenue.toLocaleString()}</td>
-                </tr>
-              )}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td className="py-4 font-bold text-gray-900">Total</td>
-                <td className="py-4 text-right font-bold text-blue-600 text-lg">${revenue.toLocaleString()}</td>
+              <tr className="border border-gray-300">
+                <td className="border border-gray-300 px-6 py-2 text-sm font-medium">Sub Total:</td>
+                <td className="border border-gray-300 px-6 py-2 text-sm text-right w-32">${subTotal.toFixed(2)}</td>
               </tr>
-            </tfoot>
+              <tr className="border border-gray-300">
+                <td className="border border-gray-300 px-6 py-2 text-sm font-medium">GST:</td>
+                <td className="border border-gray-300 px-6 py-2 text-sm text-right">10%</td>
+              </tr>
+              <tr className="border border-gray-300 bg-gray-50">
+                <td className="border border-gray-300 px-6 py-2 text-sm font-bold">Total:</td>
+                <td className="border border-gray-300 px-6 py-2 text-sm font-bold text-right">${total.toFixed(2)}</td>
+              </tr>
+            </tbody>
           </table>
-          <p className="text-gray-400 text-sm mt-8">Thank you for your business!</p>
         </div>
       </div>
     </div>
