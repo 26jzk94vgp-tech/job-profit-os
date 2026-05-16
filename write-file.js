@@ -1,51 +1,42 @@
 const fs = require('fs')
-let c = fs.readFileSync('app/tax/page.tsx', 'utf8')
+const content = `'use client'
 
-const importLink = `          <Link href="/import-materials" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">📊</span>
-              <div>
-                <p className="font-medium text-gray-900">{lang === 'zh' ? '导入材料清单' : 'Import Materials'}</p>
-                <p className="text-gray-400 text-xs">{lang === 'zh' ? '从Bunnings等Excel文件批量导入' : 'Bulk import from Bunnings & supplier Excel files'}</p>
-              </div>
-            </div>
-            <span className="text-gray-400">→</span>
-          </Link>`
+import { useState } from 'react'
+import { createClient } from '../../../utils/supabase/client'
+import { useLanguage } from '../../../lib/i18n/LanguageContext'
 
-// 移除现有位置
-c = c.replace(importLink + '\n', '')
+export default function JobStatusToggle({ jobId, currentStatus }: { jobId: string, currentStatus: string }) {
+  const supabase = createClient()
+  const { lang } = useLanguage()
+  const [status, setStatus] = useState(currentStatus)
 
-// 加到月度损益表后面（第三位）
-c = c.replace(
-  `          <Link href="/reports/monthly" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50">`,
-  `          <Link href="/reports/monthly" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">`
-)
-c = c.replace(
-  `            <span className="text-gray-400">→</span>
-          </Link>
-        </div>
+  async function handleChange(newStatus: string) {
+    setStatus(newStatus)
+    await supabase.from('jobs').update({ status: newStatus }).eq('id', jobId)
+  }
 
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-6 py-3 bg-gray-50 border-b border-gray-100">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '季度申报' : 'Quarterly'}</p>`,
-  `            <span className="text-gray-400">→</span>
-          </Link>
-          <Link href="/import-materials" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">📊</span>
-              <div>
-                <p className="font-medium text-gray-900">{lang === 'zh' ? '导入材料清单' : 'Import Materials'}</p>
-                <p className="text-gray-400 text-xs">{lang === 'zh' ? '从Bunnings等Excel文件批量导入' : 'Bulk import from Bunnings & supplier Excel files'}</p>
-              </div>
-            </div>
-            <span className="text-gray-400">→</span>
-          </Link>
-        </div>
+  const statuses = [
+    { value: 'active', label: lang === 'zh' ? '进行中' : 'Active', color: 'bg-blue-100 text-blue-700' },
+    { value: 'completed', label: lang === 'zh' ? '已完成' : 'Completed', color: 'bg-green-100 text-green-700' },
+    { value: 'paused', label: lang === 'zh' ? '暂停' : 'Paused', color: 'bg-gray-100 text-gray-600' },
+    { value: 'cancelled', label: lang === 'zh' ? '取消' : 'Cancelled', color: 'bg-red-100 text-red-600' },
+    { value: 'archived', label: lang === 'zh' ? '归档' : 'Archived', color: 'bg-yellow-100 text-yellow-700' },
+  ]
 
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-6 py-3 bg-gray-50 border-b border-gray-100">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '季度申报' : 'Quarterly'}</p>`
-)
+  return (
+    <div className="flex flex-wrap gap-2">
+      {statuses.map((s) => (
+        <button
+          key={s.value}
+          onClick={() => handleChange(s.value)}
+          className={s.value === status ? s.color + ' px-3 py-1 rounded-full text-xs font-medium ring-2 ring-offset-1 ring-blue-400' : 'px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-400 hover:bg-gray-200'}
+        >
+          {s.label}
+        </button>
+      ))}
+    </div>
+  )
+}`
 
-fs.writeFileSync('app/tax/page.tsx', c)
+fs.writeFileSync('app/jobs/[id]/JobStatusToggle.tsx', content)
 console.log('done')
