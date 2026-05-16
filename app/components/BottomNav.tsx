@@ -12,11 +12,11 @@ export default function BottomNav() {
 
   const tabs = [
     { href: '/', icon: '🏠', label: lang === 'zh' ? '首页' : 'Home' },
-    { href: '/jobs/new', icon: '➕', label: lang === 'zh' ? '新工程' : 'New Job' },
-    { href: '/quotes', icon: '📋', label: lang === 'zh' ? '报价单' : 'Quotes' },
+    { href: '/jobs/new', icon: '➕', label: lang === 'zh' ? '新建' : 'New' },
+    { href: '/quotes', icon: '📋', label: lang === 'zh' ? '报价' : 'Quote' },
     { href: '/tax', icon: '📊', label: lang === 'zh' ? '税务' : 'Tax' },
-    { href: '/cashflow', icon: '💰', label: lang === 'zh' ? '现金流' : 'Cash' },
-    { href: '/clients', icon: '👥', label: lang === 'zh' ? '客户' : 'Clients' },
+    { href: '/cashflow', icon: '💰', label: lang === 'zh' ? '现金' : 'Cash' },
+    { href: '/clients', icon: '👥', label: lang === 'zh' ? '客户' : 'Client' },
   ]
 
   const isActive = (href: string) => {
@@ -26,15 +26,15 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-[100] shadow-lg">
-      <div className="flex justify-around items-center py-1">
+      <div className="grid grid-cols-6 items-center py-1">
         {tabs.map((tab) => (
           <Link
             key={tab.href}
             href={tab.href}
-            className={`flex flex-col items-center gap-0 px-1 py-1 rounded-lg ${isActive(tab.href) ? 'text-blue-600' : 'text-gray-500'}`}
+            className={`flex flex-col items-center gap-0 py-1 ${isActive(tab.href) ? 'text-blue-600' : 'text-gray-500'}`}
           >
-            <span className="text-lg">{tab.icon}</span>
-            <span className="text-[10px] font-medium leading-tight">{tab.label}</span>
+            <span className="text-base">{tab.icon}</span>
+            <span className="text-[9px] font-medium leading-tight mt-0.5">{tab.label}</span>
           </Link>
         ))}
       </div>
