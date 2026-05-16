@@ -31,7 +31,7 @@ export default function ImportMaterials() {
     reader.onload = (evt) => {
       try {
         const data = evt.target?.result
-        const workbook = XLSX.read(data, { type: 'binary', cellDates: true })
+        const workbook = XLSX.read(data, { type: 'array', cellDates: true })
         
         // Try to find Materials sheet first, otherwise use first sheet
         const sheetName = workbook.SheetNames.includes('Materials') 
@@ -75,7 +75,7 @@ export default function ImportMaterials() {
         setError(lang === 'zh' ? '无法读取文件，请确认是有效的Excel文件' : 'Could not read file. Please ensure it is a valid Excel file.')
       }
     }
-    reader.readAsBinaryString(file)
+    reader.readAsArrayBuffer(file)
   }
 
   async function handleImport() {
