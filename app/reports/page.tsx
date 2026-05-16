@@ -9,20 +9,57 @@ export default function Reports() {
   const supabase = createClient()
   const { lang } = useLanguage()
   const [entries, setEntries] = useState<any[]>([])
+  const [filterType, setFilterType] = useState('all')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
 
   useEffect(() => {
-    supabase.from('job_entries').select('*, jobs(name)').order('created_at', { ascending: false }).then(({ data }) => setEntries(data || []))
+    supabase.from('job_entries').select('*, jobs(name)').order('created_at', { ascending: false }).then(({ data }: { data: any }) => setEntries(data || []))
   }, [])
 
-  const gstCollected = entries.filter(e => e.type === 'invoice' && e.gst_status === 'inclusive').reduce((sum, e) => sum + Number(e.amount) / 11, 0)
-  const gstPaid = entries.filter(e => e.type !== 'invoice' && e.gst_status === 'inclusive').reduce((sum, e) => {
+  const quarters = [
+    { label: lang === 'zh' ? 'Q1 (7-9月)' : 'Q1 (Jul-Sep)', start: '-07-01', end: '-09-30' },
+    { label: lang === 'zh' ? 'Q2 (10-12月)' : 'Q2 (Oct-Dec)', start: '-10-01', end: '-12-31' },
+    { label: lang === 'zh' ? 'Q3 (1-3月)' : 'Q3 (Jan-Mar)', start: '-01-01', end: '-03-31' },
+    { label: lang === 'zh' ? 'Q4 (4-6月)' : 'Q4 (Apr-Jun)', start: '-04-01', end: '-06-30' },
+  ]
+
+  const currentYear = new Date().getFullYear()
+  const financialYear = new Date().getMonth() >= 6 ? currentYear : currentYear - 1
+
+  function getFilteredEntries() {
+    if (filterType === 'all') return entries
+    if (filterType === 'custom' && startDate && endDate) {
+      return entries.filter(e => {
+        const d = e.entry_date || e.created_at
+        return d >= startDate && d <= endDate
+      })
+    }
+    if (filterType.startsWith('q')) {
+      const qIndex = parseInt(filterType[1]) - 1
+      const q = quarters[qIndex]
+      const year = qIndex >= 2 ? financialYear + 1 : financialYear
+      const start = year + q.start
+      const end = year + q.end
+      return entries.filter(e => {
+        const d = e.entry_date || e.created_at
+        return d >= start && d <= end
+      })
+    }
+    return entries
+  }
+
+  const filtered = getFilteredEntries()
+
+  const gstCollected = filtered.filter(e => e.type === 'invoice' && e.gst_status === 'inclusive').reduce((sum: number, e: any) => sum + Number(e.amount) / 11, 0)
+  const gstPaid = filtered.filter(e => e.type !== 'invoice' && e.gst_status === 'inclusive').reduce((sum: number, e: any) => {
     const amount = e.type === 'labor' ? Number(e.hours) * Number(e.hourly_rate) : Number(e.amount)
     return sum + amount / 11
   }, 0)
   const netGst = gstCollected - gstPaid
 
   const categoryTotals: Record<string, number> = {}
-  entries.forEach(e => {
+  filtered.forEach((e: any) => {
     if (!e.tax_category) return
     const amount = e.type === 'labor' ? Number(e.hours) * Number(e.hourly_rate) : Number(e.amount)
     categoryTotals[e.tax_category] = (categoryTotals[e.tax_category] || 0) + amount
@@ -59,6 +96,30 @@ export default function Reports() {
             <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '税务报告' : 'Tax Report'}</h1>
           </div>
           <Link href="/reports/monthly" className="text-blue-600 text-sm">{lang === 'zh' ? '月度' : 'Monthly'} →</Link>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <p className="text-sm font-medium text-gray-700 mb-3">{lang === 'zh' ? '筛选范围 (BAS季度)' : 'Filter Period (BAS Quarter)'}</p>
+          <div className="flex flex-wrap gap-2 mb-4">
+            <button onClick={() => setFilterType('all')} className={`px-3 py-1 rounded-full text-xs font-medium ${filterType === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{lang === 'zh' ? '全部' : 'All Time'}</button>
+            {quarters.map((q, i) => (
+              <button key={i} onClick={() => setFilterType('q' + (i+1))} className={`px-3 py-1 rounded-full text-xs font-medium ${filterType === 'q' + (i+1) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{q.label}</button>
+            ))}
+            <button onClick={() => setFilterType('custom')} className={`px-3 py-1 rounded-full text-xs font-medium ${filterType === 'custom' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{lang === 'zh' ? '自定义' : 'Custom'}</button>
+          </div>
+          {filterType === 'custom' && (
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <label className="text-gray-500 text-xs">{lang === 'zh' ? '开始日期' : 'Start Date'}</label>
+                <input type="date" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+              </div>
+              <div className="flex-1">
+                <label className="text-gray-500 text-xs">{lang === 'zh' ? '结束日期' : 'End Date'}</label>
+                <input type="date" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+              </div>
+            </div>
+          )}
+          <p className="text-gray-400 text-xs mt-3">{lang === 'zh' ? `当前筛选: ${filtered.length} 条记录` : `Showing: ${filtered.length} entries`}</p>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200">
