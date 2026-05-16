@@ -12,7 +12,7 @@ export default function BottomNav() {
 
   const tabs = [
     { href: '/', icon: '🏠', label: lang === 'zh' ? '首页' : 'Home' },
-    { href: '/jobs/new', icon: '➕', label: lang === 'zh' ? '新建' : 'New' },
+    { href: '/settings', icon: '⚙️', label: lang === 'zh' ? '设置' : 'Settings' },
     { href: '/quotes', icon: '📋', label: lang === 'zh' ? '报价' : 'Quote' },
     { href: '/tax', icon: '📊', label: lang === 'zh' ? '税务' : 'Tax' },
     { href: '/cashflow', icon: '💰', label: lang === 'zh' ? '现金' : 'Cash' },
