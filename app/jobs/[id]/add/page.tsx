@@ -274,10 +274,13 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                   <button type="button" onClick={() => setShowGstInfo(!showGstInfo)} className="text-blue-500 text-xs border border-blue-300 rounded-full w-5 h-5 flex items-center justify-center">?</button>
                 </div>
                 {showGstInfo && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800 space-y-1 mt-1">
-                    <p>• <strong>Inclusive</strong>: {t.gstInfoInclusive}</p>
-                    <p>• <strong>Exclusive</strong>: {t.gstInfoExclusive}</p>
-                    <p>• <strong>GST Free</strong>: {t.gstInfoFree}</p>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800 space-y-2 mt-1">
+                    <p className="font-semibold">{lang === 'zh' ? 'GST（商品及服务税）是什么？' : 'What is GST (Goods and Services Tax)?'}</p>
+                    <p>{lang === 'zh' ? 'GST 是澳洲的消费税，税率10%。大多数商品和服务价格已包含GST。你可以在收据或发票底部找到GST金额，如Bunnings收据会单独列出GST小计。' : "GST is Australia's 10% consumption tax. Most prices include GST. Check the bottom of your receipt or invoice — e.g. Bunnings receipts list the GST amount separately."}</p>
+                    <p className="font-semibold">{lang === 'zh' ? '如何选择：' : 'How to choose:'}</p>
+                    <p>• <strong>Inclusive</strong>: {t.gstInfoInclusive} {lang === 'zh' ? '— 收据价格已含GST，最常见' : '— Price on receipt includes GST, most common'}</p>
+                    <p>• <strong>Exclusive</strong>: {t.gstInfoExclusive} {lang === 'zh' ? '— 价格未含GST，系统自动加10%' : '— Price excludes GST, system adds 10%'}</p>
+                    <p>• <strong>GST Free</strong>: {t.gstInfoFree} {lang === 'zh' ? '— 无GST，如工资' : '— No GST, e.g. wages'}</p>
                   </div>
                 )}
                 <select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={gstStatus} onChange={(e) => setGstStatus(e.target.value)}>
