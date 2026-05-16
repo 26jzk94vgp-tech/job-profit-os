@@ -2,198 +2,137 @@ const fs = require('fs')
 const part1 = `'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '../../../utils/supabase/client'
+import { createClient } from '../../utils/supabase/client'
 import Link from 'next/link'
-import { useLanguage } from '../../../lib/i18n/LanguageContext'
+import { useLanguage } from '../../lib/i18n/LanguageContext'
 
-export default function MonthlyReport() {
+export default function Reports() {
   const supabase = createClient()
   const { lang } = useLanguage()
   const [entries, setEntries] = useState<any[]>([])
-  const [filterType, setFilterType] = useState('all')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
 
   useEffect(() => {
-    supabase.from('job_entries').select('*, jobs(name)').order('entry_date', { ascending: false }).then(({ data }) => setEntries(data || []))
+    supabase.from('job_entries').select('*, jobs(name)').order('created_at', { ascending: false }).then(({ data }) => setEntries(data || []))
   }, [])
 
-  const quarters = [
-    { label: 'Q1 (Jul-Sep)', start: '-07-01', end: '-09-30' },
-    { label: 'Q2 (Oct-Dec)', start: '-10-01', end: '-12-31' },
-    { label: 'Q3 (Jan-Mar)', start: '-01-01', end: '-03-31' },
-    { label: 'Q4 (Apr-Jun)', start: '-04-01', end: '-06-30' },
-  ]
-
-  const currentYear = new Date().getFullYear()
-  const financialYear = new Date().getMonth() >= 6 ? currentYear : currentYear - 1
-
-  function getFilteredEntries() {
-    if (filterType === 'all') return entries
-    if (filterType === 'custom' && startDate && endDate) {
-      return entries.filter(e => {
-        const d = e.entry_date || e.created_at
-        return d >= startDate && d <= endDate
-      })
-    }
-    if (filterType.startsWith('q')) {
-      const qIndex = parseInt(filterType[1]) - 1
-      const q = quarters[qIndex]
-      const year = qIndex >= 2 ? financialYear + 1 : financialYear
-      const start = year + q.start
-      const end = year + q.end
-      return entries.filter(e => {
-        const d = e.entry_date || e.created_at
-        return d >= start && d <= end
-      })
-    }
-    return entries
-  }
-
-  const filtered = getFilteredEntries()
-
-  const monthlyData: Record<string, {
-    revenue: number, labor: number, material: number,
-    subcontract: number, fuel: number, other: number,
-    profit: number, jobCount: Set<string>
-  }> = {}
-
-  filtered.forEach((e: any) => {
-    const date = new Date(e.entry_date || e.created_at)
-    const key = date.toLocaleString('en-AU', { month: 'long', year: 'numeric' })
-    if (!monthlyData[key]) {
-      monthlyData[key] = { revenue: 0, labor: 0, material: 0, subcontract: 0, fuel: 0, other: 0, profit: 0, jobCount: new Set() }
-    }
+  const gstCollected = entries.filter(e => e.type === 'invoice' && e.gst_status === 'inclusive').reduce((sum, e) => sum + Number(e.amount) / 11, 0)
+  const gstPaid = entries.filter(e => e.type !== 'invoice' && e.gst_status === 'inclusive').reduce((sum, e) => {
     const amount = e.type === 'labor' ? Number(e.hours) * Number(e.hourly_rate) : Number(e.amount)
-    if (e.job_id) monthlyData[key].jobCount.add(e.job_id)
-    if (e.type === 'invoice') monthlyData[key].revenue += amount
-    else if (e.type === 'labor') monthlyData[key].labor += amount
-    else if (e.type === 'material') monthlyData[key].material += amount
-    else if (e.type === 'subcontract') monthlyData[key].subcontract += amount
-    else if (e.type === 'fuel') monthlyData[key].fuel += amount
-    else monthlyData[key].other += amount
+    return sum + amount / 11
+  }, 0)
+  const netGst = gstCollected - gstPaid
+
+  const categoryTotals: Record<string, number> = {}
+  entries.forEach(e => {
+    if (!e.tax_category) return
+    const amount = e.type === 'labor' ? Number(e.hours) * Number(e.hourly_rate) : Number(e.amount)
+    categoryTotals[e.tax_category] = (categoryTotals[e.tax_category] || 0) + amount
   })
 
-  Object.keys(monthlyData).forEach(key => {
-    const d = monthlyData[key]
-    d.profit = d.revenue - d.labor - d.material - d.subcontract - d.fuel - d.other
-  })
-
-  const yearTotal = Object.values(monthlyData).reduce((acc, d) => ({
-    revenue: acc.revenue + d.revenue,
-    labor: acc.labor + d.labor,
-    material: acc.material + d.material,
-    subcontract: acc.subcontract + d.subcontract,
-    fuel: acc.fuel + d.fuel,
-    profit: acc.profit + d.profit,
-  }), { revenue: 0, labor: 0, material: 0, subcontract: 0, fuel: 0, profit: 0 })
+  const categoryLabels: Record<string, { en: string, zh: string }> = {
+    other_income: { en: 'Job Revenue', zh: '工程收入' },
+    cogs_material: { en: 'Materials (COGS)', zh: '材料成本' },
+    cogs_labour: { en: 'Direct Labour (COGS)', zh: '直接人工' },
+    subcontractor: { en: 'Subcontractor Costs', zh: '分包费用' },
+    vehicle: { en: 'Vehicle & Travel', zh: '车辆交通' },
+    tools_equipment: { en: 'Tools & Equipment', zh: '工具设备' },
+    insurance: { en: 'Insurance', zh: '保险' },
+    wages: { en: 'Wages & Salary', zh: '工资薪酬' },
+    super: { en: 'Superannuation', zh: '养老金' },
+    other_expense: { en: 'Other Expense', zh: '其他支出' },
+  }
 `
 
-fs.writeFileSync('app/reports/monthly/page.tsx', part1)
+fs.writeFileSync('app/reports/page.tsx', part1)
 console.log('part1 done')
 const part2 = `  return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
-        <div className="max-w-4xl mx-auto flex items-center gap-3">
-          <Link href="/reports" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
-          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '月度损益表' : 'Monthly P&L'}</h1>
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link href="/tax" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '税务中心' : 'Tax Hub'}</Link>
+            <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '税务报告' : 'Tax Report'}</h1>
+          </div>
+          <Link href="/reports/monthly" className="text-blue-600 text-sm hover:text-blue-800">{lang === 'zh' ? '月度损益表' : 'Monthly P&L'} →</Link>
         </div>
       </nav>
 
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
-        <div className="md:hidden flex items-center gap-3 mb-2">
-          <Link href="/reports" className="text-gray-500 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
-          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '月度损益表' : 'Monthly P&L'}</h1>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <p className="text-sm font-medium text-gray-700 mb-3">{lang === 'zh' ? '筛选范围' : 'Filter Period'}</p>
-          <div className="flex flex-wrap gap-2 mb-4">
-            <button onClick={() => setFilterType('all')} className={\`px-3 py-1 rounded-full text-xs font-medium \${filterType === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}\`}>{lang === 'zh' ? '全部' : 'All Time'}</button>
-            {quarters.map((q, i) => (
-              <button key={i} onClick={() => setFilterType('q' + (i+1))} className={\`px-3 py-1 rounded-full text-xs font-medium \${filterType === 'q' + (i+1) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}\`}>{q.label}</button>
-            ))}
-            <button onClick={() => setFilterType('custom')} className={\`px-3 py-1 rounded-full text-xs font-medium \${filterType === 'custom' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}\`}>{lang === 'zh' ? '自定义' : 'Custom'}</button>
+        <div className="md:hidden flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <Link href="/tax" className="text-gray-500 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
+            <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '税务报告' : 'Tax Report'}</h1>
           </div>
-          {filterType === 'custom' && (
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <label className="text-gray-500 text-xs">{lang === 'zh' ? '开始日期' : 'Start Date'}</label>
-                <input type="date" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-              </div>
-              <div className="flex-1">
-                <label className="text-gray-500 text-xs">{lang === 'zh' ? '结束日期' : 'End Date'}</label>
-                <input type="date" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-              </div>
-            </div>
-          )}
+          <Link href="/reports/monthly" className="text-blue-600 text-sm">{lang === 'zh' ? '月度' : 'Monthly'} →</Link>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '期间汇总' : 'Period Summary'}</h2>
+            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? 'GST 汇总 (BAS)' : 'GST Summary (BAS)'}</h2>
+            <p className="text-gray-400 text-xs mt-1">{lang === 'zh' ? '基于所有含GST条目' : 'Based on all entries marked as GST Inclusive'}</p>
           </div>
-          <div className="grid grid-cols-3 gap-0 divide-x divide-gray-100">
-            <div className="px-6 py-4">
-              <p className="text-gray-500 text-sm">{lang === 'zh' ? '总收入' : 'Total Revenue'}</p>
-              <p className="text-2xl font-bold text-green-600">\${yearTotal.revenue.toLocaleString()}</p>
+          <div className="divide-y divide-gray-100">
+            <div className="px-6 py-4 flex justify-between items-center">
+              <div>
+                <p className="font-medium text-gray-900">{lang === 'zh' ? '已收GST' : 'GST Collected'}</p>
+                <p className="text-gray-400 text-xs">{lang === 'zh' ? '来自发票 (1/11)' : 'From invoices (1/11 of revenue)'}</p>
+              </div>
+              <span className="font-semibold text-green-600">\${gstCollected.toFixed(2)}</span>
             </div>
-            <div className="px-6 py-4">
-              <p className="text-gray-500 text-sm">{lang === 'zh' ? '总支出' : 'Total Expenses'}</p>
-              <p className="text-2xl font-bold text-red-500">\${(yearTotal.labor + yearTotal.material + yearTotal.subcontract + yearTotal.fuel).toLocaleString()}</p>
+            <div className="px-6 py-4 flex justify-between items-center">
+              <div>
+                <p className="font-medium text-gray-900">{lang === 'zh' ? '已付GST (进项税抵扣)' : 'GST Paid (Input Tax Credits)'}</p>
+                <p className="text-gray-400 text-xs">{lang === 'zh' ? '来自支出 (1/11)' : 'From expenses (1/11 of costs)'}</p>
+              </div>
+              <span className="font-semibold text-red-500">-\${gstPaid.toFixed(2)}</span>
             </div>
-            <div className="px-6 py-4">
-              <p className="text-gray-500 text-sm">{lang === 'zh' ? '净利润' : 'Net Profit'}</p>
-              <p className={yearTotal.profit >= 0 ? 'text-2xl font-bold text-green-600' : 'text-2xl font-bold text-red-600'}>\${yearTotal.profit.toLocaleString()}</p>
+            <div className="px-6 py-4 flex justify-between items-center bg-gray-50">
+              <div>
+                <p className="font-bold text-gray-900">{lang === 'zh' ? '应缴ATO净GST' : 'Net GST Payable to ATO'}</p>
+                <p className="text-gray-400 text-xs">{lang === 'zh' ? 'BAS申报金额' : 'Amount to remit in BAS'}</p>
+              </div>
+              <span className={netGst >= 0 ? 'font-bold text-lg text-red-600' : 'font-bold text-lg text-green-600'}>
+                \${Math.abs(netGst).toFixed(2)} {netGst >= 0 ? (lang === 'zh' ? '(应缴)' : '(payable)') : (lang === 'zh' ? '(退税)' : '(refund)')}
+              </span>
             </div>
           </div>
         </div>
 
-        {Object.entries(monthlyData).map(([month, data]) => {
-          const margin = data.revenue > 0 ? ((data.profit / data.revenue) * 100).toFixed(1) : '0'
-          const totalExpenses = data.labor + data.material + data.subcontract + data.fuel + data.other
-          return (
-            <div key={month} className="bg-white rounded-xl border border-gray-200">
-              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                <div>
-                  <h3 className="font-semibold text-gray-900">{month}</h3>
-                  <p className="text-gray-400 text-xs mt-0.5">{data.jobCount.size} {lang === 'zh' ? '个工程' : 'job(s)'}</p>
-                </div>
-                <div className="text-right">
-                  <span className={data.profit >= 0 ? 'font-bold text-green-600' : 'font-bold text-red-600'}>
-                    {data.profit >= 0 ? '+' : ''}\${data.profit.toLocaleString()}
-                  </span>
-                  <p className="text-gray-400 text-xs mt-0.5">{lang === 'zh' ? '利润率' : 'Margin'}: {margin}%</p>
-                </div>
-              </div>
-              <div className="divide-y divide-gray-50">
-                <div className="px-6 py-3 flex justify-between text-sm">
-                  <span className="text-gray-600">{lang === 'zh' ? '收入' : 'Revenue'}</span>
-                  <span className="font-medium text-green-600">\${data.revenue.toLocaleString()}</span>
-                </div>
-                {data.labor > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-500">{lang === 'zh' ? '人工' : 'Labor'}</span><span className="text-red-400">-\${data.labor.toLocaleString()}</span></div>}
-                {data.material > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-500">{lang === 'zh' ? '材料' : 'Materials'}</span><span className="text-red-400">-\${data.material.toLocaleString()}</span></div>}
-                {data.subcontract > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-500">{lang === 'zh' ? '分包' : 'Subcontract'}</span><span className="text-red-400">-\${data.subcontract.toLocaleString()}</span></div>}
-                {data.fuel > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-500">{lang === 'zh' ? '车辆' : 'Vehicle/Fuel'}</span><span className="text-red-400">-\${data.fuel.toLocaleString()}</span></div>}
-                <div className="px-6 py-3 flex justify-between text-sm font-medium bg-gray-50">
-                  <span className="text-gray-700">{lang === 'zh' ? '总支出' : 'Total Expenses'}</span>
-                  <span className="text-red-500">-\${totalExpenses.toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-          )
-        })}
-
-        {Object.keys(monthlyData).length === 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center text-gray-400">
-            {lang === 'zh' ? '该时间段内没有数据' : 'No data for this period.'}
+        <div className="bg-white rounded-xl border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? 'ATO分类明细' : 'ATO Category Breakdown'}</h2>
+            <p className="text-gray-400 text-xs mt-1">{lang === 'zh' ? '用于所得税申报' : 'For income tax return preparation'}</p>
           </div>
-        )}
+          {Object.keys(categoryTotals).length === 0 && (
+            <div className="px-6 py-8 text-center text-gray-400">
+              <p>{lang === 'zh' ? '还没有分类条目' : 'No categorised entries yet.'}</p>
+              <p className="text-xs mt-1">{lang === 'zh' ? '添加条目时选择ATO税务分类' : 'Add ATO Tax Category when entering costs.'}</p>
+            </div>
+          )}
+          <div className="divide-y divide-gray-100">
+            {Object.entries(categoryTotals).map(([cat, total]) => (
+              <div key={cat} className="px-6 py-4 flex justify-between items-center">
+                <div>
+                  <p className="font-medium text-gray-900">{lang === 'zh' ? categoryLabels[cat]?.zh : categoryLabels[cat]?.en || cat}</p>
+                  <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{cat}</span>
+                </div>
+                <span className={cat === 'other_income' ? 'font-semibold text-green-600' : 'font-semibold text-red-500'}>
+                  {cat === 'other_income' ? '+' : '-'}\${total.toLocaleString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
+          <p className="text-blue-800 font-medium text-sm">⚠️ {lang === 'zh' ? '免责声明' : 'Disclaimer'}</p>
+          <p className="text-blue-600 text-xs mt-1">{lang === 'zh' ? '本报告仅供参考。提交BAS或税务申报前请咨询注册税务代理或CPA。' : 'This report is for reference only. Please consult a registered tax agent or CPA before lodging your BAS or tax return.'}</p>
+        </div>
       </main>
     </div>
   )
 }`
 
-const existing = require('fs').readFileSync('app/reports/monthly/page.tsx', 'utf8')
-require('fs').writeFileSync('app/reports/monthly/page.tsx', existing + part2)
+const existing = require('fs').readFileSync('app/reports/page.tsx', 'utf8')
+require('fs').writeFileSync('app/reports/page.tsx', existing + part2)
 console.log('part2 done')
