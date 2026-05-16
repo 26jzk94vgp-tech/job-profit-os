@@ -89,7 +89,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
 
   function validatePositive(value: string, field: string) {
     if (value === '' || value === '/') { setErrors(e => { const n = {...e}; delete n[field]; return n }); return true }
-    if (!/^d+(.d{0,2})?$/.test(value)) {
+    if (!/^\d+(\.\d{0,2})?$/.test(value)) {
       setErrors(e => ({ ...e, [field]: lang === 'zh' ? '只能输入数字或 /' : 'Numbers or / only.' }))
       return false
     }
