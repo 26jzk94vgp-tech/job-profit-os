@@ -26,6 +26,7 @@ export default function EditEntry({ params }: { params: Promise<{ id: string, en
   const [gstStatus, setGstStatus] = useState('inclusive')
   const [taxCategory, setTaxCategory] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showGstInfo, setShowGstInfo] = useState(false)
   const [paymentDueDate, setPaymentDueDate] = useState('')
   const [paymentStatus, setPaymentStatus] = useState('unpaid')
 
@@ -139,7 +140,17 @@ export default function EditEntry({ params }: { params: Promise<{ id: string, en
           </div>
         )}
           <div className="border-t border-gray-100 pt-4 space-y-4">
-            <div><label className="text-gray-700 text-sm font-medium">GST Status</label><select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={gstStatus} onChange={(e) => setGstStatus(e.target.value)}><option value="inclusive">Inclusive of GST (10%)</option><option value="exclusive">Exclusive of GST</option><option value="free">GST Free</option><option value="unknown">Unknown</option></select></div>
+            <div><div className="flex items-center gap-2">
+              <label className="text-gray-700 text-sm font-medium">GST Status</label>
+              <button type="button" onClick={() => setShowGstInfo(!showGstInfo)} className="text-blue-500 text-xs border border-blue-300 rounded-full w-5 h-5 flex items-center justify-center">?</button>
+            </div>
+            {showGstInfo && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800 space-y-1 mt-1">
+                <p>• <strong>Inclusive</strong>: 金额已含10% GST（例如收到 $110，其中 $10 是 GST）</p>
+                <p>• <strong>Exclusive</strong>: 金额未含 GST，系统另加10%（$100 → 实收 $110）</p>
+                <p>• <strong>GST Free</strong>: 无 GST，例如工资、某些食品</p>
+              </div>
+            )}<select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={gstStatus} onChange={(e) => setGstStatus(e.target.value)}><option value="inclusive">Inclusive of GST (10%)</option><option value="exclusive">Exclusive of GST</option><option value="free">GST Free</option><option value="unknown">Unknown</option></select></div>
             <div><label className="text-gray-700 text-sm font-medium">ATO Tax Category</label><select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={taxCategory} onChange={(e) => setTaxCategory(e.target.value)}><option value="">Select category...</option><optgroup label="Income"><option value="other_income">Job Revenue / Income</option></optgroup><optgroup label="Cost of Goods Sold"><option value="cogs_material">Materials (COGS)</option><option value="cogs_labour">Direct Labour (COGS)</option><option value="subcontractor">Subcontractor Costs</option></optgroup><optgroup label="Business Expenses"><option value="vehicle">Vehicle & Travel</option><option value="tools_equipment">Tools & Equipment</option><option value="insurance">Insurance</option><option value="wages">Wages & Salary</option><option value="super">Superannuation</option><option value="other_expense">Other Expense</option></optgroup></select></div>
           </div>
           <button onClick={handleSubmit} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium disabled:opacity-50">{loading ? 'Saving...' : 'Save Changes'}</button>
