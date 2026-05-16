@@ -69,8 +69,8 @@ export default function TaxHub() {
             <p className={totalProfit >= 0 ? 'text-xl font-bold text-green-600 mt-1' : 'text-xl font-bold text-red-600 mt-1'}>${totalProfit.toLocaleString()}</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <p className="text-gray-500 text-xs">{lang === 'zh' ? 'ATO分类' : 'Category'}</p>
-            <p className={categoryCompleteness >= 80 ? 'text-xl font-bold text-green-600 mt-1' : 'text-xl font-bold text-yellow-500 mt-1'}>{categoryCompleteness}%</p>
+            <p className="text-gray-500 text-xs">{lang === 'zh' ? '净应缴GST' : 'Net GST'}</p>
+            <p className={netGst >= 0 ? 'text-xl font-bold text-red-500 mt-1' : 'text-xl font-bold text-green-600 mt-1'}>${Math.abs(netGst).toFixed(0)}</p>
           </div>
         </div>
 
