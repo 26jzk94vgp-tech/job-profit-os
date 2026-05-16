@@ -20,6 +20,11 @@ export default function ImportMaterials() {
     supabase.from('jobs').select('id, name, client_name').order('created_at', { ascending: false }).then(({ data }) => setJobs(data || []))
   }, [])
 
+  function parseNum(val: any): number {
+    if (!val) return 0
+    return parseFloat(String(val).replace(/[$,]/g, '')) || 0
+  }
+
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -40,6 +45,10 @@ export default function ImportMaterials() {
         
         const sheet = workbook.Sheets[sheetName]
         const jsonData = XLSX.utils.sheet_to_json(sheet, { raw: false })
+        console.log('Sheet names:', workbook.SheetNames)
+        console.log('Using sheet:', sheetName)
+        console.log('Row count:', jsonData.length)
+        console.log('First row:', JSON.stringify(jsonData[0]))
         
         // Map columns flexibly
         const mapped = (jsonData as any[]).map((row: any) => {
@@ -49,11 +58,11 @@ export default function ImportMaterials() {
           const supplier = row['Supplier'] || row['supplier'] || ''
           const invoiceNo = row['Invoice No.'] || row['Invoice No'] || row['Invoice'] || ''
           const category = row['Category'] || row['category'] || ''
-          const quantity = parseFloat(row['Qty'] || row['Quantity'] || row['QTY'] || '1') || 1
-          const unitPriceIncGst = parseFloat(row['Unit Price inc GST'] || row['Unit Price'] || row['Price'] || '0') || 0
-          const totalIncGst = parseFloat(row['Line Total inc GST'] || row['Total inc GST'] || row['Total'] || row['Amount'] || '0') || 0
-          const gst = parseFloat(row['GST'] || row['gst'] || '0') || 0
-          const totalExGst = parseFloat(row['Ex GST'] || row['ex GST'] || row['Ex-GST'] || '0') || (totalIncGst - gst)
+          const quantity = parseNum(row['Qty'] || row['Quantity'] || row['QTY'] || '1')
+          const unitPriceIncGst = parseNum(row['Unit Price inc GST'] || row['Unit Price'] || row['Price'] || '0')
+          const totalIncGst = parseNum(row['Line Total inc GST'] || row['Total inc GST'] || row['Total'] || row['Amount'] || '0')
+          const gst = parseNum(row['GST'] || row['gst'] || '0')
+          const totalExGst = parseNum(row['Ex GST'] || row['ex GST'] || row['Ex-GST'] || '0') || (totalIncGst - gst)
 
           return {
             date: date ? new Date(date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -69,7 +78,9 @@ export default function ImportMaterials() {
             gst,
           }
         }).filter(row => row.description && row.totalIncGst > 0)
-
+        
+        console.log('Mapped count:', mapped.length)
+        console.log('First mapped:', JSON.stringify(mapped[0]))
         setRows(mapped)
       } catch (err: any) {
         setError(lang === 'zh' ? '无法读取文件，请确认是有效的Excel文件' : 'Could not read file. Please ensure it is a valid Excel file.')
