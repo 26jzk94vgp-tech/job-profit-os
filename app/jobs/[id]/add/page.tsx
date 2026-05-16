@@ -26,6 +26,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   const [kilometers, setKilometers] = useState('')
   const [atoMethod, setAtoMethod] = useState('cents_per_km')
   const [gstStatus, setGstStatus] = useState('inclusive')
+  const [showGstInfo, setShowGstInfo] = useState(false)
   const [paymentDueDate, setPaymentDueDate] = useState('')
   const [paymentStatus, setPaymentStatus] = useState('unpaid')
   const [taxCategory, setTaxCategory] = useState('')
@@ -159,16 +160,15 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
               <div>
                 <div className="flex items-center gap-2">
                   <label className="text-gray-700 text-sm font-medium">GST Status</label>
-                  <div className="group relative">
-                    <span className="text-blue-500 text-xs cursor-pointer border border-blue-300 rounded-full w-4 h-4 flex items-center justify-center">?</span>
-                    <div className="hidden group-hover:block absolute left-0 top-6 bg-gray-900 text-white text-xs rounded-lg p-3 w-64 z-10 shadow-lg">
-                      <p className="font-medium mb-1">GST Status 解释：</p>
-                      <p className="mb-1">• <strong>Inclusive</strong>: 金额已含10% GST。例如收到 $110，其中 $10 是 GST。</p>
-                      <p className="mb-1">• <strong>Exclusive</strong>: 金额未含 GST，系统会另外加10%。例如 $100 → 实收 $110。</p>
-                      <p>• <strong>GST Free</strong>: 无 GST，例如工资、某些食品。</p>
-                    </div>
-                  </div>
+                  <button type="button" onClick={() => setShowGstInfo(!showGstInfo)} className="text-blue-500 text-xs border border-blue-300 rounded-full w-5 h-5 flex items-center justify-center">?</button>
                 </div>
+                {showGstInfo && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800 space-y-1">
+                    <p>• <strong>Inclusive</strong>: 金额已含10% GST（例如收到 $110，其中 $10 是 GST）</p>
+                    <p>• <strong>Exclusive</strong>: 金额未含 GST，系统另加10%（$100 → 实收 $110）</p>
+                    <p>• <strong>GST Free</strong>: 无 GST，例如工资、某些食品</p>
+                  </div>
+                )}
                 <select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={gstStatus} onChange={(e) => setGstStatus(e.target.value)}>
                   <option value="inclusive">Inclusive of GST (10%)</option>
                   <option value="exclusive">Exclusive of GST (add 10%)</option>
