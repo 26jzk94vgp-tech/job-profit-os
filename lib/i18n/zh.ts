@@ -8,12 +8,12 @@ export const zh = {
   signOut: '退出登录',
 
   // Dashboard
-  dashboard: '工程概览',
-  totalJobs: '总工程数',
+  dashboard: '工单概览',
+  totalJobs: '总工单数',
   activeJobs: '进行中',
   totalProfit: '总利润',
-  noJobs: '还没有工程，创建第一个吧！',
-  newJob: '+ 新工程',
+  noJobs: '还没有工单，创建第一个吧！',
+  newJob: '+ 新工单',
 
   // Job Detail
   revenue: '收入',
@@ -72,11 +72,11 @@ export const zh = {
   keepReceipt: '请保留油费收据以备 ATO 查验',
 
   // New Job
-  newJobTitle: '新建工程',
-  jobName: '工程名称 *',
+  newJobTitle: '新建工单',
+  jobName: '工单名称 *',
   clientName: '客户名称',
   creating: '创建中...',
-  createJob: '创建工程',
+  createJob: '创建工单',
 
   // Clients
   newClient: '+ 新建客户',

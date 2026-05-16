@@ -29,7 +29,7 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
   }
 
   async function convertToInvoice() {
-    if (!quote?.job_id) { alert(lang === 'zh' ? '请先关联工程' : 'Please link a job first.'); return }
+    if (!quote?.job_id) { alert(lang === 'zh' ? '请先关联工单' : 'Please link a job first.'); return }
     setLoading(true)
     const invoiceItems = items.map(item => ({
       job_id: quote.job_id,

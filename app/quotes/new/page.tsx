@@ -68,9 +68,9 @@ export default function NewQuote() {
             </select>
           </div>
           <div>
-            <label className="text-gray-700 text-sm font-medium">工程 / Job</label>
+            <label className="text-gray-700 text-sm font-medium">工单 / Job</label>
             <select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" value={jobId} onChange={(e) => setJobId(e.target.value)}>
-              <option value="">选择工程 / Select job...</option>
+              <option value="">选择工单 / Select job...</option>
               {jobs.map((j) => <option key={j.id} value={j.id}>{j.name}</option>)}
             </select>
           </div>

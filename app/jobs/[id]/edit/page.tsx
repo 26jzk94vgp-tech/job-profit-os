@@ -40,17 +40,17 @@ export default function EditJob({ params }: { params: Promise<{ id: string }> })
       <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           <a href={"/jobs/" + id} className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</a>
-          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '编辑工程' : 'Edit Job'}</h1>
+          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '编辑工单' : 'Edit Job'}</h1>
         </div>
       </nav>
       <main className="max-w-2xl mx-auto px-6 py-8">
         <div className="md:hidden mb-6 flex items-center gap-3">
           <a href={"/jobs/" + id} className="text-gray-500 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</a>
-          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '编辑工程' : 'Edit Job'}</h1>
+          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '编辑工单' : 'Edit Job'}</h1>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
           <div>
-            <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '工程名称 *' : 'Job Name *'}</label>
+            <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '工单名称 *' : 'Job Name *'}</label>
             <input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Kitchen Renovation" />
           </div>
           <div>

@@ -152,7 +152,7 @@ export default function MonthlyReport() {
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
                 <div>
                   <h3 className="font-semibold text-gray-900">{month}</h3>
-                  <p className="text-gray-400 text-xs mt-0.5">{data.jobCount.size} {lang === 'zh' ? lang === 'zh' ? '个工程' : 'job(s)' : 'job(s)'}</p>
+                  <p className="text-gray-400 text-xs mt-0.5">{data.jobCount.size} {lang === 'zh' ? lang === 'zh' ? '个工单' : 'job(s)' : 'job(s)'}</p>
                 </div>
                 <div className="text-right">
                   <span className={data.profit >= 0 ? 'font-bold text-green-600' : 'font-bold text-red-600'}>

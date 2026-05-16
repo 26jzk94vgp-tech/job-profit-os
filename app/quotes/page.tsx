@@ -41,7 +41,7 @@ export default function Quotes() {
                 <div className="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition cursor-pointer">
                   <div>
                     <p className="font-medium text-gray-900">{quote.clients?.name || (lang === 'zh' ? '无客户' : 'No client')}</p>
-                    <p className="text-gray-500 text-sm">{quote.jobs?.name || (lang === 'zh' ? '无工程' : 'No job')} · {quote.quote_number || 'Q-001'}</p>
+                    <p className="text-gray-500 text-sm">{quote.jobs?.name || (lang === 'zh' ? '无工单' : 'No job')} · {quote.quote_number || 'Q-001'}</p>
                   </div>
                   <span className={
                     quote.status === 'accepted' ? 'text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full' :

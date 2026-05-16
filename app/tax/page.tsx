@@ -142,7 +142,7 @@ export default function TaxHub() {
                 <p className="text-gray-400 text-xs">{totalKm.toFixed(0)}km — ${totalFuelDeduction.toFixed(2)}</p>
               </div>
             </div>
-            <span className="text-gray-400 text-xs">{lang === 'zh' ? '在工程条目中添加' : 'Add via Job Entries'}</span>
+            <span className="text-gray-400 text-xs">{lang === 'zh' ? '在工单条目中添加' : 'Add via Job Entries'}</span>
           </div>
         </div>
 

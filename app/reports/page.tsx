@@ -66,7 +66,7 @@ export default function Reports() {
   })
 
   const categoryLabels: Record<string, { en: string, zh: string }> = {
-    other_income: { en: 'Job Revenue', zh: '工程收入' },
+    other_income: { en: 'Job Revenue', zh: '工单收入' },
     cogs_material: { en: 'Materials (COGS)', zh: '材料成本' },
     cogs_labour: { en: 'Direct Labour (COGS)', zh: '直接人工' },
     subcontractor: { en: 'Subcontractor Costs', zh: '分包费用' },

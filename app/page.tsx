@@ -109,7 +109,7 @@ export default function Home() {
             <Link href="/pricing" className="flex-1 flex justify-between items-center hover:opacity-90 transition">
               <div>
                 <p className="font-semibold text-sm">🚀 {lang === 'zh' ? '升级到专业版' : 'Upgrade to Pro'}</p>
-                <p className="text-blue-100 text-xs mt-0.5">{lang === 'zh' ? '无限工程 · OCR收据扫描 · 税务报告 · $19/月' : 'Unlimited jobs · Receipt OCR · Tax reports · $19/mo'}</p>
+                <p className="text-blue-100 text-xs mt-0.5">{lang === 'zh' ? '无限工单 · OCR收据扫描 · 税务报告 · $19/月' : 'Unlimited jobs · Receipt OCR · Tax reports · $19/mo'}</p>
               </div>
               <span className="text-white font-bold text-sm whitespace-nowrap ml-4">{lang === 'zh' ? '查看方案 →' : 'View Plans →'}</span>
             </Link>
@@ -244,7 +244,7 @@ export default function Home() {
 
           {jobs.length > 0 && (
             <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{lang === 'zh' ? '最近工程' : 'Recent Jobs'}</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{lang === 'zh' ? '最近工单' : 'Recent Jobs'}</p>
               <div className="space-y-2">
                 {jobs.slice(0, 3).map((job: any) => {
                   const profit = Number(job.profit)
@@ -270,7 +270,7 @@ export default function Home() {
 
         <div className="bg-white rounded-xl border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '工程列表' : 'Jobs'}</h2>
+            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '工单列表' : 'Jobs'}</h2>
           </div>
           {jobs.length === 0 && (
             <div className="px-6 py-16 text-center">

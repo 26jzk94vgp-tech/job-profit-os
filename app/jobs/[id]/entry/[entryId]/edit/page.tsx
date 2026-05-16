@@ -189,7 +189,7 @@ export default function EditEntry({ params }: { params: Promise<{ id: string, en
               <label className="text-gray-700 text-sm font-medium">{t.atoCategory}</label>
               <select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={taxCategory} onChange={(e) => setTaxCategory(e.target.value)}>
                 <option value="">{t.selectCategory}</option>
-                <optgroup label={lang === 'zh' ? '收入' : 'Income'}><option value="other_income">{lang === 'zh' ? '工程收入' : 'Job Revenue / Income'}</option></optgroup>
+                <optgroup label={lang === 'zh' ? '收入' : 'Income'}><option value="other_income">{lang === 'zh' ? '工单收入' : 'Job Revenue / Income'}</option></optgroup>
                 <optgroup label={lang === 'zh' ? '销售成本' : 'Cost of Goods Sold'}>
                   <option value="cogs_material">{lang === 'zh' ? '材料成本' : 'Materials (COGS)'}</option>
                   <option value="cogs_labour">{lang === 'zh' ? '直接人工' : 'Direct Labour (COGS)'}</option>

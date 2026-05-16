@@ -70,7 +70,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
             <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '到期日' : 'Due Date'}</label><input type="date" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></div>
           </div>
           <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '客户名称' : 'Bill To (Client Name)'}</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={toName} onChange={(e) => setToName(e.target.value)} /></div>
-          <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '工程地址' : 'Job Address / TO:'}</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" placeholder="e.g. Unit 6C Lot 188 Coastal Rise" value={toAddress} onChange={(e) => setToAddress(e.target.value)} /></div>
+          <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '工单地址' : 'Job Address / TO:'}</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" placeholder="e.g. Unit 6C Lot 188 Coastal Rise" value={toAddress} onChange={(e) => setToAddress(e.target.value)} /></div>
           <hr />
           <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '发送到客户邮箱' : 'Send to Client Email'}</label><input type="email" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" placeholder="client@email.com" value={toEmail} onChange={(e) => setToEmail(e.target.value)} /></div>
           {sent && <p className="text-green-600 text-sm">✅ {lang === 'zh' ? '发票已发送！' : 'Invoice sent!'}</p>}
@@ -110,7 +110,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
         <table className="w-full border-collapse mb-6">
           <thead>
             <tr className="border border-gray-400 bg-gray-100">
-              <th className="border border-gray-400 px-3 py-2 text-left text-sm font-bold">{lang === 'zh' ? '工程描述' : 'JOB DESCRIPTION'}</th>
+              <th className="border border-gray-400 px-3 py-2 text-left text-sm font-bold">{lang === 'zh' ? '工单描述' : 'JOB DESCRIPTION'}</th>
               <th className="border border-gray-400 px-3 py-2 text-center text-sm font-bold w-16">{lang === 'zh' ? '数量' : 'QTY'}</th>
               <th className="border border-gray-400 px-3 py-2 text-right text-sm font-bold w-28">{lang === 'zh' ? '单价' : 'UNIT PRICE'}</th>
               <th className="border border-gray-400 px-3 py-2 text-right text-sm font-bold w-28">{lang === 'zh' ? '金额' : 'PRICE'}</th>
