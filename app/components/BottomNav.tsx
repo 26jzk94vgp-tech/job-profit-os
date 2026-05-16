@@ -15,7 +15,7 @@ export default function BottomNav() {
     { href: '/jobs/new', icon: '➕', label: lang === 'zh' ? '新建' : 'New' },
     { href: '/quotes', icon: '📋', label: lang === 'zh' ? '报价' : 'Quote' },
     { href: '/tax', icon: '📊', label: lang === 'zh' ? '税务' : 'Tax' },
-    { href: '/cashflow', icon: '💰', label: lang === 'zh' ? '现金' : 'Cash' },
+    { href: '/finance', icon: '💹', label: lang === 'zh' ? '财务' : 'Finance' },
     { href: '/clients', icon: '👥', label: lang === 'zh' ? '客户' : 'Client' },
   ]
 
