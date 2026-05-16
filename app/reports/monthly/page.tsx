@@ -102,22 +102,22 @@ export default function MonthlyReport() {
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <p className="text-sm font-medium text-gray-700 mb-3">{lang === 'zh' ? '筛选范围' : 'Filter Period'}</p>
+          <p className="text-sm font-medium text-gray-700 mb-3">{lang === 'zh' ? lang === 'zh' ? '筛选范围' : 'Filter Period' : 'Filter Period'}</p>
           <div className="flex flex-wrap gap-2 mb-4">
-            <button onClick={() => setFilterType('all')} className={`px-3 py-1 rounded-full text-xs font-medium ${filterType === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{lang === 'zh' ? '全部' : 'All Time'}</button>
+            <button onClick={() => setFilterType('all')} className={`px-3 py-1 rounded-full text-xs font-medium ${filterType === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{lang === 'zh' ? lang === 'zh' ? '全部' : 'All Time' : 'All Time'}</button>
             {quarters.map((q, i) => (
               <button key={i} onClick={() => setFilterType('q' + (i+1))} className={`px-3 py-1 rounded-full text-xs font-medium ${filterType === 'q' + (i+1) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{q.label}</button>
             ))}
-            <button onClick={() => setFilterType('custom')} className={`px-3 py-1 rounded-full text-xs font-medium ${filterType === 'custom' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{lang === 'zh' ? '自定义' : 'Custom'}</button>
+            <button onClick={() => setFilterType('custom')} className={`px-3 py-1 rounded-full text-xs font-medium ${filterType === 'custom' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{lang === 'zh' ? lang === 'zh' ? '自定义' : 'Custom' : 'Custom'}</button>
           </div>
           {filterType === 'custom' && (
             <div className="flex gap-3">
               <div className="flex-1">
-                <label className="text-gray-500 text-xs">{lang === 'zh' ? '开始日期' : 'Start Date'}</label>
+                <label className="text-gray-500 text-xs">{lang === 'zh' ? lang === 'zh' ? '开始日期' : 'Start Date' : 'Start Date'}</label>
                 <input type="date" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
               </div>
               <div className="flex-1">
-                <label className="text-gray-500 text-xs">{lang === 'zh' ? '结束日期' : 'End Date'}</label>
+                <label className="text-gray-500 text-xs">{lang === 'zh' ? lang === 'zh' ? '结束日期' : 'End Date' : 'End Date'}</label>
                 <input type="date" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
               </div>
             </div>
@@ -126,19 +126,19 @@ export default function MonthlyReport() {
 
         <div className="bg-white rounded-xl border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '期间汇总' : 'Period Summary'}</h2>
+            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? lang === 'zh' ? '期间汇总' : 'Period Summary' : 'Period Summary'}</h2>
           </div>
           <div className="grid grid-cols-3 gap-0 divide-x divide-gray-100">
             <div className="px-6 py-4">
-              <p className="text-gray-500 text-sm">{lang === 'zh' ? '总收入' : 'Total Revenue'}</p>
+              <p className="text-gray-500 text-sm">{lang === 'zh' ? lang === 'zh' ? '总收入' : 'Total Revenue' : 'Total Revenue'}</p>
               <p className="text-2xl font-bold text-green-600">${yearTotal.revenue.toLocaleString()}</p>
             </div>
             <div className="px-6 py-4">
-              <p className="text-gray-500 text-sm">{lang === 'zh' ? '总支出' : 'Total Expenses'}</p>
+              <p className="text-gray-500 text-sm">{lang === 'zh' ? lang === 'zh' ? lang === 'zh' ? '总支出' : 'Total Expenses' : 'Total Expenses' : 'Total Expenses'}</p>
               <p className="text-2xl font-bold text-red-500">${(yearTotal.labor + yearTotal.material + yearTotal.subcontract + yearTotal.fuel).toLocaleString()}</p>
             </div>
             <div className="px-6 py-4">
-              <p className="text-gray-500 text-sm">{lang === 'zh' ? '净利润' : 'Net Profit'}</p>
+              <p className="text-gray-500 text-sm">{lang === 'zh' ? lang === 'zh' ? '净利润' : 'Net Profit' : 'Net Profit'}</p>
               <p className={yearTotal.profit >= 0 ? 'text-2xl font-bold text-green-600' : 'text-2xl font-bold text-red-600'}>${yearTotal.profit.toLocaleString()}</p>
             </div>
           </div>
@@ -152,24 +152,24 @@ export default function MonthlyReport() {
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
                 <div>
                   <h3 className="font-semibold text-gray-900">{month}</h3>
-                  <p className="text-gray-400 text-xs mt-0.5">{data.jobCount.size} {lang === 'zh' ? '个工程' : 'job(s)'}</p>
+                  <p className="text-gray-400 text-xs mt-0.5">{data.jobCount.size} {lang === 'zh' ? lang === 'zh' ? '个工程' : 'job(s)' : 'job(s)'}</p>
                 </div>
                 <div className="text-right">
                   <span className={data.profit >= 0 ? 'font-bold text-green-600' : 'font-bold text-red-600'}>
                     {data.profit >= 0 ? '+' : ''}${data.profit.toLocaleString()}
                   </span>
-                  <p className="text-gray-400 text-xs mt-0.5">{lang === 'zh' ? '利润率' : 'Margin'}: {margin}%</p>
+                  <p className="text-gray-400 text-xs mt-0.5">{lang === 'zh' ? lang === 'zh' ? '利润率' : 'Margin' : 'Margin'}: {margin}%</p>
                 </div>
               </div>
               <div className="divide-y divide-gray-50">
                 <div className="px-6 py-3 flex justify-between text-sm">
-                  <span className="text-gray-600">{lang === 'zh' ? '收入' : 'Revenue'}</span>
+                  <span className="text-gray-600">{lang === 'zh' ? lang === 'zh' ? '收入' : 'Revenue' : 'Revenue'}</span>
                   <span className="font-medium text-green-600">${data.revenue.toLocaleString()}</span>
                 </div>
-                {data.labor > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-500">{lang === 'zh' ? '人工' : 'Labor'}</span><span className="text-red-400">-${data.labor.toLocaleString()}</span></div>}
-                {data.material > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-500">{lang === 'zh' ? '材料' : 'Materials'}</span><span className="text-red-400">-${data.material.toLocaleString()}</span></div>}
-                {data.subcontract > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-500">{lang === 'zh' ? '分包' : 'Subcontract'}</span><span className="text-red-400">-${data.subcontract.toLocaleString()}</span></div>}
-                {data.fuel > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-500">{lang === 'zh' ? '车辆' : 'Vehicle/Fuel'}</span><span className="text-red-400">-${data.fuel.toLocaleString()}</span></div>}
+                {data.labor > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-500">{lang === 'zh' ? lang === 'zh' ? '人工' : 'Labor' : 'Labor'}</span><span className="text-red-400">-${data.labor.toLocaleString()}</span></div>}
+                {data.material > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-500">{lang === 'zh' ? lang === 'zh' ? '材料' : 'Materials' : 'Materials'}</span><span className="text-red-400">-${data.material.toLocaleString()}</span></div>}
+                {data.subcontract > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-500">{lang === 'zh' ? lang === 'zh' ? '分包' : 'Subcontract' : 'Subcontract'}</span><span className="text-red-400">-${data.subcontract.toLocaleString()}</span></div>}
+                {data.fuel > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-500">{lang === 'zh' ? lang === 'zh' ? '车辆' : 'Vehicle/Fuel' : 'Vehicle/Fuel'}</span><span className="text-red-400">-${data.fuel.toLocaleString()}</span></div>}
                 <div className="px-6 py-3 flex justify-between text-sm font-medium bg-gray-50">
                   <span className="text-gray-700">{lang === 'zh' ? '总支出' : 'Total Expenses'}</span>
                   <span className="text-red-500">-${totalExpenses.toLocaleString()}</span>
@@ -181,7 +181,7 @@ export default function MonthlyReport() {
 
         {Object.keys(monthlyData).length === 0 && (
           <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center text-gray-400">
-            {lang === 'zh' ? '该时间段内没有数据' : 'No data for this period.'}
+            {lang === 'zh' ? lang === 'zh' ? '该时间段内没有数据' : 'No data for this period.' : 'No data for this period.'}
           </div>
         )}
       </main>
