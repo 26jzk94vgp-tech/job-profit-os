@@ -1,40 +1,61 @@
 const fs = require('fs')
-const content = `'use client'
+let content = fs.readFileSync('app/jobs/[id]/add/page.tsx', 'utf8')
 
-import { useState } from 'react'
-import { createClient } from '../../../utils/supabase/client'
-import { useLanguage } from '../../../lib/i18n/LanguageContext'
+// 加 category state
+content = content.replace(
+  "  const [type, setType] = useState('material')",
+  `  const [category, setCategory] = useState('expense')
+  const [type, setType] = useState('material')`
+)
 
-export default function JobStatusToggle({ jobId, currentStatus }: { jobId: string, currentStatus: string }) {
-  const supabase = createClient()
-  const { lang } = useLanguage()
-  const [status, setStatus] = useState(currentStatus)
+// 替换 tabs 部分
+content = content.replace(
+  `  const tabs = [
+    { key: 'labor', label: t.labor },
+    { key: 'material', label: t.material },
+    { key: 'subcontract', label: t.subcontract },
+    { key: 'invoice', label: t.invoice },
+    { key: 'fuel', label: t.fuel },
+  ]`,
+  `  const tabs = category === 'income'
+    ? [{ key: 'invoice', label: t.invoice }]
+    : [
+        { key: 'labor', label: t.labor },
+        { key: 'material', label: t.material },
+        { key: 'subcontract', label: t.subcontract },
+        { key: 'fuel', label: t.fuel },
+      ]`
+)
 
-  async function handleChange(newStatus: string) {
-    setStatus(newStatus)
-    await supabase.from('jobs').update({ status: newStatus }).eq('id', jobId)
-  }
+// 加 category 切换 UI（在 tabs 前面）
+content = content.replace(
+  `          <div className="flex flex-wrap gap-2 mb-6">
+            {tabs.map((tab) => (
+              <button key={tab.key} onClick={() => setType(tab.key)} className={tab.key === type ? 'px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white' : 'px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600'}>{tab.label}</button>
+            ))}
+          </div>`,
+  `          <div className="flex gap-3 mb-4">
+            <button
+              onClick={() => { setCategory('expense'); setType('material') }}
+              className={\`flex-1 py-3 rounded-xl text-sm font-medium transition \${category === 'expense' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'}\`}
+            >
+              📤 {lang === 'zh' ? '支出' : 'Expense'}
+            </button>
+            <button
+              onClick={() => { setCategory('income'); setType('invoice') }}
+              className={\`flex-1 py-3 rounded-xl text-sm font-medium transition \${category === 'income' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600'}\`}
+            >
+              📥 {lang === 'zh' ? '收入' : 'Income'}
+            </button>
+          </div>
+          {category === 'expense' && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {tabs.map((tab) => (
+                <button key={tab.key} onClick={() => setType(tab.key)} className={tab.key === type ? 'px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white' : 'px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600'}>{tab.label}</button>
+              ))}
+            </div>
+          )}`
+)
 
-  const statuses = [
-    { value: 'active', label: lang === 'zh' ? '进行中' : 'Active', color: 'bg-blue-100 text-blue-700' },
-    { value: 'completed', label: lang === 'zh' ? '已完成' : 'Completed', color: 'bg-green-100 text-green-700' },
-    { value: 'paused', label: lang === 'zh' ? '暂停' : 'Paused', color: 'bg-gray-100 text-gray-600' },
-  ]
-
-  return (
-    <div className="flex gap-2">
-      {statuses.map((s) => (
-        <button
-          key={s.value}
-          onClick={() => handleChange(s.value)}
-          className={\`px-3 py-1 rounded-full text-xs font-medium transition \${status === s.value ? s.color + ' ring-2 ring-offset-1 ring-blue-400' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}\`}
-        >
-          {s.label}
-        </button>
-      ))}
-    </div>
-  )
-}`
-
-fs.writeFileSync('app/jobs/[id]/JobStatusToggle.tsx', content)
+fs.writeFileSync('app/jobs/[id]/add/page.tsx', content)
 console.log('done')

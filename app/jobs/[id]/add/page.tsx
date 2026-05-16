@@ -9,6 +9,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   const { id } = use(params)
   const supabase = createClient()
   const { lang } = useLanguage()
+  const [category, setCategory] = useState('expense')
   const [type, setType] = useState('material')
   const [description, setDescription] = useState('')
   const [workerName, setWorkerName] = useState('')
@@ -147,13 +148,14 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
     setLoading(false)
   }
 
-  const tabs = [
-    { key: 'labor', label: t.labor },
-    { key: 'material', label: t.material },
-    { key: 'subcontract', label: t.subcontract },
-    { key: 'invoice', label: t.invoice },
-    { key: 'fuel', label: t.fuel },
-  ]
+  const tabs = category === 'income'
+    ? [{ key: 'invoice', label: t.invoice }]
+    : [
+        { key: 'labor', label: t.labor },
+        { key: 'material', label: t.material },
+        { key: 'subcontract', label: t.subcontract },
+        { key: 'fuel', label: t.fuel },
+      ]
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -173,11 +175,27 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
           {scanning ? <span className="text-blue-500">{t.scanning}</span> : <span className="text-gray-400">📸 {t.scanReceipt}</span>}
         </label>
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex flex-wrap gap-2 mb-6">
-            {tabs.map((tab) => (
-              <button key={tab.key} onClick={() => setType(tab.key)} className={tab.key === type ? 'px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white' : 'px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600'}>{tab.label}</button>
-            ))}
+          <div className="flex gap-3 mb-4">
+            <button
+              onClick={() => { setCategory('expense'); setType('material') }}
+              className={`flex-1 py-3 rounded-xl text-sm font-medium transition ${category === 'expense' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'}`}
+            >
+              📤 {lang === 'zh' ? '支出' : 'Expense'}
+            </button>
+            <button
+              onClick={() => { setCategory('income'); setType('invoice') }}
+              className={`flex-1 py-3 rounded-xl text-sm font-medium transition ${category === 'income' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600'}`}
+            >
+              📥 {lang === 'zh' ? '收入' : 'Income'}
+            </button>
           </div>
+          {category === 'expense' && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {tabs.map((tab) => (
+                <button key={tab.key} onClick={() => setType(tab.key)} className={tab.key === type ? 'px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white' : 'px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600'}>{tab.label}</button>
+              ))}
+            </div>
+          )}
           <p className="text-gray-400 text-xs mb-4">{t.tip}</p>
           <div className="space-y-4">
             {type === 'labor' ? (
