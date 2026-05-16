@@ -1,17 +1,17 @@
 'use client'
 
+import { useState } from 'react'
 import { createClient } from '../../../utils/supabase/client'
-import { useRouter } from 'next/navigation'
 import { useLanguage } from '../../../lib/i18n/LanguageContext'
 
 export default function JobStatusToggle({ jobId, currentStatus }: { jobId: string, currentStatus: string }) {
   const supabase = createClient()
-  const router = useRouter()
   const { lang } = useLanguage()
+  const [status, setStatus] = useState(currentStatus)
 
   async function handleChange(newStatus: string) {
+    setStatus(newStatus)
     await supabase.from('jobs').update({ status: newStatus }).eq('id', jobId)
-    router.refresh()
   }
 
   const statuses = [
@@ -26,7 +26,7 @@ export default function JobStatusToggle({ jobId, currentStatus }: { jobId: strin
         <button
           key={s.value}
           onClick={() => handleChange(s.value)}
-          className={`px-3 py-1 rounded-full text-xs font-medium transition ${currentStatus === s.value ? s.color + ' ring-2 ring-offset-1 ring-blue-400' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
+          className={`px-3 py-1 rounded-full text-xs font-medium transition ${status === s.value ? s.color + ' ring-2 ring-offset-1 ring-blue-400' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
         >
           {s.label}
         </button>
