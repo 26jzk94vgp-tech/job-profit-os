@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '../utils/supabase/client'
 import Link from 'next/link'
 import { useLanguage, LangToggle } from '../lib/i18n/LanguageContext'
+import { formatDate } from '../lib/utils'
 
 export default function Home() {
   const [jobs, setJobs] = useState<any[]>([])
@@ -207,7 +208,7 @@ export default function Home() {
                   <div className="flex items-center gap-3">
                     {e.payment_due_date && (
                       <span className={new Date(e.payment_due_date) < new Date() ? 'text-red-600 font-medium text-xs' : 'text-gray-500 text-xs'}>
-                        {lang === 'zh' ? '到期' : 'Due'}: {e.payment_due_date}
+                        {lang === 'zh' ? '到期' : 'Due'}: {formatDate(e.payment_due_date)}
                         {new Date(e.payment_due_date) < new Date() && (lang === 'zh' ? ' ⚠️逾期' : ' ⚠️Overdue')}
                       </span>
                     )}

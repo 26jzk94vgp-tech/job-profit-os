@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '../../utils/supabase/client'
 import Link from 'next/link'
 import { useLanguage } from '../../lib/i18n/LanguageContext'
+import { formatDate } from '../../lib/utils'
 
 export default function Cashflow() {
   const supabase = createClient()
@@ -67,7 +68,7 @@ export default function Cashflow() {
                 <div key={e.id} className="flex justify-between text-sm">
                   <span className="text-yellow-700">{e.jobs?.name} — {e.description || (lang === 'zh' ? '发票' : 'Invoice')}</span>
                   <div className="flex items-center gap-3">
-                    {e.payment_due_date && <span className={new Date(e.payment_due_date) < new Date() ? 'text-red-600 font-medium text-xs' : 'text-yellow-600 text-xs'}>{lang === 'zh' ? '到期' : 'Due'}: {e.payment_due_date}</span>}
+                    {e.payment_due_date && <span className={new Date(e.payment_due_date) < new Date() ? 'text-red-600 font-medium text-xs' : 'text-yellow-600 text-xs'}>{lang === 'zh' ? '到期' : 'Due'}: {formatDate(e.payment_due_date)}</span>}
                     <span className="font-medium text-yellow-800">${Number(e.amount).toLocaleString()}</span>
                   </div>
                 </div>
