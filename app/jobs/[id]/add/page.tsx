@@ -196,6 +196,8 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                   setType(tab.key)
                   setAmount(''); setQuantity(''); setUnitPrice(''); setHours(''); setHourlyRate('')
                   const defaults: Record<string, string> = { labor: 'cogs_labour', material: 'cogs_material', subcontract: 'subcontractor', fuel: 'vehicle', invoice: 'other_income' }
+                  const gstDefaults: Record<string, string> = { labor: 'free', material: 'inclusive', subcontract: 'inclusive', fuel: 'free', invoice: 'inclusive' }
+                  setGstStatus(gstDefaults[tab.key] || 'inclusive')
                   setTaxCategory(defaults[tab.key] || '')
                 }} className={tab.key === type ? 'px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white' : 'px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600'}>{tab.label}</button>
               ))}
