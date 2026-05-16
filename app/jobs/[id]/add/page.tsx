@@ -28,6 +28,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   const [atoMethod, setAtoMethod] = useState('cents_per_km')
   const [gstStatus, setGstStatus] = useState('inclusive')
   const [showGstInfo, setShowGstInfo] = useState(false)
+  const [showAtoInfo, setShowAtoInfo] = useState(false)
   const [paymentDueDate, setPaymentDueDate] = useState('')
 
   const [taxCategory, setTaxCategory] = useState('')
@@ -290,7 +291,29 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 {gstStatus === 'free' && <p className="text-gray-400 text-xs mt-1">{t.gstFreeHint}</p>}
               </div>
               <div>
+                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
                 <label className="text-gray-700 text-sm font-medium">{t.atoCategory}</label>
+                <button type="button" onClick={() => setShowAtoInfo(!showAtoInfo)} className="text-blue-500 text-xs border border-blue-300 rounded-full w-5 h-5 flex items-center justify-center">?</button>
+              </div>
+              {showAtoInfo && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800 space-y-1 mt-1">
+                  <p className="font-semibold">{lang === 'zh' ? 'ATO（澳洲税务局）税务分类' : 'ATO (Australian Taxation Office) Tax Category'}</p>
+                  <p>{lang === 'zh' ? '帮助你正确申报收支，用于BAS（商业税务申报表）季度申报和年度所得税申报。' : 'Helps you correctly report income and expenses for BAS (Business Activity Statement) and annual tax return.'}</p>
+                  <p>{lang === 'zh' ? 'BAS = 每季度向ATO申报GST的表格' : 'BAS = quarterly form you lodge with the ATO to report GST'}</p>
+                  <p className="text-blue-600">{lang === 'zh' ? '💡 系统已根据条目类型自动设置，一般无需修改' : '💡 Auto-set based on entry type — usually no need to change'}</p>
+                </div>
+              )}
+                <button type="button" onClick={() => setShowAtoInfo(!showAtoInfo)} className="text-blue-500 text-xs border border-blue-300 rounded-full w-5 h-5 flex items-center justify-center">?</button>
+              </div>
+              {showAtoInfo && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800 space-y-1 mt-1">
+                  <p className="font-semibold">{lang === 'zh' ? 'ATO（澳洲税务局）税务分类' : 'ATO (Australian Taxation Office) Tax Category'}</p>
+                  <p>{lang === 'zh' ? '帮助你正确申报收支，用于BAS（商业税务申报表）季度申报和年度所得税申报。' : 'Helps you correctly report income and expenses for BAS (Business Activity Statement) and annual tax return.'}</p>
+                  <p>{lang === 'zh' ? 'BAS = 每季度向ATO申报GST的表格' : 'BAS = quarterly form you lodge with the ATO to report GST'}</p>
+                  <p className="text-blue-600">{lang === 'zh' ? '💡 系统已根据条目类型自动设置，一般无需修改' : '💡 Auto-set based on entry type — usually no need to change'}</p>
+                </div>
+              )}
                 <select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={taxCategory} onChange={(e) => setTaxCategory(e.target.value)}>
                   <option value="">{t.selectCategory}</option>
                   {category === 'income' ? (
