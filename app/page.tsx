@@ -109,7 +109,7 @@ export default function Home() {
           <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-4 mb-2 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📊</span>
-              <p className="text-white font-medium text-sm">{lang === 'zh' ? '告别手动录入！批量导入收据，GST自动计算' : 'Skip the paperwork — import receipts instantly'}</p>
+              <p className="text-white font-medium text-sm">{lang === 'zh' ? '告别手动录入！批量导入收据，GST自动计算' : 'Skip the paperwork — import receipts instantly!'}</p>
             </div>
             <div className="flex items-center gap-3">
               <a href="/import-materials" className="bg-white text-green-600 text-xs font-medium px-3 py-1.5 rounded-lg">{lang === 'zh' ? '立即使用 →' : 'Try it →'}</a>
