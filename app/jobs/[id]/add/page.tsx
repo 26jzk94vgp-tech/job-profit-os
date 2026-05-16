@@ -29,6 +29,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   const [showGstInfo, setShowGstInfo] = useState(false)
   const [paymentDueDate, setPaymentDueDate] = useState('')
   const [paymentStatus, setPaymentStatus] = useState('unpaid')
+  const [paymentReceived, setPaymentReceived] = useState('')
   const [taxCategory, setTaxCategory] = useState('')
 
   function validatePositive(value: string, field: string) {
@@ -151,7 +152,16 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 {type === 'invoice' && (
                   <>
                     <div><label className="text-gray-700 text-sm font-medium">Payment Due Date</label><input type="date" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={paymentDueDate} onChange={(e) => setPaymentDueDate(e.target.value)} /></div>
-                    <div><label className="text-gray-700 text-sm font-medium">Payment Status</label><select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)}><option value="unpaid">Unpaid</option><option value="paid">Paid</option><option value="overdue">Overdue</option></select></div>
+                    <div><label className="text-gray-700 text-sm font-medium">Payment Status</label><select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)}><option value="unpaid">Unpaid</option><option value="partial">Partial Payment</option><option value="paid">Paid</option><option value="overdue">Overdue</option></select></div>
+                    {paymentStatus === 'partial' && (
+                      <div>
+                        <label className="text-gray-700 text-sm font-medium">Amount Received ($)</label>
+                        <input type="number" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 500" value={paymentReceived} onChange={(e) => setPaymentReceived(e.target.value)} />
+                        {paymentReceived && amount && amount !== '/' && (
+                          <p className="text-xs text-gray-500 mt-1">Outstanding: ${(Number(amount) - Number(paymentReceived)).toLocaleString()}</p>
+                        )}
+                      </div>
+                    )}
                   </>
                 )}
               </div>

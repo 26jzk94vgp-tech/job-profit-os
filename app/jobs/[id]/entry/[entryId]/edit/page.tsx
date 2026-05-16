@@ -29,6 +29,7 @@ export default function EditEntry({ params }: { params: Promise<{ id: string, en
   const [showGstInfo, setShowGstInfo] = useState(false)
   const [paymentDueDate, setPaymentDueDate] = useState('')
   const [paymentStatus, setPaymentStatus] = useState('unpaid')
+  const [paymentReceived, setPaymentReceived] = useState('')
 
   useEffect(() => {
     supabase.from('job_entries').select('*').eq('id', entryId).single().then(({ data }) => {
@@ -50,6 +51,7 @@ export default function EditEntry({ params }: { params: Promise<{ id: string, en
         setGstStatus(data.gst_status || 'inclusive')
         setTaxCategory(data.tax_category || '')
         setPaymentStatus(data.payment_status || 'unpaid')
+        setPaymentReceived(data.payment_received ? String(data.payment_received) : '')
         setPaymentDueDate(data.payment_due_date || '')
       }
     })
@@ -57,7 +59,8 @@ export default function EditEntry({ params }: { params: Promise<{ id: string, en
 
   async function handleSubmit() {
     setLoading(true)
-    const update: Record<string, unknown> = { description, gst_status: gstStatus, tax_category: taxCategory || null, payment_status: type === 'invoice' ? paymentStatus : null, payment_due_date: type === 'invoice' && paymentDueDate ? paymentDueDate : null }
+    const update: Record<string, unknown> = { description, gst_status: gstStatus, tax_category: taxCategory || null, payment_status: type === 'invoice' ? paymentStatus : null, payment_due_date: type === 'invoice' && paymentDueDate ? paymentDueDate : null,
+      payment_received: type === 'invoice' && paymentReceived ? Number(paymentReceived) : 0 }
     if (type === 'labor') {
       update.worker_name = workerName
       update.hours = Number(hours)
@@ -134,7 +137,16 @@ export default function EditEntry({ params }: { params: Promise<{ id: string, en
             {type === 'invoice' && (
               <>
                 <div><label className="text-gray-700 text-sm font-medium">Payment Due Date</label><input type="date" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={paymentDueDate} onChange={(e) => setPaymentDueDate(e.target.value)} /></div>
-                <div><label className="text-gray-700 text-sm font-medium">Payment Status</label><select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)}><option value="unpaid">Unpaid</option><option value="paid">Paid</option><option value="overdue">Overdue</option></select></div>
+                <div><label className="text-gray-700 text-sm font-medium">Payment Status</label><select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)}><option value="unpaid">Unpaid</option><option value="partial">Partial Payment</option><option value="paid">Paid</option><option value="overdue">Overdue</option></select></div>
+            {paymentStatus === 'partial' && (
+              <div>
+                <label className="text-gray-700 text-sm font-medium">Amount Received ($)</label>
+                <input type="number" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 500" value={paymentReceived} onChange={(e) => setPaymentReceived(e.target.value)} />
+                {paymentReceived && amount && (
+                  <p className="text-xs text-gray-500 mt-1">Outstanding: ${(Number(amount) - Number(paymentReceived)).toLocaleString()}</p>
+                )}
+              </div>
+            )}
               </>
             )}
           </div>
