@@ -28,8 +28,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   const [gstStatus, setGstStatus] = useState('inclusive')
   const [showGstInfo, setShowGstInfo] = useState(false)
   const [paymentDueDate, setPaymentDueDate] = useState('')
-  const [paymentStatus, setPaymentStatus] = useState('unpaid')
-  const [paymentReceived, setPaymentReceived] = useState('')
+
   const [taxCategory, setTaxCategory] = useState('')
 
   const t = {
@@ -65,10 +64,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
     usedForBas: lang === 'zh' ? '用于BAS和税务申报' : 'Used for BAS and tax reporting',
     saving: lang === 'zh' ? '保存中...' : 'Saving...',
     save: lang === 'zh' ? '保存条目' : 'Save Entry',
-    unpaid: lang === 'zh' ? '未付' : 'Unpaid',
-    partial: lang === 'zh' ? '部分付款' : 'Partial Payment',
-    paid: lang === 'zh' ? '已付' : 'Paid',
-    overdue: lang === 'zh' ? '逾期' : 'Overdue',
+
     labor: lang === 'zh' ? '人工' : 'Labor',
     material: lang === 'zh' ? '材料' : 'Material',
     subcontract: lang === 'zh' ? '分包' : 'Subcontract',
@@ -142,9 +138,8 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
     } else {
       entry.amount = amount === '/' ? 0 : Number(amount)
       if (type === 'invoice') {
-        entry.payment_status = paymentStatus
+        entry.payment_status = 'unpaid'
         entry.payment_due_date = paymentDueDate || null
-        entry.payment_received = paymentReceived ? Number(paymentReceived) : 0
       }
     }
     const { error } = await supabase.from('job_entries').insert(entry)
@@ -225,16 +220,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 {type === 'invoice' && (
                   <>
                     <div><label className="text-gray-700 text-sm font-medium">{t.paymentDueDate}</label><input type="date" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={paymentDueDate} onChange={(e) => setPaymentDueDate(e.target.value)} /></div>
-                    <div><label className="text-gray-700 text-sm font-medium">{t.paymentStatus}</label><select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)}><option value="unpaid">{t.unpaid}</option><option value="partial">{t.partial}</option><option value="paid">{t.paid}</option><option value="overdue">{t.overdue}</option></select></div>
-                    {paymentStatus === 'partial' && (
-                      <div>
-                        <label className="text-gray-700 text-sm font-medium">{t.amountReceived}</label>
-                        <input type="number" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 500" value={paymentReceived} onChange={(e) => setPaymentReceived(e.target.value)} />
-                        {paymentReceived && amount && amount !== '/' && (
-                          <p className="text-xs text-gray-500 mt-1">{t.outstanding}: ${(Number(amount) - Number(paymentReceived)).toLocaleString()}</p>
-                        )}
-                      </div>
-                    )}
+
                   </>
                 )}
               </div>
