@@ -30,6 +30,13 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   const profit = Number(job.profit)
   const margin = revenue > 0 ? ((profit / revenue) * 100).toFixed(1) : '0'
 
+  async function updatePaymentStatus(entryId: string, status: string, received?: number) {
+    const update: Record<string, unknown> = { payment_status: status }
+    if (received !== undefined) update.payment_received = received
+    await supabase.from('job_entries').update(update).eq('id', entryId)
+    setEntries((prev: any[]) => prev.map((e: any) => e.id === entryId ? { ...e, payment_status: status, payment_received: received ?? e.payment_received } : e))
+  }
+
   const unpaidInvoices = entries.filter((e: any) => e.type === 'invoice' && e.payment_status !== 'paid')
   const unpaidTotal = unpaidInvoices.reduce((sum: number, e: any) => sum + Number(e.amount), 0)
 
@@ -137,6 +144,12 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
                   <p className="text-gray-900 mt-1">{entry.description || entry.worker_name || entry.type}</p>
                   {entry.type === 'fuel' && entry.trip_from && <p className="text-gray-400 text-xs">{entry.trip_from} → {entry.trip_to} {entry.kilometers && entry.kilometers + 'km'}</p>}
                   {entry.type === 'invoice' && entry.payment_due_date && <p className="text-gray-400 text-xs">{lang === 'zh' ? '到期' : 'Due'}: {formatDate(entry.payment_due_date)}</p>}
+                  {entry.type === 'invoice' && entry.payment_status !== 'paid' && (
+                    <div className="flex gap-2 mt-1">
+                      <button onClick={() => updatePaymentStatus(entry.id, 'paid')} className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full hover:bg-green-200">✓ {lang === 'zh' ? '标记已付' : 'Mark Paid'}</button>
+                      <button onClick={() => { const amt = prompt(lang === 'zh' ? '输入已收金额：' : 'Enter amount received:'); if (amt) updatePaymentStatus(entry.id, 'partial', Number(amt)) }} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full hover:bg-blue-200">{lang === 'zh' ? '部分付款' : 'Partial'}</button>
+                    </div>
+                  )}
                   {entry.type === 'invoice' && entry.payment_status === 'partial' && entry.payment_received > 0 && (
                     <p className="text-blue-500 text-xs">{lang === 'zh' ? '已收' : 'Received'}: ${Number(entry.payment_received).toLocaleString()} · {lang === 'zh' ? '未收' : 'Outstanding'}: ${(Number(entry.amount) - Number(entry.payment_received)).toLocaleString()}</p>
                   )}
