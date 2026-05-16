@@ -177,13 +177,13 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex gap-3 mb-4">
             <button
-              onClick={() => { setCategory('expense'); setType('material'); setAmount(''); setQuantity(''); setUnitPrice(''); setHours(''); setHourlyRate('') }}
+              onClick={() => { setCategory('expense'); setType('material'); setAmount(''); setQuantity(''); setUnitPrice(''); setHours(''); setHourlyRate(''); setTaxCategory('cogs_material') }}
               className={`flex-1 py-3 rounded-xl text-sm font-medium transition ${category === 'expense' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'}`}
             >
               📤 {lang === 'zh' ? '支出' : 'Expense'}
             </button>
             <button
-              onClick={() => { setCategory('income'); setType('invoice'); setAmount(''); setQuantity(''); setUnitPrice('') }}
+              onClick={() => { setCategory('income'); setType('invoice'); setAmount(''); setQuantity(''); setUnitPrice(''); setTaxCategory('other_income') }}
               className={`flex-1 py-3 rounded-xl text-sm font-medium transition ${category === 'income' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600'}`}
             >
               📥 {lang === 'zh' ? '收入' : 'Income'}
@@ -192,7 +192,12 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
           {category === 'expense' && (
             <div className="flex flex-wrap gap-2 mb-4">
               {tabs.map((tab) => (
-                <button key={tab.key} onClick={() => { setType(tab.key); setAmount(''); setQuantity(''); setUnitPrice(''); setHours(''); setHourlyRate('') }} className={tab.key === type ? 'px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white' : 'px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600'}>{tab.label}</button>
+                <button key={tab.key} onClick={() => {
+                  setType(tab.key)
+                  setAmount(''); setQuantity(''); setUnitPrice(''); setHours(''); setHourlyRate('')
+                  const defaults: Record<string, string> = { labor: 'cogs_labour', material: 'cogs_material', subcontract: 'subcontractor', fuel: 'vehicle', invoice: 'other_income' }
+                  setTaxCategory(defaults[tab.key] || '')
+                }} className={tab.key === type ? 'px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white' : 'px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600'}>{tab.label}</button>
               ))}
             </div>
           )}
