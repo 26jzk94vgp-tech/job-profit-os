@@ -128,7 +128,7 @@ export default function TaxHub() {
             <div className="flex items-center gap-3">
               <span className="text-2xl">📊</span>
               <div>
-                <p className="font-medium text-gray-900">{lang === 'zh' ? 'GST & BAS 申报' : 'GST & BAS'}</p>
+                <p className="font-medium text-gray-900">{lang === 'zh' ? 'GST、BAS & ATO分类申报' : 'GST, BAS & ATO Categories'}</p>
                 <p className="text-gray-400 text-xs">{lang === 'zh' ? '净应缴GST' : 'Net GST Payable'}: ${netGst.toFixed(2)}</p>
               </div>
             </div>
