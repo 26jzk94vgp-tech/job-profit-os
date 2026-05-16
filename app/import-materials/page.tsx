@@ -1,5 +1,4 @@
-const fs = require('fs')
-const part1 = `'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { createClient } from '../../utils/supabase/client'
@@ -106,11 +105,7 @@ export default function ImportMaterials() {
   const totalIncGst = rows.reduce((sum, r) => sum + r.totalIncGst, 0)
   const totalGst = rows.reduce((sum, r) => sum + r.gst, 0)
   const totalExGst = rows.reduce((sum, r) => sum + r.totalExGst, 0)
-`
-
-fs.writeFileSync('app/import-materials/page.tsx', part1)
-console.log('part1 done')
-const part2 = `  return (
+  return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
@@ -156,7 +151,7 @@ const part2 = `  return (
 
           {result && (
             <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-              <p className="text-green-800 font-medium">✅ {lang === 'zh' ? \`成功导入 \${result.count} 条材料记录！\` : \`Successfully imported \${result.count} material entries!\`}</p>
+              <p className="text-green-800 font-medium">✅ {lang === 'zh' ? `成功导入 ${result.count} 条材料记录！` : `Successfully imported ${result.count} material entries!`}</p>
               <a href={'/jobs/' + selectedJob} className="text-green-600 text-sm underline mt-1 block">{lang === 'zh' ? '查看工单 →' : 'View job →'}</a>
             </div>
           )}
@@ -166,11 +161,11 @@ const part2 = `  return (
           <>
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="font-semibold text-gray-900">{lang === 'zh' ? \`预览 (\${rows.length} 条记录)\` : \`Preview (\${rows.length} items)\`}</h2>
+                <h2 className="font-semibold text-gray-900">{lang === 'zh' ? `预览 (${rows.length} 条记录)` : `Preview (${rows.length} items)`}</h2>
                 <div className="text-right text-xs text-gray-500">
-                  <p>{lang === 'zh' ? '含GST总计' : 'Total inc GST'}: <span className="font-bold text-gray-900">\${totalIncGst.toFixed(2)}</span></p>
-                  <p>{lang === 'zh' ? 'GST' : 'GST'}: <span className="font-medium text-red-500">\${totalGst.toFixed(2)}</span></p>
-                  <p>{lang === 'zh' ? '不含GST' : 'Ex GST'}: <span className="font-medium">\${totalExGst.toFixed(2)}</span></p>
+                  <p>{lang === 'zh' ? '含GST总计' : 'Total inc GST'}: <span className="font-bold text-gray-900">${totalIncGst.toFixed(2)}</span></p>
+                  <p>{lang === 'zh' ? 'GST' : 'GST'}: <span className="font-medium text-red-500">${totalGst.toFixed(2)}</span></p>
+                  <p>{lang === 'zh' ? '不含GST' : 'Ex GST'}: <span className="font-medium">${totalExGst.toFixed(2)}</span></p>
                 </div>
               </div>
               <div className="overflow-x-auto">
@@ -193,9 +188,9 @@ const part2 = `  return (
                         <td className="py-2 text-gray-900 max-w-xs truncate">{row.description}</td>
                         <td className="py-2 text-gray-500">{row.supplier}</td>
                         <td className="py-2 text-right text-gray-600">{row.quantity}</td>
-                        <td className="py-2 text-right text-gray-600">\${row.unitPriceIncGst.toFixed(2)}</td>
-                        <td className="py-2 text-right font-medium text-gray-900">\${row.totalIncGst.toFixed(2)}</td>
-                        <td className="py-2 text-right text-red-500">\${row.gst.toFixed(2)}</td>
+                        <td className="py-2 text-right text-gray-600">${row.unitPriceIncGst.toFixed(2)}</td>
+                        <td className="py-2 text-right font-medium text-gray-900">${row.totalIncGst.toFixed(2)}</td>
+                        <td className="py-2 text-right text-red-500">${row.gst.toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -204,15 +199,11 @@ const part2 = `  return (
             </div>
 
             <button onClick={handleImport} disabled={importing || !selectedJob} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-medium disabled:opacity-50 text-lg">
-              {importing ? (lang === 'zh' ? '导入中...' : 'Importing...') : (lang === 'zh' ? \`导入 \${rows.length} 条材料到工单\` : \`Import \${rows.length} items to job\`)}
+              {importing ? (lang === 'zh' ? '导入中...' : 'Importing...') : (lang === 'zh' ? `导入 ${rows.length} 条材料到工单` : `Import ${rows.length} items to job`)}
             </button>
           </>
         )}
       </main>
     </div>
   )
-}`
-
-const existing = require('fs').readFileSync('app/import-materials/page.tsx', 'utf8')
-require('fs').writeFileSync('app/import-materials/page.tsx', existing + part2)
-console.log('part2 done')
+}
