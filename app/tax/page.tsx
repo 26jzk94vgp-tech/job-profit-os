@@ -96,14 +96,14 @@ export default function TaxHub() {
 
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-6 py-3 bg-gray-50 border-b border-gray-100">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '季度申报' : 'Quarterly'}</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '日常记录' : 'Daily Records'}</p>
           </div>
-          <Link href="/reports" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
+          <Link href="/home-office" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">📊</span>
+              <span className="text-2xl">🏠</span>
               <div>
-                <p className="font-medium text-gray-900">{lang === 'zh' ? 'GST & BAS 申报' : 'GST & BAS'}</p>
-                <p className="text-gray-400 text-xs">{lang === 'zh' ? '净应缴GST' : 'Net GST Payable'}: ${netGst.toFixed(2)}</p>
+                <p className="font-medium text-gray-900">{lang === 'zh' ? '家庭办公室' : 'Home Office'}</p>
+                <p className="text-gray-400 text-xs">{totalHomeOfficeHours.toFixed(1)}h — ${homeOfficeDeduction.toFixed(2)}</p>
               </div>
             </div>
             <span className="text-gray-400">→</span>
@@ -122,14 +122,14 @@ export default function TaxHub() {
 
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-6 py-3 bg-gray-50 border-b border-gray-100">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '日常记录' : 'Daily Records'}</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '季度申报' : 'Quarterly'}</p>
           </div>
-          <Link href="/home-office" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
+          <Link href="/reports" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">🏠</span>
+              <span className="text-2xl">📊</span>
               <div>
-                <p className="font-medium text-gray-900">{lang === 'zh' ? '家庭办公室' : 'Home Office'}</p>
-                <p className="text-gray-400 text-xs">{totalHomeOfficeHours.toFixed(1)}h — ${homeOfficeDeduction.toFixed(2)}</p>
+                <p className="font-medium text-gray-900">{lang === 'zh' ? 'GST & BAS 申报' : 'GST & BAS'}</p>
+                <p className="text-gray-400 text-xs">{lang === 'zh' ? '净应缴GST' : 'Net GST Payable'}: ${netGst.toFixed(2)}</p>
               </div>
             </div>
             <span className="text-gray-400">→</span>
