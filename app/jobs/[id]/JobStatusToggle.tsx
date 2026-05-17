@@ -18,7 +18,6 @@ export default function JobStatusToggle({ jobId, currentStatus }: { jobId: strin
     { value: 'active', label: lang === 'zh' ? '进行中' : 'Active', color: 'bg-blue-100 text-blue-700' },
     { value: 'completed', label: lang === 'zh' ? '已完成' : 'Completed', color: 'bg-green-100 text-green-700' },
     { value: 'paused', label: lang === 'zh' ? '暂停' : 'Paused', color: 'bg-gray-100 text-gray-600' },
-    { value: 'cancelled', label: lang === 'zh' ? '取消' : 'Cancelled', color: 'bg-red-100 text-red-600' },
     { value: 'archived', label: lang === 'zh' ? '归档' : 'Archived', color: 'bg-yellow-100 text-yellow-700' },
   ]
 
