@@ -135,16 +135,16 @@ export default function TaxHub() {
             </div>
             <span className="text-gray-400">→</span>
           </Link>
-          <div className="flex justify-between items-center px-6 py-4">
+          <Link href="/vehicle-log" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50">
             <div className="flex items-center gap-3">
               <span className="text-2xl">🚗</span>
               <div>
-                <p className="font-medium text-gray-900">{lang === 'zh' ? '车辆行程' : 'Vehicle & Fuel'}</p>
+                <p className="font-medium text-gray-900">{lang === 'zh' ? '车辆行程记录' : 'Vehicle Log'}</p>
                 <p className="text-gray-400 text-xs">{totalKm.toFixed(0)}km — ${totalFuelDeduction.toFixed(2)}</p>
               </div>
             </div>
-            <span className="text-gray-400 text-xs">{lang === 'zh' ? '在工单条目中添加' : 'Add via Job Entries'}</span>
-          </div>
+            <span className="text-gray-400">→</span>
+          </Link>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">

@@ -96,7 +96,7 @@ export default function Reports() {
             <Link href="/tax" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '税务中心' : 'Tax Hub'}</Link>
             <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '税务报告' : 'Tax Report'}</h1>
           </div>
-          <Link href="/reports/monthly" className="text-blue-600 text-sm hover:text-blue-800">{lang === 'zh' ? '月度损益表' : 'Monthly P&L'} →</Link>
+
         </div>
       </nav>
 
@@ -106,7 +106,7 @@ export default function Reports() {
             <Link href="/tax" className="text-gray-500 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
             <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '税务报告' : 'Tax Report'}</h1>
           </div>
-          <Link href="/reports/monthly" className="text-blue-600 text-sm">{lang === 'zh' ? '月度' : 'Monthly'} →</Link>
+
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">

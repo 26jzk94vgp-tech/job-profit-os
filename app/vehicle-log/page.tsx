@@ -1,5 +1,4 @@
-const fs = require('fs')
-const content = `'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { createClient } from '../../utils/supabase/client'
@@ -52,7 +51,7 @@ export default function VehicleLog() {
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <p className="text-gray-500 text-xs">{lang === 'zh' ? '总抵扣额' : 'Total Deduction'}</p>
-            <p className="text-xl font-bold text-green-600 mt-1">\${totalDeduction.toFixed(2)}</p>
+            <p className="text-xl font-bold text-green-600 mt-1">${totalDeduction.toFixed(2)}</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <p className="text-gray-500 text-xs">{lang === 'zh' ? '行程次数' : 'Trips'}</p>
@@ -73,7 +72,7 @@ export default function VehicleLog() {
                     <p className="text-gray-400 text-xs">{formatDate(e.entry_date || e.created_at)} · {e.jobs?.name}</p>
                     <p className="text-gray-500 text-xs">{Number(e.kilometers).toFixed(1)}km</p>
                   </div>
-                  <span className="text-green-600 font-medium text-sm">\${Number(e.amount).toFixed(2)}</span>
+                  <span className="text-green-600 font-medium text-sm">${Number(e.amount).toFixed(2)}</span>
                 </div>
               ))}
             </div>
@@ -92,7 +91,7 @@ export default function VehicleLog() {
                     <p className="text-sm font-medium text-gray-900">{e.trip_from || (lang === 'zh' ? '油费' : 'Fuel')} {e.trip_to ? '→ ' + e.trip_to : ''}</p>
                     <p className="text-gray-400 text-xs">{formatDate(e.entry_date || e.created_at)} · {e.jobs?.name}</p>
                   </div>
-                  <span className="text-green-600 font-medium text-sm">\${Number(e.amount).toFixed(2)}</span>
+                  <span className="text-green-600 font-medium text-sm">${Number(e.amount).toFixed(2)}</span>
                 </div>
               ))}
             </div>
@@ -113,7 +112,4 @@ export default function VehicleLog() {
       </main>
     </div>
   )
-}`
-
-fs.writeFileSync('app/vehicle-log/page.tsx', content)
-console.log('done')
+}
