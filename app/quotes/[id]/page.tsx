@@ -45,8 +45,26 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
     }))
     const { error } = await supabase.from('job_entries').insert(invoiceItems)
     if (error) { alert('Error: ' + error.message) } else {
+      // 自动创建材料估算条目
+      const materialItems = items.filter(i => Number(i.cost_price) > 0).map(item => ({
+        job_id: quote.job_id,
+        owner_id: quote.owner_id,
+        type: 'material',
+        description: item.description + (item.area ? ' - ' + item.area : ''),
+        quantity: Number(item.quantity),
+        unit: item.item_unit,
+        unit_price: Number(item.cost_price),
+        amount: Number(item.quantity) * Number(item.cost_price),
+        gst_status: 'inclusive',
+        tax_category: 'cogs_material',
+        notes: lang === 'zh' ? '⚠️ 报价估算，请确认实际采购价格' : '⚠️ Quote estimate — update with actual purchase price'
+      }))
+      if (materialItems.length > 0) await supabase.from('job_entries').insert(materialItems)
       await supabase.from('quotes').update({ status: 'accepted' }).eq('id', id)
-      alert(lang === 'zh' ? '报价单已转为发票条目！' : 'Quote converted to invoice entries!')
+      const msg = materialItems.length > 0
+        ? (lang === 'zh' ? `报价单已转为发票！已自动导入 ${materialItems.length} 条材料估算条目。实际购买后请更新材料价格。` : `Quote converted! ${materialItems.length} material estimate(s) added. Update prices after actual purchase.`)
+        : (lang === 'zh' ? '报价单已转为发票条目！' : 'Quote converted to invoice entries!')
+      alert(msg)
       window.location.href = '/jobs/' + quote.job_id
     }
     setLoading(false)

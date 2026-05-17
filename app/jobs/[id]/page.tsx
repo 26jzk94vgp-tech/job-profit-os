@@ -188,6 +188,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
                   {entry.type === 'invoice' && entry.payment_status === 'partial' && entry.payment_received > 0 && (
                     <p className="text-blue-500 text-xs">{lang === 'zh' ? '已收' : 'Received'}: ${Number(entry.payment_received).toLocaleString()} · {lang === 'zh' ? '未收' : 'Outstanding'}: ${(Number(entry.amount) - Number(entry.payment_received)).toLocaleString()}</p>
                   )}
+                  {entry.notes && <p className="text-yellow-600 text-xs mt-1">⚠️ {entry.notes}</p>}
                   <p className="text-gray-400 text-sm">{formatDate(entry.entry_date)}</p>
                 </div>
                 <div className="flex items-center gap-3">
