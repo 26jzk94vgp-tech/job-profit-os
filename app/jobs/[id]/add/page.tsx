@@ -123,8 +123,12 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
         const atoDefaults: Record<string, string> = { material: 'cogs_material', subcontract: 'subcontractor', fuel: 'vehicle', invoice: 'other_income' }
         if (d.type && atoDefaults[d.type]) setTaxCategory(atoDefaults[d.type])
       } else {
-        alert(lang === 'zh' ? '无法读取收据' : 'Could not read receipt')
+        alert((lang === 'zh' ? '无法读取收据: ' : 'Could not read receipt: ') + (json.error || 'unknown error'))
       }
+      setScanning(false)
+    }
+    reader.onerror = () => {
+      alert(lang === 'zh' ? '文件读取失败' : 'File read failed')
       setScanning(false)
     }
     reader.readAsDataURL(file)
