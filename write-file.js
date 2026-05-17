@@ -1,54 +1,82 @@
 const fs = require('fs')
+const content = `import Anthropic from '@anthropic-ai/sdk'
+import { NextRequest, NextResponse } from 'next/server'
 
-// 1. 更新 JobStatusToggle
-let toggle = fs.readFileSync('app/jobs/[id]/JobStatusToggle.tsx', 'utf8')
-toggle = toggle.replace(
-  `    { value: 'cancelled', label: lang === 'zh' ? '取消' : 'Cancelled', color: 'bg-red-100 text-red-600' },
-    { value: 'archived', label: lang === 'zh' ? '归档' : 'Archived', color: 'bg-yellow-100 text-yellow-700' },`,
-  `    { value: 'archived', label: lang === 'zh' ? '归档' : 'Archived', color: 'bg-yellow-100 text-yellow-700' },`
-)
-fs.writeFileSync('app/jobs/[id]/JobStatusToggle.tsx', toggle)
-console.log('done toggle')
+const client = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+})
 
-// 2. 更新归档中心 - 移除已取消部分
-let archive = fs.readFileSync('app/archive/page.tsx', 'utf8')
+export async function POST(request: NextRequest) {
+  try {
+    const { imageBase64, mediaType } = await request.json()
 
-// 只查询 archived
-archive = archive.replace(
-  ".in('status', ['archived', 'cancelled'])",
-  ".eq('status', 'archived')"
-)
+    const response = await client.messages.create({
+      model: 'claude-opus-4-5',
+      max_tokens: 2048,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: mediaType,
+                data: imageBase64,
+              },
+            },
+            {
+              type: 'text',
+              text: \`You are an expert receipt and invoice analyzer for Australian construction businesses.
+Carefully examine this receipt/invoice image and extract ALL visible information.
 
-// 移除 cancelled 变量
-archive = archive.replace(
-  `  const archived = jobs.filter((j: any) => j.status === 'archived')
-  const cancelled = jobs.filter((j: any) => j.status === 'cancelled')`,
-  `  const archived = jobs`
-)
+Respond ONLY with a valid JSON object, no markdown, no explanation:
+{
+  "description": "specific description of main item or service purchased",
+  "amount": <total amount as number, including GST if shown>,
+  "gst": <GST amount as number, or null if not shown>,
+  "amount_ex_gst": <amount excluding GST as number, or null>,
+  "type": "material" or "subcontract" or "invoice" or "fuel",
+  "vendor": "supplier/store name",
+  "invoice_number": "invoice or receipt number if visible, or null",
+  "date": "date in YYYY-MM-DD format if visible, or null",
+  "quantity": <quantity as number if single item, or null>,
+  "unit_price": <unit price as number if visible, or null>,
+  "gst_status": "inclusive" if price includes GST, "exclusive" if GST added on top, "free" if no GST,
+  "items": [
+    {
+      "description": "item description",
+      "quantity": <number or null>,
+      "unit_price": <number or null>,
+      "total": <number or null>
+    }
+  ]
+}
 
-// 移除已取消区块
-archive = archive.replace(
-  `        {cancelled.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-6 py-3 bg-red-50 border-b border-gray-100">
-              <p className="text-xs font-semibold text-red-700 uppercase tracking-wide">❌ {lang === 'zh' ? \`已取消 (\${cancelled.length})\` : \`Cancelled (\${cancelled.length})\`}</p>
-            </div>
-            <div className="divide-y divide-gray-100">
-              {cancelled.map((job: any) => (
-                <div key={job.id} className="px-6 py-4 flex justify-between items-center">
-                  <div>
-                    <Link href={'/jobs/' + job.id} className="font-medium text-gray-500 hover:text-blue-600 line-through">{job.name}</Link>
-                    <p className="text-gray-400 text-xs mt-0.5">{job.client_name}</p>
-                    <p className="text-gray-400 text-xs">{lang === 'zh' ? '收入' : 'Revenue'}: \${Number(job.revenue).toLocaleString()}</p>
-                  </div>
-                  <button onClick={() => restoreJob(job.id)} className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-medium">{lang === 'zh' ? '恢复' : 'Restore'}</button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}`,
-  ''
-)
+Important rules:
+- For Australian receipts, GST is 10%. If total shown with GST, gst = total / 11
+- Bunnings, Tradelink, Reece, Total Tools etc are "material" type
+- Fuel stations (BP, Shell, Caltex, 7-Eleven) are "fuel" type  
+- If multiple items, list them all in "items" array
+- amount should be the TOTAL amount shown on receipt
+- Remove $ signs from all numbers
+- If unclear, use null not 0\`,
+            },
+          ],
+        },
+      ],
+    })
 
-fs.writeFileSync('app/archive/page.tsx', archive)
-console.log('done archive')
+    const text = response.content[0].type === 'text' ? response.content[0].text : ''
+    const clean = text.replace(/\`\`\`json|\`\`\`/g, '').trim()
+    const parsed = JSON.parse(clean)
+
+    return NextResponse.json({ success: true, data: parsed })
+  } catch (error) {
+    console.error('OCR error:', error)
+    return NextResponse.json({ success: false, error: 'Failed to analyze receipt' }, { status: 500 })
+  }
+}`
+
+fs.writeFileSync('app/api/ocr/route.ts', content)
+console.log('done')

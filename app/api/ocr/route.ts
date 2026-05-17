@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
 
     const response = await client.messages.create({
       model: 'claude-opus-4-5',
-      max_tokens: 1024,
+      max_tokens: 2048,
       messages: [
         {
           role: 'user',
@@ -26,15 +26,40 @@ export async function POST(request: NextRequest) {
             },
             {
               type: 'text',
-              text: `You are analyzing a receipt or invoice image for a construction business. 
-Extract the following information and respond ONLY with a JSON object, no other text:
+              text: `You are an expert receipt and invoice analyzer for Australian construction businesses.
+Carefully examine this receipt/invoice image and extract ALL visible information.
+
+Respond ONLY with a valid JSON object, no markdown, no explanation:
 {
-  "description": "brief description of what was purchased",
-  "amount": number (total amount in dollars, numbers only),
-  "type": "material" or "subcontract" or "invoice",
-  "vendor": "vendor/supplier name if visible"
+  "description": "specific description of main item or service purchased",
+  "amount": <total amount as number, including GST if shown>,
+  "gst": <GST amount as number, or null if not shown>,
+  "amount_ex_gst": <amount excluding GST as number, or null>,
+  "type": "material" or "subcontract" or "invoice" or "fuel",
+  "vendor": "supplier/store name",
+  "invoice_number": "invoice or receipt number if visible, or null",
+  "date": "date in YYYY-MM-DD format if visible, or null",
+  "quantity": <quantity as number if single item, or null>,
+  "unit_price": <unit price as number if visible, or null>,
+  "gst_status": "inclusive" if price includes GST, "exclusive" if GST added on top, "free" if no GST,
+  "items": [
+    {
+      "description": "item description",
+      "quantity": <number or null>,
+      "unit_price": <number or null>,
+      "total": <number or null>
+    }
+  ]
 }
-If you cannot determine a value, use null.`,
+
+Important rules:
+- For Australian receipts, GST is 10%. If total shown with GST, gst = total / 11
+- Bunnings, Tradelink, Reece, Total Tools etc are "material" type
+- Fuel stations (BP, Shell, Caltex, 7-Eleven) are "fuel" type  
+- If multiple items, list them all in "items" array
+- amount should be the TOTAL amount shown on receipt
+- Remove $ signs from all numbers
+- If unclear, use null not 0`,
             },
           ],
         },
