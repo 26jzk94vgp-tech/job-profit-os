@@ -1,18 +1,12 @@
 const fs = require('fs')
-let c = fs.readFileSync('app/page.tsx', 'utf8')
+let c = fs.readFileSync('app/jobs/[id]/page.tsx', 'utf8')
 
-// 移除升级横幅 state
+// 加 activeTab state
 c = c.replace(
-  "\n  const [showPricingBanner, setShowPricingBanner] = useState(true)",
-  ''
+  "  const [entries, setEntries] = useState<any[]>([])",
+  `  const [entries, setEntries] = useState<any[]>([])
+  const [activeTab, setActiveTab] = useState('overview')`
 )
 
-// 移除升级横幅 UI
-const bannerStart = c.indexOf('        {showPricingBanner && (')
-const bannerEnd = c.indexOf('        )}', bannerStart) + 10
-if (bannerStart !== -1) {
-  c = c.slice(0, bannerStart) + c.slice(bannerEnd)
-}
-
-fs.writeFileSync('app/page.tsx', c)
-console.log('done')
+fs.writeFileSync('app/jobs/[id]/page.tsx', c)
+console.log('done state')

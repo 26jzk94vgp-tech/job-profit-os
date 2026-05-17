@@ -15,6 +15,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   const { lang } = useLanguage()
   const [job, setJob] = useState<any>(null)
   const [entries, setEntries] = useState<any[]>([])
+  const [activeTab, setActiveTab] = useState('overview')
 
   useEffect(() => {
     supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }) => setJob(data))
@@ -87,11 +88,18 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
           </div>
         </div>
 
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4">
           <p className="text-gray-500">{job.client_name}</p>
           <JobStatusToggle jobId={id} currentStatus={job.status} />
         </div>
 
+        <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl">
+          <button onClick={() => setActiveTab('overview')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'overview' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>{lang === 'zh' ? '概览' : 'Overview'}</button>
+          <button onClick={() => setActiveTab('entries')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'entries' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>{lang === 'zh' ? '条目' : 'Entries'}</button>
+          <button onClick={() => setActiveTab('invoice')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'invoice' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>{lang === 'zh' ? '发票' : 'Invoice'}</button>
+        </div>
+
+        {activeTab === 'overview' && (<>
         {unpaidTotal > 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 flex justify-between items-center">
             <div>
@@ -125,6 +133,9 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
           </div>
         </div>
 
+        </>)}
+
+        {activeTab === 'entries' && (
         <div className="bg-white rounded-xl border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-100">
             <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '条目' : 'Entries'}</h2>
@@ -170,6 +181,48 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
             ))}
           </div>
         </div>
+        )}
+
+        {activeTab === 'invoice' && (
+        <div className="bg-white rounded-xl border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '发票条目' : 'Invoice Entries'}</h2>
+          </div>
+          {entries.filter((e: any) => e.type === 'invoice').length === 0 && (
+            <div className="px-6 py-8 text-center text-gray-400">
+              <p>{lang === 'zh' ? '还没有发票条目' : 'No invoice entries yet.'}</p>
+              <Link href={'/jobs/' + id + '/add'} className="mt-3 inline-block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">+ {lang === 'zh' ? '添加发票' : 'Add Invoice'}</Link>
+            </div>
+          )}
+          <div className="divide-y divide-gray-100">
+            {entries.filter((e: any) => e.type === 'invoice').map((entry: any) => (
+              <div key={entry.id} className="px-6 py-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-medium text-gray-900">{entry.description || (lang === 'zh' ? '发票' : 'Invoice')}</p>
+                    {entry.payment_due_date && <p className="text-gray-400 text-xs">{lang === 'zh' ? '到期' : 'Due'}: {formatDate(entry.payment_due_date)}</p>}
+                    <span className={
+                      entry.payment_status === 'paid' ? 'text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full' :
+                      entry.payment_status === 'partial' ? 'text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full' :
+                      'text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full'
+                    }>{statusLabel(entry.payment_status || 'unpaid')}</span>
+                  </div>
+                  <span className="text-green-600 font-bold">\${Number(entry.amount).toLocaleString()}</span>
+                </div>
+                {entry.payment_status !== 'paid' && (
+                  <div className="flex gap-2 mt-2">
+                    <button onClick={() => updatePaymentStatus(entry.id, 'paid')} className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full hover:bg-green-200">✓ {lang === 'zh' ? '标记已付' : 'Mark Paid'}</button>
+                    <button onClick={() => { const amt = prompt(lang === 'zh' ? '输入已收金额：' : 'Enter amount received:'); if (amt) updatePaymentStatus(entry.id, 'partial', Number(amt)) }} className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full hover:bg-blue-200">{lang === 'zh' ? '部分付款' : 'Partial'}</button>
+                  </div>
+                )}
+                {entry.payment_status === 'partial' && entry.payment_received > 0 && (
+                  <p className="text-blue-500 text-xs mt-1">{lang === 'zh' ? '已收' : 'Received'}: \${Number(entry.payment_received).toLocaleString()} · {lang === 'zh' ? '未收' : 'Outstanding'}: \${(Number(entry.amount) - Number(entry.payment_received)).toLocaleString()}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+        )}
       </main>
     </div>
   )
