@@ -71,8 +71,8 @@ Important rules:
     const parsed = JSON.parse(clean)
 
     return NextResponse.json({ success: true, data: parsed })
-  } catch (error) {
+  } catch (error: any) {
     console.error('OCR error:', error)
-    return NextResponse.json({ success: false, error: 'Failed to analyze receipt' }, { status: 500 })
+    return NextResponse.json({ success: false, error: error?.message || String(error) }, { status: 500 })
   }
 }
