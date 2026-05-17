@@ -1,5 +1,4 @@
-const fs = require('fs')
-const content = `'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { createClient } from '../../utils/supabase/client'
@@ -82,7 +81,7 @@ export default function Jobs() {
                       <p className="text-gray-500 text-sm">{job.client_name}</p>
                     </div>
                     <div className="text-right">
-                      <p className={profit >= 0 ? 'font-semibold text-green-600' : 'font-semibold text-red-600'}>{profit >= 0 ? '+' : '-'}\${Math.abs(profit).toLocaleString()}</p>
+                      <p className={profit >= 0 ? 'font-semibold text-green-600' : 'font-semibold text-red-600'}>{profit >= 0 ? '+' : '-'}${Math.abs(profit).toLocaleString()}</p>
                       <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">{statusLabel(job.status)}</span>
                     </div>
                   </Link>
@@ -102,14 +101,14 @@ export default function Jobs() {
                 const profit = Number(job.profit)
                 const unpaid = Number(job.unpaid_amount || 0)
                 return (
-                  <Link href={'/jobs/' + job.id} key={job.id} className={\`flex justify-between items-center px-6 py-4 hover:bg-gray-50 \${unpaid > 0 ? 'border-l-4 border-red-400' : 'opacity-80'}\`}>
+                  <Link href={'/jobs/' + job.id} key={job.id} className={`flex justify-between items-center px-6 py-4 hover:bg-gray-50 ${unpaid > 0 ? 'border-l-4 border-red-400' : 'opacity-80'}`}>
                     <div>
                       <p className="font-medium text-gray-900">{job.name}</p>
                       <p className="text-gray-500 text-sm">{job.client_name}</p>
-                      {unpaid > 0 && <p className="text-red-500 text-xs">💰 {lang === 'zh' ? \`未收 \$\${unpaid.toLocaleString()}\` : \`Unpaid \$\${unpaid.toLocaleString()}\`}</p>}
+                      {unpaid > 0 && <p className="text-red-500 text-xs">💰 {lang === 'zh' ? `未收 $${unpaid.toLocaleString()}` : `Unpaid $${unpaid.toLocaleString()}`}</p>}
                     </div>
                     <div className="text-right">
-                      <p className={profit >= 0 ? 'font-semibold text-green-600' : 'font-semibold text-red-600'}>{profit >= 0 ? '+' : '-'}\${Math.abs(profit).toLocaleString()}</p>
+                      <p className={profit >= 0 ? 'font-semibold text-green-600' : 'font-semibold text-red-600'}>{profit >= 0 ? '+' : '-'}${Math.abs(profit).toLocaleString()}</p>
                       <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">{statusLabel(job.status)}</span>
                     </div>
                   </Link>
@@ -132,7 +131,4 @@ export default function Jobs() {
       </main>
     </div>
   )
-}`
-
-fs.writeFileSync('app/jobs/page.tsx', content)
-console.log('done')
+}
