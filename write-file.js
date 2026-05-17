@@ -1,38 +1,41 @@
 const fs = require('fs')
-let c = fs.readFileSync('app/reports/annual/page.tsx', 'utf8')
+let c = fs.readFileSync('app/page.tsx', 'utf8')
 
-// 加 sortBy state
+// 更新排序下拉框
 c = c.replace(
-  "  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())",
-  `  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
-  const [sortBy, setSortBy] = useState('profit')`
+  `<select className="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none text-gray-600" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <option value="date">{lang === 'zh' ? '按日期' : 'By Date'}</option>
+              <option value="profit">{lang === 'zh' ? '按利润' : 'By Profit'}</option>
+              <option value="revenue">{lang === 'zh' ? '按收入' : 'By Revenue'}</option>
+              <option value="name">{lang === 'zh' ? '按名称' : 'By Name'}</option>
+            </select>`,
+  `<select className="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none text-gray-600" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <option value="date">{lang === 'zh' ? '最新创建' : 'Newest First'}</option>
+              <option value="due">{lang === 'zh' ? '到期日最近' : 'Due Date'}</option>
+            </select>`
 )
 
-// 更新排序逻辑
+// 更新排序函数
 c = c.replace(
-  "  })).sort((a, b) => b.profit - a.profit)",
-  `  })).sort((a, b) => {
-    if (sortBy === 'profit') return b.profit - a.profit
-    if (sortBy === 'revenue') return b.revenue - a.revenue
-    if (sortBy === 'margin') return Number(b.margin) - Number(a.margin)
-    if (sortBy === 'name') return a.name.localeCompare(b.name)
-    return b.profit - a.profit
-  })`
+  `  function sortJobs(jobList: any[]) {
+    return [...jobList].sort((a, b) => {
+      if (sortBy === 'profit') return Number(b.profit) - Number(a.profit)
+      if (sortBy === 'revenue') return Number(b.revenue) - Number(a.revenue)
+      if (sortBy === 'name') return a.name.localeCompare(b.name)
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
+  }`,
+  `  function sortJobs(jobList: any[]) {
+    return [...jobList].sort((a, b) => {
+      if (sortBy === 'due') {
+        const aDue = a.earliest_due_date || '9999-12-31'
+        const bDue = b.earliest_due_date || '9999-12-31'
+        return new Date(aDue).getTime() - new Date(bDue).getTime()
+      }
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
+  }`
 )
 
-// 加排序按钮在工单排名标题旁
-c = c.replace(
-  `            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '工单盈亏排名' : 'Job Profitability Ranking'}</h2>`,
-  `            <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '工单盈亏排名' : 'Job Profitability Ranking'}</h2>
-              <select className="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none text-gray-600" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-                <option value="profit">{lang === 'zh' ? '按利润' : 'By Profit'}</option>
-                <option value="revenue">{lang === 'zh' ? '按收入' : 'By Revenue'}</option>
-                <option value="margin">{lang === 'zh' ? '按利润率' : 'By Margin'}</option>
-                <option value="name">{lang === 'zh' ? '按名称' : 'By Name'}</option>
-              </select>
-            </div>`
-)
-
-fs.writeFileSync('app/reports/annual/page.tsx', c)
+fs.writeFileSync('app/page.tsx', c)
 console.log('done')
