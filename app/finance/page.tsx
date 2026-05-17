@@ -99,26 +99,6 @@ export default function Finance() {
           <div className="px-6 py-3 bg-gray-50 border-b border-gray-100">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '财务报告' : 'Reports'}</p>
           </div>
-          <Link href="/tax" className="md:hidden flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">📊</span>
-              <div>
-                <p className="font-medium text-gray-900">{lang === 'zh' ? '税务中心' : 'Tax Hub'}</p>
-                <p className="text-gray-400 text-xs">{lang === 'zh' ? 'GST、BAS、ATO分类、家庭办公室' : 'GST, BAS, ATO Categories, Home Office'}</p>
-              </div>
-            </div>
-            <span className="text-gray-400">→</span>
-          </Link>
-          <Link href="/reports/annual" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">📊</span>
-              <div>
-                <p className="font-medium text-gray-900">{lang === 'zh' ? '年度汇总报表' : 'Annual Report'}</p>
-                <p className="text-gray-400 text-xs">{lang === 'zh' ? '全年收支利润+工单排名' : 'Full year P&L + job ranking'}</p>
-              </div>
-            </div>
-            <span className="text-gray-400">→</span>
-          </Link>
           <Link href="/reports/monthly" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📅</span>
@@ -139,12 +119,32 @@ export default function Finance() {
             </div>
             <span className="text-gray-400">→</span>
           </Link>
-          <Link href="/import-materials" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50">
+          <Link href="/reports/annual" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📊</span>
+              <div>
+                <p className="font-medium text-gray-900">{lang === 'zh' ? '年度汇总报表' : 'Annual Report'}</p>
+                <p className="text-gray-400 text-xs">{lang === 'zh' ? '全年收支利润+工单排名' : 'Full year P&L + job ranking'}</p>
+              </div>
+            </div>
+            <span className="text-gray-400">→</span>
+          </Link>
+          <Link href="/import-materials" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📊</span>
               <div>
                 <p className="font-medium text-gray-900">{lang === 'zh' ? '导入材料清单' : 'Import Materials'}</p>
                 <p className="text-gray-400 text-xs">{lang === 'zh' ? '从Bunnings等Excel文件批量导入' : 'Bulk import from Bunnings Excel files'}</p>
+              </div>
+            </div>
+            <span className="text-gray-400">→</span>
+          </Link>
+          <Link href="/tax" className="md:hidden flex justify-between items-center px-6 py-4 hover:bg-gray-50">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📊</span>
+              <div>
+                <p className="font-medium text-gray-900">{lang === 'zh' ? '税务中心' : 'Tax Hub'}</p>
+                <p className="text-gray-400 text-xs">{lang === 'zh' ? 'GST、BAS、ATO分类、家庭办公室' : 'GST, BAS, ATO Categories, Home Office'}</p>
               </div>
             </div>
             <span className="text-gray-400">→</span>
