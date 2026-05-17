@@ -1,23 +1,19 @@
 const fs = require('fs')
-let c = fs.readFileSync('app/jobs/[id]/add/page.tsx', 'utf8')
 
-c = c.replace(
-  `      if (json.success) { setDescription(json.data.description || ''); setAmount(json.data.amount?.toString() || ''); setType(json.data.type || 'material') } else { alert(lang === 'zh' ? '无法读取收据' : 'Could not read receipt') }`,
-  `      if (json.success) {
-        const d = json.data
-        setDescription(d.description || '')
-        setAmount(d.amount?.toString() || '')
-        setType(d.type || 'material')
-        setCategory(d.type === 'invoice' ? 'income' : 'expense')
-        if (d.quantity) setQuantity(d.quantity.toString())
-        if (d.unit_price) setUnitPrice(d.unit_price.toString())
-        if (d.gst_status) setGstStatus(d.gst_status)
-        const atoDefaults: Record<string, string> = { material: 'cogs_material', subcontract: 'subcontractor', fuel: 'vehicle', invoice: 'other_income' }
-        if (d.type && atoDefaults[d.type]) setTaxCategory(atoDefaults[d.type])
-      } else {
-        alert(lang === 'zh' ? '无法读取收据' : 'Could not read receipt')
-      }`
+// 改首页归档中心描述
+let page = fs.readFileSync('app/page.tsx', 'utf8')
+page = page.replace(
+  "{lang === 'zh' ? '查看已归档和已取消的工单' : 'View archived and cancelled jobs'}",
+  "{lang === 'zh' ? '查看已归档和已暂停的工单' : 'View archived and paused jobs'}"
 )
+fs.writeFileSync('app/page.tsx', page)
+console.log('done page')
 
-fs.writeFileSync('app/jobs/[id]/add/page.tsx', c)
-console.log('done:', c.includes('atoDefaults'))
+// 改归档中心页面描述
+let archive = fs.readFileSync('app/archive/page.tsx', 'utf8')
+archive = archive.replace(
+  "{lang === 'zh' ? '将工单状态设为「归档」或「取消」后会显示在这里' : 'Jobs marked as Archived or Cancelled will appear here'}",
+  "{lang === 'zh' ? '将工单状态设为「归档」或「暂停」后会显示在这里' : 'Jobs marked as Archived or Paused will appear here'}"
+)
+fs.writeFileSync('app/archive/page.tsx', archive)
+console.log('done archive')

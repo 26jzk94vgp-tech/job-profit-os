@@ -51,7 +51,7 @@ export default function Archive() {
           <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
             <p className="text-4xl mb-3">📦</p>
             <p className="text-gray-500">{lang === 'zh' ? '暂无归档工单' : 'No archived jobs yet'}</p>
-            <p className="text-gray-400 text-xs mt-1">{lang === 'zh' ? '将工单状态设为「归档」或「取消」后会显示在这里' : 'Jobs marked as Archived or Cancelled will appear here'}</p>
+            <p className="text-gray-400 text-xs mt-1">{lang === 'zh' ? '将工单状态设为「归档」或「暂停」后会显示在这里' : 'Jobs marked as Archived or Paused will appear here'}</p>
           </div>
         )}
         {archived.length > 0 && (

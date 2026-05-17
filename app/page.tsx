@@ -318,7 +318,7 @@ export default function Home() {
               <span className="text-xl">📦</span>
               <div>
                 <p className="font-medium text-gray-700 text-sm">{lang === 'zh' ? '归档中心' : 'Archive Centre'}</p>
-                <p className="text-gray-400 text-xs">{lang === 'zh' ? '查看已归档和已取消的工单' : 'View archived and cancelled jobs'}</p>
+                <p className="text-gray-400 text-xs">{lang === 'zh' ? '查看已归档和已暂停的工单' : 'View archived and paused jobs'}</p>
               </div>
             </div>
             <span className="text-gray-400 text-sm">→</span>
