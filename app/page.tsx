@@ -12,6 +12,18 @@ export default function Home() {
   const [badDebts, setBadDebts] = useState<any[]>([])
   const [showPricingBanner, setShowPricingBanner] = useState(true)
   const [showImportTip, setShowImportTip] = useState(true)
+  const [sortBy, setSortBy] = useState("date")
+
+  function sortJobs(jobList: any[]) {
+    return [...jobList].sort((a: any, b: any) => {
+      if (sortBy === "due") {
+        const aDue = a.earliest_due_date || "9999-12-31"
+        const bDue = b.earliest_due_date || "9999-12-31"
+        return new Date(aDue).getTime() - new Date(bDue).getTime()
+      }
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
+  }
   const [user, setUser] = useState<any>(null)
   const supabase = createClient()
   const { t, lang } = useLanguage()
@@ -283,7 +295,13 @@ export default function Home() {
 
         <div className="bg-white rounded-xl border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '工单列表' : 'Jobs'}</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '工单列表' : 'Jobs'}</h2>
+              <select className="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none text-gray-600" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                <option value="date">{lang === 'zh' ? '最新创建' : 'Newest First'}</option>
+                <option value="due">{lang === 'zh' ? '到期日最近' : 'Due Date'}</option>
+              </select>
+            </div>
           </div>
           {jobs.length === 0 && (
             <div className="px-6 py-16 text-center">
