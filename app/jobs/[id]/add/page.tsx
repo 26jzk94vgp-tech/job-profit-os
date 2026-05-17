@@ -111,7 +111,20 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
       const base64 = (reader.result as string).split(',')[1]
       const res = await fetch('/api/ocr', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageBase64: base64, mediaType: file.type }) })
       const json = await res.json()
-      if (json.success) { setDescription(json.data.description || ''); setAmount(json.data.amount?.toString() || ''); setType(json.data.type || 'material') } else { alert(lang === 'zh' ? '无法读取收据' : 'Could not read receipt') }
+      if (json.success) {
+        const d = json.data
+        setDescription(d.description || '')
+        setAmount(d.amount?.toString() || '')
+        setType(d.type || 'material')
+        setCategory(d.type === 'invoice' ? 'income' : 'expense')
+        if (d.quantity) setQuantity(d.quantity.toString())
+        if (d.unit_price) setUnitPrice(d.unit_price.toString())
+        if (d.gst_status) setGstStatus(d.gst_status)
+        const atoDefaults: Record<string, string> = { material: 'cogs_material', subcontract: 'subcontractor', fuel: 'vehicle', invoice: 'other_income' }
+        if (d.type && atoDefaults[d.type]) setTaxCategory(atoDefaults[d.type])
+      } else {
+        alert(lang === 'zh' ? '无法读取收据' : 'Could not read receipt')
+      }
       setScanning(false)
     }
     reader.readAsDataURL(file)
