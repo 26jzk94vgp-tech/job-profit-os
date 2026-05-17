@@ -11,6 +11,7 @@ export default function EditJob({ params }: { params: Promise<{ id: string }> })
   const { lang } = useLanguage()
   const [name, setName] = useState('')
   const [clientName, setClientName] = useState('')
+  const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -18,6 +19,7 @@ export default function EditJob({ params }: { params: Promise<{ id: string }> })
       if (data) {
         setName(data.name || '')
         setClientName(data.client_name || '')
+        setNotes(data.notes || '')
       }
     })
   }, [id])
@@ -27,7 +29,8 @@ export default function EditJob({ params }: { params: Promise<{ id: string }> })
     setLoading(true)
     const { error } = await supabase.from('jobs').update({
       name,
-      client_name: clientName
+      client_name: clientName,
+      notes: notes || null
     }).eq('id', id)
     if (error) { alert('Error: ' + error.message) } else {
       window.location.href = '/jobs/' + id
@@ -56,6 +59,10 @@ export default function EditJob({ params }: { params: Promise<{ id: string }> })
           <div>
             <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '客户名称' : 'Client Name'}</label>
             <input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="e.g. John Smith" />
+          </div>
+          <div>
+            <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '备注' : 'Notes'}</label>
+            <textarea className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" rows={3} placeholder={lang === 'zh' ? '例如：工程地址、特殊要求等' : 'e.g. Site address, special requirements...'} value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
           <button onClick={handleSave} disabled={loading || !name} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium disabled:opacity-50">
             {loading ? (lang === 'zh' ? '保存中...' : 'Saving...') : (lang === 'zh' ? '保存' : 'Save')}

@@ -16,9 +16,12 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   const [job, setJob] = useState<any>(null)
   const [entries, setEntries] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState('overview')
+  const [notes, setNotes] = useState('')
+  const [editingNotes, setEditingNotes] = useState(false)
 
   useEffect(() => {
     supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }) => setJob(data))
+    supabase.from('jobs').select('notes').eq('id', id).single().then(({ data }: { data: any }) => { if (data) setNotes(data.notes || '') })
     supabase.from('job_entries').select('*').eq('job_id', id).order('created_at', { ascending: false }).then(({ data }) => setEntries(data || []))
   }, [id])
 
@@ -130,6 +133,23 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
             <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '材料' : 'Materials'}</span><span className="text-red-500">${material.toLocaleString()}</span></div>
             <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '分包' : 'Subcontract'}</span><span className="text-red-500">${subcontract.toLocaleString()}</span></div>
             {fuel > 0 && <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '车辆/油费' : 'Vehicle/Fuel'}</span><span className="text-red-500">${fuel.toLocaleString()}</span></div>}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 mt-4">
+          <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '备注' : 'Notes'}</h2>
+            <button onClick={() => setEditingNotes(!editingNotes)} className="text-blue-500 text-xs">{editingNotes ? (lang === 'zh' ? '取消' : 'Cancel') : (lang === 'zh' ? '编辑' : 'Edit')}</button>
+          </div>
+          <div className="px-6 py-4">
+            {editingNotes ? (
+              <div className="space-y-2">
+                <textarea className="w-full border border-gray-200 rounded-lg p-3 text-gray-900 outline-none text-sm" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={lang === 'zh' ? '添加备注...' : 'Add notes...'} />
+                <button onClick={async () => { await supabase.from('jobs').update({ notes }).eq('id', id); setEditingNotes(false) }} className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm">{lang === 'zh' ? '保存' : 'Save'}</button>
+              </div>
+            ) : (
+              <p className="text-gray-600 text-sm">{notes || <span className="text-gray-400">{lang === 'zh' ? '暂无备注，点击编辑添加' : 'No notes yet. Click Edit to add.'}</span>}</p>
+            )}
           </div>
         </div>
 
