@@ -57,7 +57,7 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
         amount: Number(item.quantity) * Number(item.cost_price),
         gst_status: 'inclusive',
         tax_category: 'cogs_material',
-        notes: lang === 'zh' ? '⚠️ 报价估算，请确认实际采购价格' : '⚠️ Quote estimate — update with actual purchase price'
+        notes: 'QUOTE_ESTIMATE'
       }))
       if (materialItems.length > 0) await supabase.from('job_entries').insert(materialItems)
       await supabase.from('quotes').update({ status: 'accepted' }).eq('id', id)
