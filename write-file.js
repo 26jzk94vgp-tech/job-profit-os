@@ -1,26 +1,20 @@
 const fs = require('fs')
-let c = fs.readFileSync('app/jobs/[id]/edit/page.tsx', 'utf8')
+let c = fs.readFileSync('app/finance/page.tsx', 'utf8')
 
-// 加 notes state
 c = c.replace(
-  "  const [clientName, setClientName] = useState('')",
-  `  const [clientName, setClientName] = useState('')
-  const [notes, setNotes] = useState('')`
+  `          <Link href="/reports/annual" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">`,
+  `          <Link href="/tax" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📊</span>
+              <div>
+                <p className="font-medium text-gray-900">{lang === 'zh' ? '税务中心' : 'Tax Hub'}</p>
+                <p className="text-gray-400 text-xs">{lang === 'zh' ? 'GST、BAS、ATO分类、家庭办公室' : 'GST, BAS, ATO Categories, Home Office'}</p>
+              </div>
+            </div>
+            <span className="text-gray-400">→</span>
+          </Link>
+          <Link href="/reports/annual" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">`
 )
 
-// 加载 notes
-c = c.replace(
-  "        setClientName(data.client_name || '')",
-  `        setClientName(data.client_name || '')
-        setNotes(data.notes || '')`
-)
-
-// 保存 notes
-c = c.replace(
-  "      client_name: clientName",
-  `      client_name: clientName,
-      notes: notes || null`
-)
-
-fs.writeFileSync('app/jobs/[id]/edit/page.tsx', c)
-console.log('done edit')
+fs.writeFileSync('app/finance/page.tsx', c)
+console.log('done')
