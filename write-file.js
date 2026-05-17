@@ -1,25 +1,56 @@
-drop view if exists job_summary;
+const fs = require('fs')
+const content = `'use client'
 
-create view job_summary as
-select
-  j.id,
-  j.name,
-  j.client_name,
-  j.status,
-  j.owner_id,
-  j.created_at,
-  coalesce(sum(case when e.type = 'invoice' then e.amount else 0 end), 0) as revenue,
-  coalesce(sum(case when e.type = 'labor' then e.hours * e.hourly_rate else 0 end), 0) as labor_cost,
-  coalesce(sum(case when e.type = 'material' then e.amount else 0 end), 0) as material_cost,
-  coalesce(sum(case when e.type = 'subcontract' then e.amount else 0 end), 0) as subcontract_cost,
-  coalesce(sum(case when e.type = 'fuel' then e.amount else 0 end), 0) as fuel_cost,
-  coalesce(sum(case when e.type = 'invoice' then e.amount else 0 end), 0)
-  - coalesce(sum(case when e.type = 'labor' then e.hours * e.hourly_rate
-                      when e.type in ('material','subcontract','fuel') then e.amount
-                      else 0 end), 0) as profit,
-  min(case when e.type = 'invoice' and e.payment_status != 'paid' then e.payment_due_date else null end) as earliest_due_date,
-  coalesce(sum(case when e.type = 'invoice' and e.payment_status != 'paid' then e.amount else 0 end), 0) as unpaid_amount
-from jobs j
-left join job_entries e on e.job_id = j.id
-where j.owner_id = auth.uid()
-group by j.id, j.name, j.client_name, j.status, j.owner_id, j.created_at;
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useLanguage } from '../lib/i18n/LanguageContext'
+
+export default function BottomNav() {
+  const pathname = usePathname()
+  const { lang } = useLanguage()
+
+  const tabs = [
+    { href: '/', icon: '🏠', label: lang === 'zh' ? '首页' : 'Home' },
+    { href: '/jobs', icon: '🔨', label: lang === 'zh' ? '工单' : 'Jobs' },
+    { href: '/clients', icon: '👥', label: lang === 'zh' ? '客户' : 'Clients' },
+    { href: '/finance', icon: '💹', label: lang === 'zh' ? '财务' : 'Finance' },
+    { href: '/settings', icon: '⚙️', label: lang === 'zh' ? '设置' : 'Settings' },
+  ]
+
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex md:hidden z-50">
+      {tabs.map((tab) => {
+        const isActive = tab.href === '/' ? pathname === '/' : pathname.startsWith(tab.href)
+        return (
+          <Link key={tab.href} href={tab.href} className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5">
+            <span className="text-xl">{tab.icon}</span>
+            <span className={isActive ? 'text-xs font-medium text-blue-600' : 'text-xs text-gray-400'}>{tab.label}</span>
+          </Link>
+        )
+      })}
+    </nav>
+  )
+}`
+
+fs.writeFileSync('app/components/BottomNav.tsx', content)
+console.log('done')
+const fs = require('fs')
+let c = fs.readFileSync('app/finance/page.tsx', 'utf8')
+
+c = c.replace(
+  `          <Link href="/import-materials" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50">`,
+  `          <Link href="/tax" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📊</span>
+              <div>
+                <p className="font-medium text-gray-900">{lang === 'zh' ? '税务中心' : 'Tax Hub'}</p>
+                <p className="text-gray-400 text-xs">{lang === 'zh' ? 'GST、BAS、ATO分类申报' : 'GST, BAS & ATO Categories'}</p>
+              </div>
+            </div>
+            <span className="text-gray-400">→</span>
+          </Link>
+          <Link href="/import-materials" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50">`
+)
+
+fs.writeFileSync('app/finance/page.tsx', c)
+console.log('done finance')
