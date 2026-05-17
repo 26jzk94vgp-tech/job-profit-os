@@ -118,10 +118,10 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
             <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '成本明细' : 'Cost Breakdown'}</h2>
           </div>
           <div className="divide-y divide-gray-100">
-            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '人工' : 'Labor'}</span><span className="text-red-500">-${labor.toLocaleString()}</span></div>
-            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '材料' : 'Materials'}</span><span className="text-red-500">-${material.toLocaleString()}</span></div>
-            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '分包' : 'Subcontract'}</span><span className="text-red-500">-${subcontract.toLocaleString()}</span></div>
-            {fuel > 0 && <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '车辆/油费' : 'Vehicle/Fuel'}</span><span className="text-red-500">-${fuel.toLocaleString()}</span></div>}
+            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '人工' : 'Labor'}</span><span className="text-red-500">${labor.toLocaleString()}</span></div>
+            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '材料' : 'Materials'}</span><span className="text-red-500">${material.toLocaleString()}</span></div>
+            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '分包' : 'Subcontract'}</span><span className="text-red-500">${subcontract.toLocaleString()}</span></div>
+            {fuel > 0 && <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '车辆/油费' : 'Vehicle/Fuel'}</span><span className="text-red-500">${fuel.toLocaleString()}</span></div>}
           </div>
         </div>
 
