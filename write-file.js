@@ -1,28 +1,8 @@
 const fs = require('fs')
-let c = fs.readFileSync('app/jobs/[id]/add/page.tsx', 'utf8')
-
+let c = fs.readFileSync('app/api/ocr/route.ts', 'utf8')
 c = c.replace(
-  `      } else {
-        alert(lang === 'zh' ? '无法读取收据' : 'Could not read receipt')
-      }`,
-  `      } else {
-        alert((lang === 'zh' ? '无法读取收据: ' : 'Could not read receipt: ') + (json.error || 'unknown error'))
-      }`
+  "model: 'claude-opus-4-5'",
+  "model: 'claude-opus-4-5-20251101'"
 )
-
-// 加 catch 错误提示
-c = c.replace(
-  `      setScanning(false)
-    }
-    reader.readAsDataURL(file)`,
-  `      setScanning(false)
-    }
-    reader.onerror = () => {
-      alert(lang === 'zh' ? '文件读取失败' : 'File read failed')
-      setScanning(false)
-    }
-    reader.readAsDataURL(file)`
-)
-
-fs.writeFileSync('app/jobs/[id]/add/page.tsx', c)
+fs.writeFileSync('app/api/ocr/route.ts', c)
 console.log('done')
