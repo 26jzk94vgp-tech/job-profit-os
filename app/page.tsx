@@ -14,9 +14,9 @@ export default function Home() {
   const [showImportTip, setShowImportTip] = useState(true)
   const [sortBy, setSortBy] = useState("date")
 
-  function sortJobs(jobList: any[]) {
+  function sortJobs(jobList: any[], byDue = false) {
     return [...jobList].sort((a: any, b: any) => {
-      if (sortBy === "due") {
+      if (byDue || sortBy === "due") {
         const aDue = a.earliest_due_date || "9999-12-31"
         const bDue = b.earliest_due_date || "9999-12-31"
         return new Date(aDue).getTime() - new Date(bDue).getTime()
@@ -336,16 +336,18 @@ export default function Home() {
               <div className="px-6 py-2 bg-green-50 border-t border-gray-100">
                 <p className="text-xs font-semibold text-green-700 uppercase tracking-wide">{lang === 'zh' ? '已完成' : 'Completed'}</p>
               </div>
-              {sortJobs(jobs.filter((j: any) => j.status === 'completed')).map((job: any) => {
+              {sortJobs(jobs.filter((j: any) => j.status === 'completed'), true).map((job: any) => {
                 const profit = Number(job.profit)
                 const isProfit = profit >= 0
-                const unpaidAmount = Number(job.revenue) - (Number(job.revenue) - Math.max(0, profit < 0 ? 0 : 0))
+                const unpaid = Number(job.unpaid_amount || 0)
+                const hasUnpaid = unpaid > 0
                 return (
                   <Link href={"/jobs/" + job.id} key={job.id}>
-                    <div className="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition opacity-80">
+                    <div className={`px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition ${hasUnpaid ? 'border-l-4 border-red-400' : 'opacity-80'}`}>
                       <div>
                         <p className="font-medium text-gray-900">{job.name}</p>
                         <p className="text-gray-500 text-sm">{job.client_name}</p>
+                        {hasUnpaid && <p className="text-red-500 text-xs mt-0.5">💰 {lang === 'zh' ? `未收款 $${unpaid.toLocaleString()}` : `Unpaid $${unpaid.toLocaleString()}`} {job.earliest_due_date ? `· ${lang === 'zh' ? '到期' : 'Due'}: ${job.earliest_due_date}` : ''}</p>}
                       </div>
                       <div className="text-right">
                         <p className={isProfit ? "font-semibold text-green-600" : "font-semibold text-red-600"}>

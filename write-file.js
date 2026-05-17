@@ -1,32 +1,25 @@
-const fs = require('fs')
-let c = fs.readFileSync('app/page.tsx', 'utf8')
+drop view if exists job_summary;
 
-c = c.replace(
-  `    const jobList = jobData || []
-    
-    // 自动归档超过30天的已完成工单
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 15)
-    
-    const toArchive = jobList.filter((j: any) => {
-      if (j.status !== 'completed') return false
-      if (new Date(j.created_at) >= thirtyDaysAgo) return false
-      // 只归档已收款的工单（revenue === 0 或 unpaid invoice 为 0）
-      const hasUnpaid = Number(j.revenue) > 0 && Number(j.profit) < Number(j.revenue)
-      return !hasUnpaid
-    })
-    
-    if (toArchive.length > 0) {
-      await supabase.from('jobs')
-        .update({ status: 'archived' })
-        .in('id', toArchive.map((j: any) => j.id))
-      
-      toArchive.forEach((j: any) => { j.status = 'archived' })
-    }
-    
-    setJobs(jobList)`,
-  `    setJobs(jobData || [])`
-)
-
-fs.writeFileSync('app/page.tsx', c)
-console.log('done')
+create view job_summary as
+select
+  j.id,
+  j.name,
+  j.client_name,
+  j.status,
+  j.owner_id,
+  j.created_at,
+  coalesce(sum(case when e.type = 'invoice' then e.amount else 0 end), 0) as revenue,
+  coalesce(sum(case when e.type = 'labor' then e.hours * e.hourly_rate else 0 end), 0) as labor_cost,
+  coalesce(sum(case when e.type = 'material' then e.amount else 0 end), 0) as material_cost,
+  coalesce(sum(case when e.type = 'subcontract' then e.amount else 0 end), 0) as subcontract_cost,
+  coalesce(sum(case when e.type = 'fuel' then e.amount else 0 end), 0) as fuel_cost,
+  coalesce(sum(case when e.type = 'invoice' then e.amount else 0 end), 0)
+  - coalesce(sum(case when e.type = 'labor' then e.hours * e.hourly_rate
+                      when e.type in ('material','subcontract','fuel') then e.amount
+                      else 0 end), 0) as profit,
+  min(case when e.type = 'invoice' and e.payment_status != 'paid' then e.payment_due_date else null end) as earliest_due_date,
+  coalesce(sum(case when e.type = 'invoice' and e.payment_status != 'paid' then e.amount else 0 end), 0) as unpaid_amount
+from jobs j
+left join job_entries e on e.job_id = j.id
+where j.owner_id = auth.uid()
+group by j.id, j.name, j.client_name, j.status, j.owner_id, j.created_at;
