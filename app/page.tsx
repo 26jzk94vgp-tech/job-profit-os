@@ -284,6 +284,7 @@ export default function Home() {
         <div className="bg-white rounded-xl border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-100">
             <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '工单列表' : 'Jobs'}</h2>
+            <Link href="/archive" className="text-gray-400 text-xs hover:text-gray-600">📦 {lang === 'zh' ? '归档' : 'Archive'} →</Link>
           </div>
           {jobs.length === 0 && (
             <div className="px-6 py-16 text-center">
