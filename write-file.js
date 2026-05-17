@@ -1,10 +1,15 @@
 const fs = require('fs')
-let c = fs.readFileSync('app/finance/page.tsx', 'utf8')
+let c = fs.readFileSync('app/tax/page.tsx', 'utf8')
 
-c = c.replace(
-  `          <Link href="/tax" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">`,
-  `          <Link href="/tax" className="md:hidden flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">`
-)
+// 移除月度损益表
+const monthlyStart = c.indexOf('          <Link href="/reports/monthly"')
+const monthlyEnd = c.indexOf('</Link>', monthlyStart) + 7
+c = c.slice(0, monthlyStart) + c.slice(monthlyEnd)
 
-fs.writeFileSync('app/finance/page.tsx', c)
+// 移除导入材料
+const importStart = c.indexOf('          <Link href="/import-materials"')
+const importEnd = c.indexOf('</Link>', importStart) + 7
+c = c.slice(0, importStart) + c.slice(importEnd)
+
+fs.writeFileSync('app/tax/page.tsx', c)
 console.log('done')
