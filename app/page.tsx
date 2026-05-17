@@ -310,7 +310,7 @@ export default function Home() {
             </div>
           )}
           <div className="divide-y divide-gray-100">
-            {jobs.map((job: any) => {
+            {sortJobs(jobs.filter((j: any) => ['active', 'paused'].includes(j.status))).map((job: any) => {
               const profit = Number(job.profit)
               const isProfit = profit >= 0
               return (
@@ -321,16 +321,44 @@ export default function Home() {
                       <p className="text-gray-500 text-sm">{job.client_name}</p>
                     </div>
                     <div className="text-right">
-                      <p className={isProfit ? 'font-semibold text-green-600' : 'font-semibold text-red-600'}>
-                        {isProfit ? '+' : '-'}${Math.abs(profit).toLocaleString()}
+                      <p className={isProfit ? "font-semibold text-green-600" : "font-semibold text-red-600"}>
+                        {isProfit ? "+" : "-"}${Math.abs(profit).toLocaleString()}
                       </p>
-                      <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{statusLabel(job.status)}</span>
+                      <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">{statusLabel(job.status)}</span>
                     </div>
                   </div>
                 </Link>
               )
             })}
           </div>
+          {sortJobs(jobs.filter((j: any) => j.status === 'completed')).length > 0 && (
+            <>
+              <div className="px-6 py-2 bg-green-50 border-t border-gray-100">
+                <p className="text-xs font-semibold text-green-700 uppercase tracking-wide">{lang === 'zh' ? '已完成' : 'Completed'}</p>
+              </div>
+              {sortJobs(jobs.filter((j: any) => j.status === 'completed')).map((job: any) => {
+                const profit = Number(job.profit)
+                const isProfit = profit >= 0
+                const unpaidAmount = Number(job.revenue) - (Number(job.revenue) - Math.max(0, profit < 0 ? 0 : 0))
+                return (
+                  <Link href={"/jobs/" + job.id} key={job.id}>
+                    <div className="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition opacity-80">
+                      <div>
+                        <p className="font-medium text-gray-900">{job.name}</p>
+                        <p className="text-gray-500 text-sm">{job.client_name}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className={isProfit ? "font-semibold text-green-600" : "font-semibold text-red-600"}>
+                          {isProfit ? "+" : "-"}${Math.abs(profit).toLocaleString()}
+                        </p>
+                        <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">{statusLabel(job.status)}</span>
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </>
+          )}
           <Link href="/archive" className="flex items-center justify-between px-6 py-4 bg-gray-50 hover:bg-gray-100 border-t border-gray-200 rounded-b-xl transition">
             <div className="flex items-center gap-3">
               <span className="text-xl">📦</span>
