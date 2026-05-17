@@ -185,7 +185,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
           <h1 className="font-semibold text-gray-900">{t.addEntry}</h1>
         </div>
         <label className="flex items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-xl p-6 mb-6 cursor-pointer hover:border-blue-400 transition bg-white">
-          <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleScan} />
+          <input type="file" accept="image/*" className="hidden" onChange={handleScan} />
           {scanning ? <span className="text-blue-500">{t.scanning}</span> : <span className="text-gray-400">📸 {t.scanReceipt}</span>}
         </label>
         <div className="bg-white rounded-xl border border-gray-200 p-6">
