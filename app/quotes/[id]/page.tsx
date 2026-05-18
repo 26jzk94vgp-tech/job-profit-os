@@ -152,16 +152,16 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
           </thead>
           <tbody>
             {(() => {
-              const areas = [...new Set(items.map(i => i.area || ''))].filter(Boolean)
-              const noArea = items.filter(i => !i.area)
+              const groups = [...new Set(items.map(i => i.item_group || ''))].filter(Boolean)
+              const noGroup = items.filter(i => !i.item_group)
               return (
                 <>
-                  {areas.map(area => (
+                  {groups.map(group => (
                     <>
-                      <tr key={area} className="bg-blue-50">
-                        <td colSpan={9} className="border border-gray-300 px-2 py-1 font-bold text-blue-800">{area}</td>
+                      <tr key={group} className="bg-gray-200">
+                        <td colSpan={9} className="border border-gray-400 px-2 py-1 font-bold text-gray-800">{group}</td>
                       </tr>
-                      {items.filter(i => i.area === area).map(item => (
+                      {items.filter(i => i.item_group === group).map(item => (
                         <tr key={item.id} className="border border-gray-300">
                           <td className="border border-gray-300 px-2 py-1">{item.description}</td>
                           <td className="border border-gray-300 px-2 py-1 font-medium">{item.area || ''}</td>
@@ -176,10 +176,10 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
                       ))}
                     </>
                   ))}
-                  {noArea.map(item => (
+                  {noGroup.map(item => (
                     <tr key={item.id} className="border border-gray-300">
                       <td className="border border-gray-300 px-2 py-1">{item.description}</td>
-                      <td className="border border-gray-300 px-2 py-1"></td>
+                      <td className="border border-gray-300 px-2 py-1 font-medium">{item.area || ''}</td>
                       <td className="border border-gray-300 px-2 py-1">{item.code || ''}</td>
                       <td className="border border-gray-300 px-2 py-1">{item.item_name || ''}</td>
                       <td className="border border-gray-300 px-2 py-1">{item.item_type || ''}</td>
