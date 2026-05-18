@@ -102,9 +102,9 @@ export default function NewQuote() {
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-3">
-              <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '报价条目' : 'Quote Items'}</label>
-              <div className="flex gap-2">
+            <div className="mb-3">
+              <label className="text-gray-700 text-sm font-medium mb-2 block">{lang === 'zh' ? '报价条目' : 'Quote Items'}</label>
+              <div className="flex flex-wrap gap-2">
                 {defaultGroups.map(g => (
                   <button key={g} onClick={() => addItem(g)} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-lg hover:bg-gray-200">+ {g}</button>
                 ))}
