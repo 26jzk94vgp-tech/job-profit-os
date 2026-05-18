@@ -144,8 +144,10 @@ export default function NewQuote() {
                               <option value="">{lang === 'zh' ? '类型' : 'Type'}</option>
                               {typeOptions.map(t => <option key={t} value={t}>{t}</option>)}
                             </select>
-                            <input className="w-14 border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" placeholder="Qty" value={item.quantity} onChange={(e) => updateItem(index, 'quantity', e.target.value)} />
-                            <input className="w-14 border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" placeholder="Unit" value={item.unit} onChange={(e) => updateItem(index, 'unit', e.target.value)} />
+                          </div>
+                          <div className="flex gap-2">
+                            <input className="w-20 border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" placeholder="Qty" value={item.quantity} onChange={(e) => updateItem(index, 'quantity', e.target.value)} />
+                            <input className="w-20 border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" placeholder="Unit" value={item.unit} onChange={(e) => updateItem(index, 'unit', e.target.value)} />
                           </div>
                           <div className="flex gap-2">
                             <input className="flex-1 border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" placeholder={lang === 'zh' ? '售价 $' : 'Rate $'} value={item.unit_price} onChange={(e) => updateItem(index, 'unit_price', e.target.value)} />
