@@ -11,9 +11,9 @@ export default function BottomNav() {
   const tabs = [
     { href: '/', icon: '🏠', label: lang === 'zh' ? '首页' : 'Home' },
     { href: '/jobs', icon: '🔨', label: lang === 'zh' ? '工单' : 'Jobs' },
+    { href: '/quotes', icon: '📋', label: lang === 'zh' ? '报价' : 'Quotes' },
     { href: '/clients', icon: '👥', label: lang === 'zh' ? '客户' : 'Clients' },
     { href: '/finance', icon: '💹', label: lang === 'zh' ? '财务' : 'Finance' },
-    { href: '/settings', icon: '⚙️', label: lang === 'zh' ? '设置' : 'Settings' },
   ]
 
   return (
