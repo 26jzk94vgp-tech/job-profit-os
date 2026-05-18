@@ -353,8 +353,8 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <span className="text-xl">📦</span>
               <div>
-                <p className="font-medium text-gray-700 text-sm">{lang === 'zh' ? '归档中心' : 'Archive Centre'}</p>
-                <p className="text-gray-400 text-xs">{lang === 'zh' ? '查看已归档和已暂停的工单' : 'View archived and paused jobs'}</p>
+                <p className="font-medium text-gray-700 text-sm">{lang === 'zh' ? '工单历史' : 'Job History'}</p>
+                <p className="text-gray-400 text-xs">{lang === 'zh' ? '查看已归档和已暂停的工单' : 'View archived & paused jobs'}</p>
               </div>
             </div>
             <span className="text-gray-400 text-sm">→</span>
