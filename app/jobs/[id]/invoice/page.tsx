@@ -52,7 +52,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
 
   if (!job) return <div className="p-6">Loading...</div>
 
-  const invoiceEntries = entries.filter(e => e.type !== 'invoice')
+  const invoiceEntries = entries.filter(e => e.type === 'invoice')
   const subTotal = invoiceEntries.reduce((sum, e) => sum + (e.type === 'labor' ? Number(e.hours) * Number(e.hourly_rate) : Number(e.amount)), 0)
   const gst = subTotal * 0.1
   const total = subTotal + gst
