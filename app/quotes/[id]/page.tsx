@@ -151,19 +151,47 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
             </tr>
           </thead>
           <tbody>
-            {items.map((item) => (
-              <tr key={item.id} className="border border-gray-300">
-                <td className="border border-gray-300 px-2 py-1">{item.description}</td>
-                <td className="border border-gray-300 px-2 py-1 font-medium">{item.area || ''}</td>
-                <td className="border border-gray-300 px-2 py-1">{item.code || ''}</td>
-                <td className="border border-gray-300 px-2 py-1">{item.item_name || ''}</td>
-                <td className="border border-gray-300 px-2 py-1">{item.item_type || ''}</td>
-                <td className="border border-gray-300 px-2 py-1">{item.item_unit || ''}</td>
-                <td className="border border-gray-300 px-2 py-1 text-right">{item.quantity}</td>
-                <td className="border border-gray-300 px-2 py-1 text-right">${Number(item.unit_price).toFixed(2)}</td>
-                <td className="border border-gray-300 px-2 py-1 text-right">${(Number(item.quantity) * Number(item.unit_price)).toFixed(2)}</td>
-              </tr>
-            ))}
+            {(() => {
+              const areas = [...new Set(items.map(i => i.area || ''))].filter(Boolean)
+              const noArea = items.filter(i => !i.area)
+              return (
+                <>
+                  {areas.map(area => (
+                    <>
+                      <tr key={area} className="bg-blue-50">
+                        <td colSpan={9} className="border border-gray-300 px-2 py-1 font-bold text-blue-800">{area}</td>
+                      </tr>
+                      {items.filter(i => i.area === area).map(item => (
+                        <tr key={item.id} className="border border-gray-300">
+                          <td className="border border-gray-300 px-2 py-1">{item.description}</td>
+                          <td className="border border-gray-300 px-2 py-1 font-medium">{item.area || ''}</td>
+                          <td className="border border-gray-300 px-2 py-1">{item.code || ''}</td>
+                          <td className="border border-gray-300 px-2 py-1">{item.item_name || ''}</td>
+                          <td className="border border-gray-300 px-2 py-1">{item.item_type || ''}</td>
+                          <td className="border border-gray-300 px-2 py-1">{item.item_unit || item.unit || ''}</td>
+                          <td className="border border-gray-300 px-2 py-1 text-right">{item.quantity}</td>
+                          <td className="border border-gray-300 px-2 py-1 text-right">\${Number(item.unit_price).toFixed(2)}</td>
+                          <td className="border border-gray-300 px-2 py-1 text-right">\${(Number(item.quantity) * Number(item.unit_price)).toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </>
+                  ))}
+                  {noArea.map(item => (
+                    <tr key={item.id} className="border border-gray-300">
+                      <td className="border border-gray-300 px-2 py-1">{item.description}</td>
+                      <td className="border border-gray-300 px-2 py-1"></td>
+                      <td className="border border-gray-300 px-2 py-1">{item.code || ''}</td>
+                      <td className="border border-gray-300 px-2 py-1">{item.item_name || ''}</td>
+                      <td className="border border-gray-300 px-2 py-1">{item.item_type || ''}</td>
+                      <td className="border border-gray-300 px-2 py-1">{item.item_unit || item.unit || ''}</td>
+                      <td className="border border-gray-300 px-2 py-1 text-right">{item.quantity}</td>
+                      <td className="border border-gray-300 px-2 py-1 text-right">\${Number(item.unit_price).toFixed(2)}</td>
+                      <td className="border border-gray-300 px-2 py-1 text-right">\${(Number(item.quantity) * Number(item.unit_price)).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </>
+              )
+            })()}
           </tbody>
         </table>
 
