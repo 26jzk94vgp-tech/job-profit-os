@@ -1,40 +1,36 @@
 const fs = require('fs')
-let c = fs.readFileSync('app/quotes/new/page.tsx', 'utf8')
+let c = fs.readFileSync('app/clients/page.tsx', 'utf8')
 
-// 把客户 select 改成 input
+// 加 quotes state
 c = c.replace(
-  `  const [clientId, setClientId] = useState('')`,
-  `  const [clientName, setClientName] = useState('')`
+  "  const [jobs, setJobs] = useState<any[]>([])",
+  `  const [jobs, setJobs] = useState<any[]>([])
+  const [quotes, setQuotes] = useState<any[]>([])`
 )
 
+// 加载报价单
 c = c.replace(
-  `    supabase.from('clients').select('*').then(({ data }) => setClients(data || []))`,
-  ``
+  "    supabase.from('job_summary').select('*').order('created_at', { ascending: false }).then(({ data }) => setJobs(data || []))",
+  `    supabase.from('job_summary').select('*').order('created_at', { ascending: false }).then(({ data }) => setJobs(data || []))
+    supabase.from('quotes').select('*').order('created_at', { ascending: false }).then(({ data }) => setQuotes(data || []))`
 )
 
+// 加获取客户报价单函数
 c = c.replace(
-  `  const [clients, setClients] = useState<any[]>([])`,
-  ``
+  "  function getClientJobs(clientName: string) {",
+  `  function getClientQuotes(clientId: string, clientName: string) {
+    return quotes.filter(q => q.client_id === clientId || q.client_name === clientName)
+  }
+
+  function getClientJobs(clientName: string) {`
 )
 
+// 加报价单统计到 getClientStats
 c = c.replace(
-  `      client_id: clientId || null,`,
-  `      client_name: clientName || null,`
+  "    return { totalRevenue, totalProfit, unpaid, jobCount: clientJobs.length }",
+  `    const clientQuotes = getClientQuotes(client?.id || '', clientName)
+    return { totalRevenue, totalProfit, unpaid, jobCount: clientJobs.length, quoteCount: clientQuotes.length }`
 )
 
-c = c.replace(
-  `            <div>
-              <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '客户' : 'Client'}</label>
-              <select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={clientId} onChange={(e) => setClientId(e.target.value)}>
-                <option value="">{lang === 'zh' ? '选择客户...' : 'Select client...'}</option>
-                {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>`,
-  `            <div>
-              <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '客户名称' : 'Client Name'}</label>
-              <input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder={lang === 'zh' ? '例如：张先生' : 'e.g. John Smith'} value={clientName} onChange={(e) => setClientName(e.target.value)} />
-            </div>`
-)
-
-fs.writeFileSync('app/quotes/new/page.tsx', c)
+fs.writeFileSync('app/clients/page.tsx', c)
 console.log('done')

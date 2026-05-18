@@ -10,12 +10,18 @@ export default function Clients() {
   const { lang } = useLanguage()
   const [clients, setClients] = useState<any[]>([])
   const [jobs, setJobs] = useState<any[]>([])
+  const [quotes, setQuotes] = useState<any[]>([])
   const [expanded, setExpanded] = useState<string | null>(null)
 
   useEffect(() => {
     supabase.from('clients').select('*').order('created_at', { ascending: false }).then(({ data }) => setClients(data || []))
     supabase.from('job_summary').select('*').order('created_at', { ascending: false }).then(({ data }) => setJobs(data || []))
+    supabase.from('quotes').select('*').order('created_at', { ascending: false }).then(({ data }) => setQuotes(data || []))
   }, [])
+
+  function getClientQuotes(clientId: string, clientName: string) {
+    return quotes.filter((q: any) => q.client_id === clientId || q.client_name === clientName)
+  }
 
   function getClientJobs(clientName: string) {
     return jobs.filter(j => j.client_name === clientName)
@@ -100,6 +106,24 @@ export default function Clients() {
                   {isExpanded && clientJobs.length === 0 && (
                     <div className="bg-gray-50 border-t border-gray-100 px-8 py-4 text-center text-gray-400 text-sm">
                       {lang === 'zh' ? '该客户暂无工单' : 'No jobs for this client yet.'}
+                    </div>
+                  )}
+                  {isExpanded && getClientQuotes(client.id, client.name).length > 0 && (
+                    <div className="bg-yellow-50 border-t border-gray-100">
+                      <div className="px-6 py-2 border-b border-gray-100">
+                        <p className="text-xs font-semibold text-yellow-700 uppercase tracking-wide">📋 {lang === 'zh' ? '报价单' : 'Quotes'}</p>
+                      </div>
+                      {getClientQuotes(client.id, client.name).map((q: any) => (
+                        <a href={'/quotes/' + q.id} key={q.id} className="flex justify-between items-center px-8 py-3 hover:bg-yellow-100 border-b border-gray-100 last:border-0">
+                          <div>
+                            <p className="text-sm font-medium text-gray-800">{lang === 'zh' ? '报价单' : 'Quote'} #{q.quote_number || q.id.slice(0,6)}</p>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${q.status === 'accepted' ? 'bg-green-100 text-green-600' : q.status === 'sent' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}`}>
+                              {q.status === 'accepted' ? (lang === 'zh' ? '已接受' : 'Accepted') : q.status === 'sent' ? (lang === 'zh' ? '已发送' : 'Sent') : (lang === 'zh' ? '草稿' : 'Draft')}
+                            </span>
+                          </div>
+                          <span className="text-gray-400 text-sm">→</span>
+                        </a>
+                      ))}
                     </div>
                   )}
                 </div>

@@ -10,6 +10,8 @@ export default function NewQuote() {
 
   const [jobs, setJobs] = useState<any[]>([])
   const [clientName, setClientName] = useState('')
+  const [clientId, setClientId] = useState('')
+  const [clients, setClients] = useState<any[]>([])
   const [jobId, setJobId] = useState('')
   const [notes, setNotes] = useState('')
   const [scopeOfWork, setScopeOfWork] = useState('')
@@ -19,6 +21,7 @@ export default function NewQuote() {
   useEffect(() => {
 
     supabase.from('jobs').select('*').then(({ data }) => setJobs(data || []))
+    supabase.from('clients').select('*').order('name').then(({ data }) => setClients(data || []))
   }, [])
 
   function addItem(group?: string) { setItems([...items, { description: '', area: '', item_type: '', item_group: group || '', quantity: '1', unit: '', unit_price: '', cost_price: '' }]) }
@@ -38,6 +41,7 @@ export default function NewQuote() {
     const { data: { user } } = await supabase.auth.getUser()
     const { data: quote, error } = await supabase.from('quotes').insert({
       client_name: clientName || null,
+      client_id: clientId || null,
       job_id: jobId || null,
       notes,
       scope_of_work: scopeOfWork || null,
@@ -77,6 +81,16 @@ export default function NewQuote() {
             <div>
               <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '客户名称' : 'Client Name'}</label>
               <input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder={lang === 'zh' ? '例如：张先生' : 'e.g. John Smith'} value={clientName} onChange={(e) => setClientName(e.target.value)} />
+              {clients.length > 0 && (
+                <select className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-gray-500 outline-none text-sm" value={clientId} onChange={(e) => {
+                  setClientId(e.target.value)
+                  const found = clients.find(c => c.id === e.target.value)
+                  if (found) setClientName(found.name)
+                }}>
+                  <option value="">{lang === 'zh' ? '或从客户列表选择...' : 'Or select from client list...'}</option>
+                  {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              )}
             </div>
             <div>
               <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '工单' : 'Job'}</label>
