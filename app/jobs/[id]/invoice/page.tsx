@@ -148,11 +148,11 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
                 <td className="border border-gray-300 px-6 py-2 text-sm text-right w-32">${subTotal.toFixed(2)}</td>
               </tr>
               <tr className="border border-gray-300">
-                <td className="border border-gray-300 px-6 py-2 text-sm font-medium">GST:</td>
-                <td className="border border-gray-300 px-6 py-2 text-sm text-right">10%</td>
+                <td className="border border-gray-300 px-6 py-2 text-sm font-medium">GST (10%):</td>
+                <td className="border border-gray-300 px-6 py-2 text-sm text-right">${gst.toFixed(2)}</td>
               </tr>
               <tr className="border border-gray-300 bg-gray-50">
-                <td className="border border-gray-300 px-6 py-2 text-sm font-bold">{lang === 'zh' ? '总计' : 'Total'}:</td>
+                <td className="border border-gray-300 px-6 py-2 text-sm font-bold">{lang === 'zh' ? '含GST总计' : 'Total Inc GST'}:</td>
                 <td className="border border-gray-300 px-6 py-2 text-sm font-bold text-right">${total.toFixed(2)}</td>
               </tr>
             </tbody>
