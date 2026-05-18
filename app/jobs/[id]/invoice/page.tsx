@@ -110,10 +110,10 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
         <table className="w-full border-collapse mb-6">
           <thead>
             <tr className="border border-gray-400 bg-gray-100">
-              <th className="border border-gray-400 px-3 py-2 text-left text-sm font-bold">{lang === 'zh' ? '工单描述' : 'JOB DESCRIPTION'}</th>
-              <th className="border border-gray-400 px-3 py-2 text-center text-sm font-bold w-16">{lang === 'zh' ? '数量' : 'QTY'}</th>
-              <th className="border border-gray-400 px-3 py-2 text-right text-sm font-bold w-28">{lang === 'zh' ? '单价' : 'UNIT PRICE'}</th>
-              <th className="border border-gray-400 px-3 py-2 text-right text-sm font-bold w-28">{lang === 'zh' ? '金额' : 'PRICE'}</th>
+              <th className="border border-gray-400 px-2 py-2 text-left text-sm font-bold">{lang === 'zh' ? '描述' : 'DESCRIPTION'}</th>
+              <th className="border border-gray-400 px-2 py-2 text-center text-sm font-bold w-10">{lang === 'zh' ? '数量' : 'QTY'}</th>
+              <th className="border border-gray-400 px-2 py-2 text-right text-sm font-bold w-20">{lang === 'zh' ? '单价' : 'UNIT PRICE'}</th>
+              <th className="border border-gray-400 px-2 py-2 text-right text-sm font-bold w-20">{lang === 'zh' ? '金额' : 'PRICE'}</th>
             </tr>
           </thead>
           <tbody>
