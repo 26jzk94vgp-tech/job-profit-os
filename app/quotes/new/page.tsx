@@ -12,7 +12,7 @@ export default function NewQuote() {
   const [clientId, setClientId] = useState('')
   const [jobId, setJobId] = useState('')
   const [notes, setNotes] = useState('')
-  const [items, setItems] = useState([{ description: '', quantity: '1', unit: '', unit_price: '', cost_price: '' }])
+  const [items, setItems] = useState([{ description: '', area: '', item_type: '', quantity: '1', unit: '', unit_price: '', cost_price: '' }])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function NewQuote() {
     supabase.from('jobs').select('*').then(({ data }) => setJobs(data || []))
   }, [])
 
-  function addItem() { setItems([...items, { description: '', quantity: '1', unit: '', unit_price: '', cost_price: '' }]) }
+  function addItem() { setItems([...items, { description: '', area: '', item_type: '', quantity: '1', unit: '', unit_price: '', cost_price: '' }]) }
   function updateItem(i: number, f: string, v: string) { const u = [...items]; u[i] = { ...u[i], [f]: v }; setItems(u) }
   function removeItem(i: number) { setItems(items.filter((_, idx) => idx !== i)) }
 
@@ -42,6 +42,8 @@ export default function NewQuote() {
     const quoteItems = items.filter(i => i.description && i.unit_price).map(i => ({
       quote_id: quote.id,
       description: i.description,
+      area: i.area || null,
+      item_type: i.item_type || null,
       quantity: Number(i.quantity) || 1,
       unit: i.unit,
       unit_price: Number(i.unit_price),
@@ -51,6 +53,9 @@ export default function NewQuote() {
     window.location.href = '/quotes'
     setLoading(false)
   }
+
+  const areaOptions = ['Bath', 'Ensuite', 'PWC', 'Kitchen', 'Laundry', 'Alfresco', 'General']
+  const typeOptions = ['Tile', 'Floor', 'Wall', 'Floor&Wall', 'Waterproofing', 'General Items']
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -99,10 +104,21 @@ export default function NewQuote() {
                     </div>
                     <input className="w-full border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" placeholder={lang === 'zh' ? '描述' : 'Description'} value={item.description} onChange={(e) => updateItem(index, 'description', e.target.value)} />
                     <div className="flex gap-2">
+                      <select className="flex-1 border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" value={item.area} onChange={(e) => updateItem(index, 'area', e.target.value)}>
+                        <option value="">{lang === 'zh' ? '区域...' : 'Area...'}</option>
+                        {areaOptions.map(a => <option key={a} value={a}>{a}</option>)}
+                        <option value="custom">{lang === 'zh' ? '自定义' : 'Custom'}</option>
+                      </select>
+                      <select className="flex-1 border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" value={item.item_type} onChange={(e) => updateItem(index, 'item_type', e.target.value)}>
+                        <option value="">{lang === 'zh' ? '类型...' : 'Type...'}</option>
+                        {typeOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    </div>
+                    <div className="flex gap-2">
                       <input className="w-16 border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" placeholder={lang === 'zh' ? '数量' : 'Qty'} value={item.quantity} onChange={(e) => updateItem(index, 'quantity', e.target.value)} />
                       <input className="w-16 border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" placeholder={lang === 'zh' ? '单位' : 'Unit'} value={item.unit} onChange={(e) => updateItem(index, 'unit', e.target.value)} />
-                      <input className="flex-1 border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" placeholder={lang === 'zh' ? '售价 $' : 'Sell price $'} value={item.unit_price} onChange={(e) => updateItem(index, 'unit_price', e.target.value)} />
-                      <input className="flex-1 border border-yellow-300 bg-yellow-50 rounded-lg p-2 text-gray-900 outline-none text-sm" placeholder={lang === 'zh' ? '成本价 $' : 'Cost price $'} value={item.cost_price} onChange={(e) => updateItem(index, 'cost_price', e.target.value)} />
+                      <input className="flex-1 border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" placeholder={lang === 'zh' ? '售价 $' : 'Sell $'} value={item.unit_price} onChange={(e) => updateItem(index, 'unit_price', e.target.value)} />
+                      <input className="flex-1 border border-yellow-300 bg-yellow-50 rounded-lg p-2 text-gray-900 outline-none text-sm" placeholder={lang === 'zh' ? '成本 $' : 'Cost $'} value={item.cost_price} onChange={(e) => updateItem(index, 'cost_price', e.target.value)} />
                     </div>
                     {sell > 0 && (
                       <div className="flex gap-3 text-xs">
