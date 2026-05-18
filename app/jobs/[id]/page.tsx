@@ -113,7 +113,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <p className="text-gray-500 text-sm">{lang === 'zh' ? '收入' : 'Revenue'}</p>
             <p className="text-2xl font-bold text-green-600 mt-1">${revenue.toLocaleString()}</p>
@@ -123,6 +123,27 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
             <p className={profit >= 0 ? 'text-2xl font-bold text-green-600 mt-1' : 'text-2xl font-bold text-red-600 mt-1'}>${profit.toLocaleString()} ({margin}%)</p>
           </div>
         </div>
+
+        {revenue > 0 && (
+          <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-gray-500 text-sm">{lang === 'zh' ? '收款进度' : 'Payment Progress'}</p>
+              <p className="text-sm font-medium text-gray-700">
+                ${(revenue - unpaidTotal).toLocaleString()} / ${revenue.toLocaleString()}
+              </p>
+            </div>
+            <div className="w-full bg-gray-100 rounded-full h-3">
+              <div
+                className="bg-green-500 h-3 rounded-full transition-all"
+                style={{ width: `${Math.min(100, ((revenue - unpaidTotal) / revenue) * 100).toFixed(0)}%` }}
+              />
+            </div>
+            <div className="flex justify-between mt-1">
+              <p className="text-xs text-green-600">{lang === 'zh' ? '已收' : 'Received'}: ${(revenue - unpaidTotal).toLocaleString()}</p>
+              {unpaidTotal > 0 && <p className="text-xs text-red-500">{lang === 'zh' ? '未收' : 'Unpaid'}: ${unpaidTotal.toLocaleString()}</p>}
+            </div>
+          </div>
+        )}
 
         <div className="bg-white rounded-xl border border-gray-200 mb-6">
           <div className="px-6 py-4 border-b border-gray-100">
