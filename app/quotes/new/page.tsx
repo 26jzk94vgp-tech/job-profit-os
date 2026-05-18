@@ -7,9 +7,9 @@ import { useLanguage } from '../../../lib/i18n/LanguageContext'
 export default function NewQuote() {
   const supabase = createClient()
   const { lang } = useLanguage()
-  const [clients, setClients] = useState<any[]>([])
+
   const [jobs, setJobs] = useState<any[]>([])
-  const [clientId, setClientId] = useState('')
+  const [clientName, setClientName] = useState('')
   const [jobId, setJobId] = useState('')
   const [notes, setNotes] = useState('')
   const [scopeOfWork, setScopeOfWork] = useState('')
@@ -17,7 +17,7 @@ export default function NewQuote() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    supabase.from('clients').select('*').then(({ data }) => setClients(data || []))
+
     supabase.from('jobs').select('*').then(({ data }) => setJobs(data || []))
   }, [])
 
@@ -37,7 +37,7 @@ export default function NewQuote() {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     const { data: quote, error } = await supabase.from('quotes').insert({
-      client_id: clientId || null,
+      client_name: clientName || null,
       job_id: jobId || null,
       notes,
       scope_of_work: scopeOfWork || null,
@@ -75,11 +75,8 @@ export default function NewQuote() {
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '客户' : 'Client'}</label>
-              <select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={clientId} onChange={(e) => setClientId(e.target.value)}>
-                <option value="">{lang === 'zh' ? '选择客户...' : 'Select client...'}</option>
-                {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+              <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '客户名称' : 'Client Name'}</label>
+              <input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder={lang === 'zh' ? '例如：张先生' : 'e.g. John Smith'} value={clientName} onChange={(e) => setClientName(e.target.value)} />
             </div>
             <div>
               <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '工单' : 'Job'}</label>
