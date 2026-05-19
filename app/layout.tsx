@@ -5,7 +5,7 @@ import { LanguageProvider } from "../lib/i18n/LanguageContext";
 import BottomNav from "./components/BottomNav";
 import MobileHeader from "./components/MobileHeader";
 import InstallBanner from "./components/InstallBanner";
-
+import ServiceWorkerRegistrar from './components/ServiceWorkerRegistrar';
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -35,6 +35,7 @@ export default function RootLayout({
         <LanguageProvider>
           <MobileHeader />
           <InstallBanner />
+          <ServiceWorkerRegistrar />
           {children}
           <BottomNav />
         </LanguageProvider>
