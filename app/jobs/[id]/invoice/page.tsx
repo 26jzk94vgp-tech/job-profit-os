@@ -123,10 +123,15 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
               const price = e.type === 'labor' ? qty * unitPrice : Number(e.amount)
               return (
                 <tr key={e.id} className="border border-gray-300">
-                  <td className="border border-gray-300 px-3 py-2 text-sm">{e.description || e.worker_name || e.type}</td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <span>{e.description || e.worker_name || e.type}</span>
+                      <a href={'/jobs/' + id + '/entry/' + e.id + '/edit'} className="print:hidden text-blue-400 hover:text-blue-600 text-xs shrink-0">✏️</a>
+                    </div>
+                  </td>
                   <td className="border border-gray-300 px-3 py-2 text-sm text-center">{qty}</td>
-                  <td className="border border-gray-300 px-3 py-2 text-sm text-right">${unitPrice.toFixed(2)}</td>
-                  <td className="border border-gray-300 px-3 py-2 text-sm text-right">${price.toFixed(2)}</td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm text-right">\${unitPrice.toFixed(2)}</td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm text-right">\${price.toFixed(2)}</td>
                 </tr>
               )
             }) : (
