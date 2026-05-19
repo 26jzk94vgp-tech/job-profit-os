@@ -56,3 +56,12 @@
 .dark a:hover {
   background-color: #3A3A3C !important;
 }
+
+/* Apple Dark Mode Red */
+.dark .text-red-600 { color: #FF453A !important; }
+.dark .text-red-500 { color: #FF453A !important; }
+.dark .text-red-400 { color: #FF6961 !important; }
+.dark .bg-red-600 { background-color: #FF453A !important; }
+.dark .bg-red-100 { background-color: #3D1A1A !important; }
+.dark .text-red-700 { color: #FF453A !important; }
+.dark .border-red-400 { border-color: #FF453A !important; }
