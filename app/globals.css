@@ -4,160 +4,34 @@
   color-scheme: dark;
 }
 
-.dark body {
-  background-color: #1C1C1E !important;
-  color: #F2F2F7 !important;
-}
+/* Backgrounds */
+.dark body { background-color: #1C1C1E !important; }
+.dark .bg-white { background-color: #2C2C2E !important; }
+.dark .bg-gray-50 { background-color: #1C1C1E !important; }
+.dark .bg-gray-100 { background-color: #3A3A3C !important; }
+.dark .bg-yellow-50 { background-color: #2C2C2E !important; }
+.dark .bg-green-50 { background-color: #1C2E1C !important; }
+.dark .bg-green-500, .dark .bg-green-600 { background-color: #1C3D1C !important; }
+.dark .bg-blue-50 { background-color: #1C3A5E !important; }
+.dark .bg-red-50 { background-color: #2E1C1C !important; }
 
-.dark .bg-white {
-  background-color: #2C2C2E !important;
-}
+/* Borders */
+.dark .border-gray-200, .dark .border-gray-100 { border-color: #3A3A3C !important; }
+.dark .border-yellow-200 { border-color: #3A3A3C !important; }
+.dark .border-blue-200 { border-color: #2C5282 !important; }
+.dark .divide-gray-100 > * + * { border-color: #3A3A3C !important; }
 
-.dark .bg-gray-50 {
-  background-color: #1C1C1E !important;
-}
+/* Text */
+.dark .text-gray-900 { color: #F2F2F7 !important; }
+.dark .text-gray-800 { color: #F2F2F7 !important; }
+.dark .text-gray-700 { color: #EBEBF5 !important; }
+.dark .text-gray-600 { color: #EBEBF5 !important; }
+.dark .text-gray-500 { color: #8E8E93 !important; }
+.dark .text-gray-400 { color: #8E8E93 !important; }
+.dark .text-yellow-800, .dark .text-yellow-600 { color: #FF9F0A !important; }
+.dark .text-green-700, .dark .text-green-800 { color: #30D158 !important; }
+.dark .text-blue-800 { color: #60A5FA !important; }
+.dark .text-blue-600 { color: #93C5FD !important; }
 
-.dark .bg-gray-100 {
-  background-color: #3A3A3C !important;
-}
-
-.dark .text-gray-900 {
-  color: #F2F2F7 !important;
-}
-
-.dark .text-gray-700 {
-  color: #EBEBF5 !important;
-}
-
-.dark .text-gray-600 {
-  color: #EBEBF5 !important;
-}
-
-.dark .text-gray-500 {
-  color: #8E8E93 !important;
-}
-
-.dark .text-gray-400 {
-  color: #636366 !important;
-}
-
-.dark .border-gray-200 {
-  border-color: #3A3A3C !important;
-}
-
-.dark .border-gray-100 {
-  border-color: #3A3A3C !important;
-}
-
-.dark .divide-gray-100 > * + * {
-  border-color: #3A3A3C !important;
-}
-
-.dark .hover\:bg-gray-50:hover {
-  background-color: #3A3A3C !important;
-}
-
-.dark .bg-yellow-50 {
-  background-color: #2C2C2E !important;
-  border: 1px solid #3A3A3C !important;
-}
-
-.dark .border-yellow-200 {
-  border-color: #3A3A3C !important;
-}
-
-.dark .text-yellow-800 {
-  color: #FF9F0A !important;
-}
-
-.dark .text-yellow-600 {
-  color: #FF9F0A !important;
-}
-
-.dark .bg-green-600 {
-  background-color: #1C3D1C !important;
-}
-
-.dark .bg-green-500 {
-  background-color: #1C3D1C !important;
-}
-
-.dark .text-green-700 {
-  color: #30D158 !important;
-}
-
-.dark .bg-green-50 {
-  background-color: #1C2E1C !important;
-}
-
-.dark .text-green-800 {
-  color: #30D158 !important;
-}
-
-.dark .bg-blue-50 {
-  background-color: #1C3A5E !important;
-}
-
-.dark .border-blue-200 {
-  border-color: #2C5282 !important;
-}
-
-.dark .text-blue-800 {
-  color: #60A5FA !important;
-}
-
-.dark .text-blue-600 {
-  color: #93C5FD !important;
-}
-
-.dark .bg-green-50 {
-  background-color: #1C2E1C !important;
-}
-
-.dark .bg-red-50 {
-  background-color: #2E1C1C !important;
-}
-
-.dark .text-gray-800 {
-  color: #EBEBF5 !important;
-}
-
-.dark .divide-gray-100 > * {
-  border-color: #3A3A3C !important;
-}
-
-.dark a {
-  color: #F2F2F7 !important;
-}
-
-.dark p {
-  color: #F2F2F7;
-}
-
-.dark span {
-  color: inherit;
-}
-
-.dark .text-sm {
-  color: #F2F2F7;
-}
-
-.dark .text-xs {
-  color: #EBEBF5;
-}
-
-.dark .text-gray-700 {
-  color: #EBEBF5 !important;
-}
-
-.dark .text-gray-600 {
-  color: #EBEBF5 !important;
-}
-
-.dark .text-gray-500 {
-  color: #8E8E93 !important;
-}
-
-.dark .text-gray-400 {
-  color: #8E8E93 !important;
-}
+/* Hover */
+.dark .hover\:bg-gray-50:hover, .dark .hover\:bg-gray-100:hover { background-color: #3A3A3C !important; }
