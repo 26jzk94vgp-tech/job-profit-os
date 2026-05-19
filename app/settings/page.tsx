@@ -135,6 +135,25 @@ export default function Settings() {
             </div>
           </div>
 
+          <div className="pt-2 border-t border-gray-100">
+            <p className="text-gray-500 text-xs font-medium mb-3">{lang === 'zh' ? '通知设置' : 'Notifications'}</p>
+            <button onClick={async () => {
+              if (!('Notification' in window)) { alert(lang === 'zh' ? '您的浏览器不支持通知' : 'Browser does not support notifications'); return }
+              const permission = await Notification.requestPermission()
+              if (permission === 'granted') {
+                const reg = await navigator.serviceWorker.ready
+                const sub = await reg.pushManager.subscribe({
+                  userVisibleOnly: true,
+                  applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+                })
+                await fetch('/api/push-subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscription: sub }) })
+                alert(lang === 'zh' ? '推送通知已开启！' : 'Push notifications enabled!')
+              }
+            }} className="w-full border border-blue-200 text-blue-600 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-50">
+              🔔 {lang === 'zh' ? '开启发票到期提醒' : 'Enable Invoice Due Reminders'}
+            </button>
+          </div>
+
           {saved && <p className="text-green-600 text-sm font-medium">✅ {lang === 'zh' ? '已保存！' : 'Saved!'}</p>}
 
           <button onClick={handleSave} disabled={loading || !companyName} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium disabled:opacity-50">
