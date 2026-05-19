@@ -99,17 +99,17 @@ export default function EditQuote({ params }: { params: Promise<{ id: string }> 
   const gst = subTotal * 0.1
   const total = subTotal + gst
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#1C1C1E]">
+    <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           <a href={"/quotes/" + id} className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</a>
-          <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '编辑报价单' : 'Edit Quote'}</h1>
+          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '编辑报价单' : 'Edit Quote'}</h1>
         </div>
       </nav>
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
 
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <h2 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '基本信息' : 'Basic Info'}</h2>
+          <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '基本信息' : 'Basic Info'}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div><label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '报价单号' : 'Quote Number'}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={quoteNumber} onChange={(e) => setQuoteNumber(e.target.value)} placeholder="Q-001" /></div>
             <div>
@@ -127,13 +127,13 @@ export default function EditQuote({ params }: { params: Promise<{ id: string }> 
 
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '条目' : 'Items'}</h2>
+            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '条目' : 'Items'}</h2>
             <button onClick={addItem} className="text-blue-600 text-sm font-medium">+ {lang === 'zh' ? '添加条目' : 'Add Item'}</button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="bg-gray-50 dark:bg-[#1C1C1E]">
+                <tr className="bg-gray-50">
                   <th className="border border-gray-200 px-2 py-2 text-left">{lang === 'zh' ? '描述' : 'Description'}</th>
                   <th className="border border-gray-200 px-2 py-2 text-left w-24">{lang === 'zh' ? '区域' : 'Area'}</th>
                   <th className="border border-gray-200 px-2 py-2 text-left w-16">Code</th>
@@ -161,7 +161,7 @@ export default function EditQuote({ params }: { params: Promise<{ id: string }> 
                     <td className="border border-gray-200 px-1"><input className="w-full p-1 outline-none text-sm" value={item.item_group || ''} onChange={(e) => updateItem(idx, 'item_group', e.target.value)} /></td>
                     <td className="border border-gray-200 px-1"><input type="number" className="w-full p-1 outline-none text-sm text-right" value={item.unit_price} onChange={(e) => updateItem(idx, 'unit_price', e.target.value)} /></td>
                     <td className="border border-gray-200 px-1 bg-yellow-50"><input type="number" className="w-full p-1 outline-none text-sm text-right bg-yellow-50" value={item.cost_price || ''} onChange={(e) => updateItem(idx, 'cost_price', e.target.value)} /></td>
-                    <td className="border border-gray-200 px-2 text-right text-gray-600 dark:text-[#8E8E93] dark:text-[#636366]">${(Number(item.quantity) * Number(item.unit_price) || 0).toFixed(2)}</td>
+                    <td className="border border-gray-200 px-2 text-right text-gray-600">${(Number(item.quantity) * Number(item.unit_price) || 0).toFixed(2)}</td>
                     <td className="border border-gray-200 px-1 text-center"><button onClick={() => removeItem(item)} className="text-red-400 hover:text-red-600 text-xs">✕</button></td>
                   </tr>
                 ))}
@@ -170,17 +170,17 @@ export default function EditQuote({ params }: { params: Promise<{ id: string }> 
           </div>
           <div className="flex justify-end text-sm space-y-1">
             <div className="text-right space-y-1">
-              <p className="text-gray-600 dark:text-[#8E8E93] dark:text-[#636366]">{lang === 'zh' ? '小计' : 'Sub-Total'}: <span className="font-medium">${subTotal.toFixed(2)}</span></p>
-              <p className="text-gray-600 dark:text-[#8E8E93] dark:text-[#636366]">GST: <span className="font-medium">${gst.toFixed(2)}</span></p>
+              <p className="text-gray-600">{lang === 'zh' ? '小计' : 'Sub-Total'}: <span className="font-medium">${subTotal.toFixed(2)}</span></p>
+              <p className="text-gray-600">GST: <span className="font-medium">${gst.toFixed(2)}</span></p>
               <p className="font-bold text-blue-600">{lang === 'zh' ? '含GST总计' : 'Total Inc GST'}: ${total.toFixed(2)}</p>
             </div>
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <h2 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '工作范围' : 'Scope of Work'}</h2>
+          <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '工作范围' : 'Scope of Work'}</h2>
           <textarea className="w-full border border-gray-200 rounded-lg p-3 text-gray-900 outline-none" rows={4} value={scopeOfWork} onChange={(e) => setScopeOfWork(e.target.value)} placeholder={lang === 'zh' ? '描述工作范围...' : 'Describe the scope of work...'} />
-          <h2 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '备注' : 'Notes'}</h2>
+          <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '备注' : 'Notes'}</h2>
           <textarea className="w-full border border-gray-200 rounded-lg p-3 text-gray-900 outline-none" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={lang === 'zh' ? '付款条款等...' : 'Payment terms etc...'} />
         </div>
 

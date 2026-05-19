@@ -27,11 +27,11 @@ export default function NewJob() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#1C1C1E]">
+    <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           <button onClick={() => window.location.href = '/'} className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</button>
-          <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '新建工单' : 'New Job'}</h1>
+          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '新建工单' : 'New Job'}</h1>
         </div>
       </nav>
       <main className="max-w-2xl mx-auto px-6 py-8">

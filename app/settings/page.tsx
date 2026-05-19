@@ -86,21 +86,21 @@ export default function Settings() {
     window.location.href = '/login'
   }
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#1C1C1E]">
+    <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>
-          <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '设置' : 'Settings'}</h1>
+          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '设置' : 'Settings'}</h1>
         </div>
       </nav>
       <main className="max-w-2xl mx-auto px-6 py-8 space-y-6">
         <div className="md:hidden flex items-center justify-between">
           <Link href="/" className="text-gray-500 text-sm">← {lang === 'zh' ? '返回首页' : 'Back to Home'}</Link>
-          <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '设置' : 'Settings'}</h1>
+          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '设置' : 'Settings'}</h1>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <h2 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '语言设置 / Language' : 'Language'}</h2>
+          <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '语言设置 / Language' : 'Language'}</h2>
           <div className="flex gap-3">
             <button
               onClick={() => setLang('en')}
@@ -118,7 +118,7 @@ export default function Settings() {
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <h2 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '外观' : 'Appearance'}</h2>
+          <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '外观' : 'Appearance'}</h2>
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-gray-900 text-sm">{lang === 'zh' ? '暗色模式' : 'Dark Mode'}</p>
@@ -131,7 +131,7 @@ export default function Settings() {
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <h2 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '账户信息 / Account' : 'Account'}</h2>
+          <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '账户信息 / Account' : 'Account'}</h2>
           <p className="text-gray-500 text-sm">{userEmail}</p>
           <button onClick={handleSignOut} className="w-full py-2 rounded-lg text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100">
             {lang === 'zh' ? '退出登录 / Sign Out' : 'Sign Out'}
@@ -139,7 +139,7 @@ export default function Settings() {
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <h2 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '公司资料 / Company Profile' : 'Company Profile'}</h2>
+          <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '公司资料 / Company Profile' : 'Company Profile'}</h2>
           <p className="text-gray-400 text-xs">{lang === 'zh' ? '这些信息将自动填入发票' : 'This info will auto-fill your invoices'}</p>
 
           <div><label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '公司名称 *' : 'Company Name *'}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. Smith Plumbing Pty Ltd" value={companyName} onChange={(e) => setCompanyName(e.target.value)} /></div>
@@ -152,7 +152,7 @@ export default function Settings() {
 
           <div><label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '地址' : 'Address'}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="123 Main St, Brisbane QLD 4000" value={companyAddress} onChange={(e) => setCompanyAddress(e.target.value)} /></div>
 
-          <div className="pt-2 border-t border-gray-100 dark:border-[#3A3A3C]">
+          <div className="pt-2 border-t border-gray-100">
             <p className="text-gray-500 text-xs font-medium mb-3">{lang === 'zh' ? '银行账户 / Bank Details' : 'Bank Details'}</p>
             <div className="space-y-3">
               <div><label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '银行名称' : 'Bank Name'}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. Commonwealth Bank" value={bankName} onChange={(e) => setBankName(e.target.value)} /></div>
@@ -164,7 +164,7 @@ export default function Settings() {
             </div>
           </div>
 
-          <div className="pt-2 border-t border-gray-100 dark:border-[#3A3A3C]">
+          <div className="pt-2 border-t border-gray-100">
             <p className="text-gray-500 text-xs font-medium mb-3">{lang === 'zh' ? '通知设置' : 'Notifications'}</p>
             <button onClick={async () => {
               if (!('Notification' in window)) { alert(lang === 'zh' ? '您的浏览器不支持通知' : 'Browser does not support notifications'); return }

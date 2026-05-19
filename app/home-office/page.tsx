@@ -62,16 +62,16 @@ export default function HomeOffice() {
     byMonth[key].logs.push(l)
   })
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#1C1C1E]">
+    <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           <Link href="/tax" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '税务中心' : 'Tax Hub'}</Link>
-          <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '家庭办公室' : 'Home Office'}</h1>
+          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '家庭办公室' : 'Home Office'}</h1>
         </div>
       </nav>
-      <div className="md:hidden flex items-center gap-3 px-6 py-4 bg-white border-b border-gray-200 dark:border-[#3A3A3C]">
+      <div className="md:hidden flex items-center gap-3 px-6 py-4 bg-white border-b border-gray-200">
         <Link href="/tax" className="text-gray-500 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
-        <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '家庭办公室' : 'Home Office'}</h1>
+        <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '家庭办公室' : 'Home Office'}</h1>
       </div>
 
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
@@ -118,9 +118,9 @@ export default function HomeOffice() {
         </div>
 
         {Object.entries(byMonth).map(([month, data]) => (
-          <div key={month} className="bg-white rounded-xl border border-gray-200 dark:border-[#3A3A3C]">
+          <div key={month} className="bg-white rounded-xl border border-gray-200">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{month}</h3>
+              <h3 className="font-semibold text-gray-900">{month}</h3>
               <div className="text-right">
                 <p className="text-sm font-medium text-blue-600">{data.hours.toFixed(1)}h</p>
                 <p className="text-xs text-green-600">${(data.hours * RATE_PER_HOUR).toFixed(2)}</p>
@@ -144,7 +144,7 @@ export default function HomeOffice() {
         ))}
 
         {logs.length === 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center text-gray-400 dark:text-[#636366]">
+          <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center text-gray-400">
             还没有记录 / No entries yet. Start tracking your home office hours!
           </div>
         )}

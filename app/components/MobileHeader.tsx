@@ -21,7 +21,7 @@ export default function MobileHeader() {
       <span className="font-semibold text-gray-900 text-sm">Job Profit OS</span>
       <div className="flex items-center gap-2">
       
-        <a href="/settings" className="text-xs font-medium px-3 py-2 rounded-lg bg-gray-100 text-gray-700 dark:text-[#EBEBF5]">⚙️</a>
+        <a href="/settings" className="text-xs font-medium px-3 py-2 rounded-lg bg-gray-100 text-gray-700">⚙️</a>
         <button
           onClick={handleSignOut}
           className="text-xs font-medium px-3 py-2 rounded-lg bg-red-50 text-red-600 active:bg-red-100"

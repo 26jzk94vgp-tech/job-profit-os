@@ -176,19 +176,19 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
       ]
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#1C1C1E]">
+    <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           <button onClick={() => window.location.href = "/jobs/" + id} className="text-gray-500 hover:text-gray-700 text-sm">← {t.back}</button>
-          <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{t.addEntry}</h1>
+          <h1 className="font-semibold text-gray-900">{t.addEntry}</h1>
         </div>
       </nav>
       <main className="max-w-2xl mx-auto px-6 py-8">
         <div className="md:hidden flex items-center gap-3 mb-6">
           <button onClick={() => window.location.href = "/jobs/" + id} className="text-gray-500 text-sm">← {t.back}</button>
-          <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{t.addEntry}</h1>
+          <h1 className="font-semibold text-gray-900">{t.addEntry}</h1>
         </div>
-        <div className="flex items-center justify-center w-full border-2 border-dashed border-gray-200 rounded-xl p-6 mb-6 bg-white dark:bg-[#2C2C2E]">
+        <div className="flex items-center justify-center w-full border-2 border-dashed border-gray-200 rounded-xl p-6 mb-6 bg-white">
           <div className="text-center">
             <p className="text-gray-300 text-2xl mb-1">📸</p>
             <p className="text-gray-300 text-sm">{lang === 'zh' ? '收据扫描功能升级中，敬请期待' : 'Receipt scanning coming soon'}</p>

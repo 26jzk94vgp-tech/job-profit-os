@@ -39,17 +39,17 @@ export default function EditJob({ params }: { params: Promise<{ id: string }> })
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#1C1C1E]">
+    <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           <a href={"/jobs/" + id} className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</a>
-          <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '编辑工单' : 'Edit Job'}</h1>
+          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '编辑工单' : 'Edit Job'}</h1>
         </div>
       </nav>
       <main className="max-w-2xl mx-auto px-6 py-8">
         <div className="md:hidden mb-6 flex items-center gap-3">
           <a href={"/jobs/" + id} className="text-gray-500 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</a>
-          <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '编辑工单' : 'Edit Job'}</h1>
+          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '编辑工单' : 'Edit Job'}</h1>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
           <div>
