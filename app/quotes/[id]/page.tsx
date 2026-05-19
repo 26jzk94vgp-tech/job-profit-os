@@ -80,21 +80,21 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
     ? { draft: '草稿', sent: '已发送', accepted: '已接受', declined: '已拒绝' }
     : { draft: 'Draft', sent: 'Sent', accepted: 'Accepted', declined: 'Declined' }
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-700">
+    <div className="min-h-screen bg-gray-100 dark:bg-[#3A3A3C]">
       <div className="max-w-4xl mx-auto p-6 print:hidden space-y-3">
         <div className="flex items-center gap-3">
           <a href="/quotes" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</a>
-          <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '报价单详情' : 'Quote Detail'}</h1>
+          <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '报价单详情' : 'Quote Detail'}</h1>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4 flex gap-2 flex-wrap items-center">
-          <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">{lang === 'zh' ? '状态' : 'Status'}:</span>
+          <span className="text-sm text-gray-500 dark:text-[#8E8E93] dark:text-[#636366]">{lang === 'zh' ? '状态' : 'Status'}:</span>
           {['draft','sent','accepted','declined'].map(s => (
             <button key={s} onClick={() => updateStatus(s)} className={`px-3 py-1 rounded-full text-xs font-medium ${quote.status === s ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
               {statusLabels[s]}
             </button>
           ))}
           <a href={"/quotes/" + id + "/edit"} className="px-4 py-1 rounded-lg text-xs font-medium bg-gray-700 text-white">{lang === 'zh' ? '✏️ 编辑' : '✏️ Edit'}</a>
-          <button onClick={() => window.print()} className="ml-auto px-4 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 dark:text-gray-300">
+          <button onClick={() => window.print()} className="ml-auto px-4 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 dark:text-[#EBEBF5]">
             🖨️ {lang === 'zh' ? '打印/PDF' : 'Print/PDF'}
           </button>
           {quote.job_id && (
@@ -118,19 +118,19 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
         <table className="w-full border-collapse mb-0 text-sm">
           <tbody>
             <tr className="border border-gray-300">
-              <td className="border border-gray-300 px-3 py-1 w-28 text-gray-500 dark:text-gray-400 dark:text-gray-500">{lang === 'zh' ? '报价单号' : 'Quote No.'}</td>
+              <td className="border border-gray-300 px-3 py-1 w-28 text-gray-500 dark:text-[#8E8E93] dark:text-[#636366]">{lang === 'zh' ? '报价单号' : 'Quote No.'}</td>
               <td className="border border-gray-300 px-3 py-1 font-medium">{quote.quote_number || 'Q-001'}</td>
-              <td className="border border-gray-300 px-3 py-1 w-28 text-gray-500 dark:text-gray-400 dark:text-gray-500">{lang === 'zh' ? '日期' : 'Date'}</td>
+              <td className="border border-gray-300 px-3 py-1 w-28 text-gray-500 dark:text-[#8E8E93] dark:text-[#636366]">{lang === 'zh' ? '日期' : 'Date'}</td>
               <td className="border border-gray-300 px-3 py-1">{quote.quote_date || new Date().toLocaleDateString('en-AU')}</td>
             </tr>
             <tr className="border border-gray-300">
-              <td className="border border-gray-300 px-3 py-1 text-gray-500 dark:text-gray-400 dark:text-gray-500">{lang === 'zh' ? '类型' : 'Type'}</td>
+              <td className="border border-gray-300 px-3 py-1 text-gray-500 dark:text-[#8E8E93] dark:text-[#636366]">{lang === 'zh' ? '类型' : 'Type'}</td>
               <td className="border border-gray-300 px-3 py-1 font-medium">{quote.quote_type || 'Residential'}</td>
-              <td className="border border-gray-300 px-3 py-1 text-gray-500 dark:text-gray-400 dark:text-gray-500">{lang === 'zh' ? '建筑商' : 'Builder'}</td>
+              <td className="border border-gray-300 px-3 py-1 text-gray-500 dark:text-[#8E8E93] dark:text-[#636366]">{lang === 'zh' ? '建筑商' : 'Builder'}</td>
               <td className="border border-gray-300 px-3 py-1">{quote.builder_name || ''}</td>
             </tr>
             <tr className="border border-gray-300">
-              <td className="border border-gray-300 px-3 py-1 text-gray-500 dark:text-gray-400 dark:text-gray-500">{lang === 'zh' ? '地址' : 'Address'}</td>
+              <td className="border border-gray-300 px-3 py-1 text-gray-500 dark:text-[#8E8E93] dark:text-[#636366]">{lang === 'zh' ? '地址' : 'Address'}</td>
               <td colSpan={3} className="border border-gray-300 px-3 py-1">{quote.site_address || quote.jobs?.name || ''}</td>
             </tr>
           </tbody>
@@ -138,7 +138,7 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
 
         <table className="w-full border-collapse text-sm mt-4">
           <thead>
-            <tr className="bg-gray-100 dark:bg-gray-700">
+            <tr className="bg-gray-100 dark:bg-[#3A3A3C]">
               <th className="border border-gray-400 px-2 py-2 text-left">{lang === 'zh' ? '描述' : 'Description'}</th>
               <th className="border border-gray-400 px-2 py-2 text-left">{lang === 'zh' ? '区域' : 'Area'}</th>
               <th className="border border-gray-400 px-2 py-2 text-left w-16">Code</th>
@@ -222,7 +222,7 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
         )}
 
         {quote.notes && (
-          <div className="mt-4 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
+          <div className="mt-4 text-sm text-gray-600 dark:text-[#8E8E93] dark:text-[#636366]">
             <p className="font-medium">Note: {quote.notes}</p>
           </div>
         )}

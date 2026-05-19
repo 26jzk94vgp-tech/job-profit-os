@@ -55,18 +55,18 @@ export default function AnnualReport() {
   })
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 px-6 py-4 hidden md:block">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#1C1C1E]">
+      <nav className="bg-white dark:bg-[#2C2C2E] border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           <Link href="/finance" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '财务中心' : 'Finance'}</Link>
-          <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '年度汇总报表' : 'Annual Report'}</h1>
+          <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '年度汇总报表' : 'Annual Report'}</h1>
         </div>
       </nav>
 
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
         <div className="md:hidden flex items-center gap-3 mb-2">
           <Link href="/finance" className="text-gray-500 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
-          <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '年度汇总报表' : 'Annual Report'}</h1>
+          <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '年度汇总报表' : 'Annual Report'}</h1>
         </div>
 
         <div className="flex gap-2 flex-wrap">
@@ -77,24 +77,24 @@ export default function AnnualReport() {
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 p-4">
+          <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 p-4">
             <p className="text-gray-500 text-xs">{lang === 'zh' ? '年度收入' : 'Annual Revenue'}</p>
             <p className="text-xl font-bold text-green-600 mt-1">${revenue.toLocaleString()}</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 p-4">
+          <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 p-4">
             <p className="text-gray-500 text-xs">{lang === 'zh' ? '年度支出' : 'Annual Expenses'}</p>
             <p className="text-xl font-bold text-red-500 mt-1">${totalExpenses.toLocaleString()}</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 p-4">
+          <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 p-4">
             <p className="text-gray-500 text-xs">{lang === 'zh' ? '年度利润' : 'Annual Profit'}</p>
             <p className={`text-xl font-bold mt-1 ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>${profit.toLocaleString()}</p>
             <p className="text-gray-400 text-xs">{lang === 'zh' ? '利润率' : 'Margin'}: {margin}%</p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
-            <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '支出明细' : 'Expense Breakdown'}</h2>
+        <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-[#3A3A3C]">
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C]">
+            <h2 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '支出明细' : 'Expense Breakdown'}</h2>
           </div>
           <div className="divide-y divide-gray-100">
             <div className="px-6 py-3 flex justify-between">
@@ -116,9 +116,9 @@ export default function AnnualReport() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
-            <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? 'GST 年度汇总' : 'Annual GST Summary'}</h2>
+        <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-[#3A3A3C]">
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C]">
+            <h2 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? 'GST 年度汇总' : 'Annual GST Summary'}</h2>
           </div>
           <div className="divide-y divide-gray-100">
             <div className="px-6 py-3 flex justify-between">
@@ -129,18 +129,18 @@ export default function AnnualReport() {
               <span className="text-gray-600 text-sm">{lang === 'zh' ? '已付GST (可抵扣)' : 'GST Paid (Credits)'}</span>
               <span className="text-red-500 text-sm font-medium">-${gstPaid.toFixed(2)}</span>
             </div>
-            <div className="px-6 py-3 flex justify-between bg-gray-50 dark:bg-gray-900">
+            <div className="px-6 py-3 flex justify-between bg-gray-50 dark:bg-[#1C1C1E]">
               <span className="text-gray-900 text-sm font-bold">{lang === 'zh' ? '净应缴ATO' : 'Net GST to ATO'}</span>
               <span className={`text-sm font-bold ${netGst >= 0 ? 'text-red-600' : 'text-green-600'}`}>${Math.abs(netGst).toFixed(2)} {netGst >= 0 ? (lang === 'zh' ? '(应缴)' : '(payable)') : (lang === 'zh' ? '(退税)' : '(refund)')}</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+        <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-[#3A3A3C]">
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C]">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '工单盈亏排名' : 'Job Profitability Ranking'}</h2>
-              <select className="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none text-gray-600 dark:text-gray-400 dark:text-gray-500" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <h2 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '工单盈亏排名' : 'Job Profitability Ranking'}</h2>
+              <select className="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none text-gray-600 dark:text-[#8E8E93] dark:text-[#636366]" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
                 <option value="profit">{lang === 'zh' ? '按利润' : 'By Profit'}</option>
                 <option value="revenue">{lang === 'zh' ? '按收入' : 'By Revenue'}</option>
                 <option value="margin">{lang === 'zh' ? '按利润率' : 'By Margin'}</option>
@@ -150,7 +150,7 @@ export default function AnnualReport() {
           </div>
           <div className="divide-y divide-gray-100">
             {jobStats.map((job, i) => (
-              <Link href={'/jobs/' + job.id} key={job.id} className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 dark:bg-gray-900">
+              <Link href={'/jobs/' + job.id} key={job.id} className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 dark:bg-[#1C1C1E]">
                 <div className="flex items-center gap-3">
                   <span className={`text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center ${i === 0 ? 'bg-yellow-100 text-yellow-700' : i === 1 ? 'bg-gray-100 text-gray-600' : i === 2 ? 'bg-orange-100 text-orange-600' : 'bg-gray-50 text-gray-400'}`}>{i + 1}</span>
                   <div>

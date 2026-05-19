@@ -68,11 +68,11 @@ export default function NewQuote() {
   const typeOptions = ['Tile', 'Floor', 'Wall', 'Floor&Wall', 'Waterproofing', 'General Items', 'Labour']
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#1C1C1E]">
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
           <button onClick={() => window.history.back()} className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</button>
-          <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '新建报价单' : 'New Quote'}</h1>
+          <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '新建报价单' : 'New Quote'}</h1>
         </div>
       </nav>
       <main className="max-w-3xl mx-auto px-6 py-8">
@@ -121,7 +121,7 @@ export default function NewQuote() {
               if (groupItems.length === 0) return null
               return (
                 <div key={group} className="mb-4">
-                  {group && <div className="bg-gray-100 px-3 py-1 rounded-lg mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">📁 {group}</div>}
+                  {group && <div className="bg-gray-100 px-3 py-1 rounded-lg mb-2 text-sm font-semibold text-gray-700 dark:text-[#EBEBF5]">📁 {group}</div>}
                   <div className="space-y-2">
                     {groupItems.map((item) => {
                       const index = items.indexOf(item)
@@ -170,12 +170,12 @@ export default function NewQuote() {
             </div>
             {totalCost > 0 && (
               <>
-                <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
+                <div className="flex justify-between text-sm text-gray-500 dark:text-[#8E8E93] dark:text-[#636366]">
                   <span>{lang === 'zh' ? '总成本（私密）' : 'Total Cost (private)'}</span>
                   <span>${totalCost.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500 dark:text-gray-400 dark:text-gray-500">{lang === 'zh' ? '预计利润' : 'Est. Profit'}</span>
+                  <span className="text-gray-500 dark:text-[#8E8E93] dark:text-[#636366]">{lang === 'zh' ? '预计利润' : 'Est. Profit'}</span>
                   <span className={totalProfit >= 0 ? 'text-green-600 font-medium' : 'text-red-500 font-medium'}>${totalProfit.toLocaleString()} ({margin}%)</span>
                 </div>
               </>

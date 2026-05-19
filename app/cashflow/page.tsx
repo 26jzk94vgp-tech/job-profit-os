@@ -40,18 +40,18 @@ export default function Cashflow() {
     }
   })
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#1C1C1E]">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>
-          <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '现金流' : 'Cash Flow'}</h1>
+          <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '现金流' : 'Cash Flow'}</h1>
         </div>
       </nav>
 
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
         <div className="md:hidden flex items-center gap-3 mb-2">
           <Link href="/" className="text-gray-500 text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>
-          <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '现金流' : 'Cash Flow'}</h1>
+          <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '现金流' : 'Cash Flow'}</h1>
         </div>
 
         {totalUnpaid > 0 && (
@@ -77,9 +77,9 @@ export default function Cashflow() {
           </div>
         )}
 
-        <div className="bg-white rounded-xl border border-gray-200 dark:border-gray-700">
-          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
-            <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '3个月预测' : '3-Month Forecast'}</h2>
+        <div className="bg-white rounded-xl border border-gray-200 dark:border-[#3A3A3C]">
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C]">
+            <h2 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '3个月预测' : '3-Month Forecast'}</h2>
             <p className="text-gray-400 text-xs mt-1">{lang === 'zh' ? '基于已录入条目' : 'Based on recorded entries'}</p>
           </div>
           <div className="divide-y divide-gray-100">
@@ -88,7 +88,7 @@ export default function Cashflow() {
               return (
                 <div key={month} className="px-6 py-5">
                   <div className="flex justify-between items-center mb-3">
-                    <h3 className="font-medium text-gray-900 dark:text-white">{month}</h3>
+                    <h3 className="font-medium text-gray-900 dark:text-[#F2F2F7]">{month}</h3>
                     <div className="flex items-center gap-3">
                       {(() => {
                         const monthKeys = Object.keys(months)
@@ -114,12 +114,12 @@ export default function Cashflow() {
                   <div className="flex gap-6 text-sm">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <span className="text-gray-500 dark:text-gray-400 dark:text-gray-500">{lang === 'zh' ? '收入' : 'Income'}</span>
+                      <span className="text-gray-500 dark:text-[#8E8E93] dark:text-[#636366]">{lang === 'zh' ? '收入' : 'Income'}</span>
                       <span className="font-medium text-green-600">${data.income.toLocaleString()}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                      <span className="text-gray-500 dark:text-gray-400 dark:text-gray-500">{lang === 'zh' ? '支出' : 'Expenses'}</span>
+                      <span className="text-gray-500 dark:text-[#8E8E93] dark:text-[#636366]">{lang === 'zh' ? '支出' : 'Expenses'}</span>
                       <span className="font-medium text-red-500">${data.expenses.toLocaleString()}</span>
                     </div>
                   </div>

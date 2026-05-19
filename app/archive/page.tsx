@@ -30,17 +30,17 @@ export default function Archive() {
   const archived = jobs
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#1C1C1E]">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>
-          <h1 className="font-semibold text-gray-900 dark:text-white">📦 {lang === 'zh' ? '归档中心' : 'Archive'}</h1>
+          <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">📦 {lang === 'zh' ? '归档中心' : 'Archive'}</h1>
         </div>
       </nav>
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
         <div className="md:hidden flex items-center gap-3 mb-2">
           <Link href="/" className="text-gray-500 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
-          <h1 className="font-semibold text-gray-900 dark:text-white">📦 {lang === 'zh' ? '归档中心' : 'Archive'}</h1>
+          <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">📦 {lang === 'zh' ? '归档中心' : 'Archive'}</h1>
         </div>
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
           <p className="text-blue-800 text-sm font-medium">⚖️ {lang === 'zh' ? 'ATO 税务合规提示' : 'ATO Compliance Notice'}</p>
@@ -50,13 +50,13 @@ export default function Archive() {
         {!loading && jobs.length === 0 && (
           <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
             <p className="text-4xl mb-3">📦</p>
-            <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500">{lang === 'zh' ? '暂无归档工单' : 'No archived jobs yet'}</p>
+            <p className="text-gray-500 dark:text-[#8E8E93] dark:text-[#636366]">{lang === 'zh' ? '暂无归档工单' : 'No archived jobs yet'}</p>
             <p className="text-gray-400 text-xs mt-1">{lang === 'zh' ? '将工单状态设为「归档」或「暂停」后会显示在这里' : 'Jobs marked as Archived or Paused will appear here'}</p>
           </div>
         )}
         {archived.length > 0 && (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-6 py-3 bg-yellow-50 border-b border-gray-100 dark:border-gray-700">
+            <div className="px-6 py-3 bg-yellow-50 border-b border-gray-100 dark:border-[#3A3A3C]">
               <p className="text-xs font-semibold text-yellow-700 uppercase tracking-wide">📦 {lang === 'zh' ? `已归档 (${archived.length})` : `Archived (${archived.length})`}</p>
             </div>
             <div className="divide-y divide-gray-100">
