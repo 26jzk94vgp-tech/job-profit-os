@@ -38,14 +38,16 @@ export default async function TaxChecklist() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">← 首页 / Home</Link>
-            <h1 className="font-semibold text-gray-900">年度税务清单 / Year-End Tax Checklist</h1>
-          </div>
+      <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
+        <div className="max-w-4xl mx-auto flex items-center gap-3">
+          <Link href="/tax" className="text-gray-500 hover:text-gray-700 text-sm">← Tax Hub / 税务中心</Link>
+          <h1 className="font-semibold text-gray-900">Year-End Tax Checklist / 年度税务清单</h1>
         </div>
       </nav>
+      <div className="md:hidden flex items-center gap-3 px-6 py-4 bg-white border-b border-gray-200">
+        <Link href="/tax" className="text-gray-500 text-sm">← 返回 / Back</Link>
+        <h1 className="font-semibold text-gray-900">Tax Checklist / 年度税务清单</h1>
+      </div>
 
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
 
