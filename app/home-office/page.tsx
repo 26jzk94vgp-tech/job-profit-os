@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '../../utils/supabase/client'
 import Link from 'next/link'
+import { useLanguage } from '../../lib/i18n/LanguageContext'
 
 export default function HomeOffice() {
   const supabase = createClient()
+  const { lang } = useLanguage()
   const [logs, setLogs] = useState<any[]>([])
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [hours, setHours] = useState('')
@@ -61,14 +63,16 @@ export default function HomeOffice() {
   })
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">← 首页 / Home</Link>
-            <h1 className="font-semibold text-gray-900">家庭办公室 / Home Office</h1>
-          </div>
+      <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
+        <div className="max-w-4xl mx-auto flex items-center gap-3">
+          <Link href="/tax" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '税务中心' : 'Tax Hub'}</Link>
+          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '家庭办公室' : 'Home Office'}</h1>
         </div>
       </nav>
+      <div className="md:hidden flex items-center gap-3 px-6 py-4 bg-white border-b border-gray-200">
+        <Link href="/tax" className="text-gray-500 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
+        <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '家庭办公室' : 'Home Office'}</h1>
+      </div>
 
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
 
