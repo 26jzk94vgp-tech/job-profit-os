@@ -10,6 +10,22 @@ export default function Settings() {
   const supabase = createClient()
   const router = useRouter()
   const { lang, setLang } = useLanguage()
+  const [darkMode, setDarkMode] = useState(false)
+
+  useEffect(() => {
+    const saved = localStorage.getItem('darkMode') === 'true'
+    setDarkMode(saved)
+    if (saved) document.documentElement.classList.add('dark')
+    else document.documentElement.classList.remove('dark')
+  }, [])
+
+  function toggleDarkMode() {
+    const next = !darkMode
+    setDarkMode(next)
+    localStorage.setItem('darkMode', String(next))
+    if (next) document.documentElement.classList.add('dark')
+    else document.documentElement.classList.remove('dark')
+  }
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
   const [companyName, setCompanyName] = useState('')
@@ -97,6 +113,19 @@ export default function Settings() {
               className={lang === 'zh' ? 'flex-1 py-3 rounded-lg font-medium bg-blue-600 text-white' : 'flex-1 py-3 rounded-lg font-medium bg-gray-100 text-gray-600'}
             >
               🇨🇳 中文
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+          <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '外观' : 'Appearance'}</h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-gray-900 text-sm">{lang === 'zh' ? '暗色模式' : 'Dark Mode'}</p>
+              <p className="text-gray-400 text-xs">{lang === 'zh' ? '切换深色界面' : 'Switch to dark interface'}</p>
+            </div>
+            <button onClick={toggleDarkMode} className={`relative w-12 h-6 rounded-full transition-colors ${darkMode ? 'bg-blue-600' : 'bg-gray-200'}`}>
+              <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${darkMode ? 'translate-x-7' : 'translate-x-1'}`} />
             </button>
           </div>
         </div>
