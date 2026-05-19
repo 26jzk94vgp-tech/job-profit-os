@@ -23,8 +23,8 @@ export default function Settings() {
     const next = !darkMode
     setDarkMode(next)
     localStorage.setItem('darkMode', String(next))
-    if (next) document.documentElement.classList.add('dark')
-    else document.documentElement.classList.remove('dark')
+    if (next) document.documentElement.setAttribute('data-theme', 'dark')
+    else document.documentElement.removeAttribute('data-theme')
   }
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
