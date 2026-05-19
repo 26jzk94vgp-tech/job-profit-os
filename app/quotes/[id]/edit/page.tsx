@@ -70,8 +70,10 @@ export default function EditQuote({ params }: { params: Promise<{ id: string }> 
           item_name: item.item_name,
           item_type: item.item_type,
           item_unit: item.item_unit,
+          item_group: item.item_group || null,
           quantity: Number(item.quantity),
-          unit_price: Number(item.unit_price)
+          unit_price: Number(item.unit_price),
+          cost_price: Number(item.cost_price) || 0
         })
       } else {
         await supabase.from('quote_items').update({
@@ -81,8 +83,10 @@ export default function EditQuote({ params }: { params: Promise<{ id: string }> 
           item_name: item.item_name,
           item_type: item.item_type,
           item_unit: item.item_unit,
+          item_group: item.item_group || null,
           quantity: Number(item.quantity),
-          unit_price: Number(item.unit_price)
+          unit_price: Number(item.unit_price),
+          cost_price: Number(item.cost_price) || 0
         }).eq('id', item.id)
       }
     }
@@ -137,7 +141,9 @@ export default function EditQuote({ params }: { params: Promise<{ id: string }> 
                   <th className="border border-gray-200 px-2 py-2 text-left w-20">{lang === 'zh' ? '类型' : 'Type'}</th>
                   <th className="border border-gray-200 px-2 py-2 text-left w-16">{lang === 'zh' ? '单位' : 'Unit'}</th>
                   <th className="border border-gray-200 px-2 py-2 text-right w-12">{lang === 'zh' ? '数量' : 'Qty'}</th>
-                  <th className="border border-gray-200 px-2 py-2 text-right w-24">{lang === 'zh' ? '单价' : 'Rate'}</th>
+                  <th className="border border-gray-200 px-2 py-2 text-left w-20">{lang === 'zh' ? '分组' : 'Group'}</th>
+                  <th className="border border-gray-200 px-2 py-2 text-right w-24">{lang === 'zh' ? '售价' : 'Rate'}</th>
+                  <th className="border border-gray-200 px-2 py-2 text-right w-24 bg-yellow-50">{lang === 'zh' ? '成本' : 'Cost'}</th>
                   <th className="border border-gray-200 px-2 py-2 text-right w-24">{lang === 'zh' ? '金额' : 'Amount'}</th>
                   <th className="border border-gray-200 px-2 py-2 w-12"></th>
                 </tr>
@@ -152,8 +158,10 @@ export default function EditQuote({ params }: { params: Promise<{ id: string }> 
                     <td className="border border-gray-200 px-1"><input className="w-full p-1 outline-none text-sm" value={item.item_type || ''} onChange={(e) => updateItem(idx, 'item_type', e.target.value)} /></td>
                     <td className="border border-gray-200 px-1"><input className="w-full p-1 outline-none text-sm" value={item.item_unit || ''} onChange={(e) => updateItem(idx, 'item_unit', e.target.value)} /></td>
                     <td className="border border-gray-200 px-1"><input type="number" className="w-full p-1 outline-none text-sm text-right" value={item.quantity} onChange={(e) => updateItem(idx, 'quantity', e.target.value)} /></td>
+                    <td className="border border-gray-200 px-1"><input className="w-full p-1 outline-none text-sm" value={item.item_group || ''} onChange={(e) => updateItem(idx, 'item_group', e.target.value)} /></td>
                     <td className="border border-gray-200 px-1"><input type="number" className="w-full p-1 outline-none text-sm text-right" value={item.unit_price} onChange={(e) => updateItem(idx, 'unit_price', e.target.value)} /></td>
-                    <td className="border border-gray-200 px-2 text-right text-gray-600">${(Number(item.quantity) * Number(item.unit_price) || 0).toFixed(2)}</td>
+                    <td className="border border-gray-200 px-1 bg-yellow-50"><input type="number" className="w-full p-1 outline-none text-sm text-right bg-yellow-50" value={item.cost_price || ''} onChange={(e) => updateItem(idx, 'cost_price', e.target.value)} /></td>
+                    <td className="border border-gray-200 px-2 text-right text-gray-600">\${(Number(item.quantity) * Number(item.unit_price) || 0).toFixed(2)}</td>
                     <td className="border border-gray-200 px-1 text-center"><button onClick={() => removeItem(item)} className="text-red-400 hover:text-red-600 text-xs">✕</button></td>
                   </tr>
                 ))}
