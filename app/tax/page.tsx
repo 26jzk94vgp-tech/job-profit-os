@@ -102,7 +102,7 @@ export default function TaxHub() {
           <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 dark:border-[#3A3A3C]">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '日常记录' : 'Daily Records'}</p>
           </div>
-          <Link href="/home-office" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100 dark:border-[#3A3A3C]">
+          <Link href="/home-office" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] border-b border-gray-100 dark:border-[#3A3A3C]">
             <div className="flex items-center gap-3">
               <span className="text-2xl">🏠</span>
               <div>
@@ -125,7 +125,7 @@ export default function TaxHub() {
           <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 dark:border-[#3A3A3C]">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '季度申报' : 'Quarterly'}</p>
           </div>
-          <Link href="/reports" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100 dark:border-[#3A3A3C]">
+          <Link href="/reports" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] border-b border-gray-100 dark:border-[#3A3A3C]">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📊</span>
               <div>
