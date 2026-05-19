@@ -107,7 +107,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
           </div>
         </div>
 
-        <table className="w-full border-collapse mb-6">
+        <div className="overflow-x-auto mb-6"><table className="w-full border-collapse" style={{minWidth: "400px"}}>
           <thead>
             <tr className="border border-gray-400 bg-gray-100">
               <th className="border border-gray-400 px-2 py-2 text-left text-sm font-bold">{lang === 'zh' ? '描述' : 'DESCRIPTION'}</th>
@@ -138,7 +138,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
               </tr>
             )}
           </tbody>
-        </table>
+        </table></div>
 
         <div className="flex justify-end">
           <table className="border-collapse">
