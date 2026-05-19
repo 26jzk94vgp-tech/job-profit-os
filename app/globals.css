@@ -59,6 +59,7 @@
 
 .dark .bg-yellow-50 {
   background-color: #2C2C2E !important;
+  border: 1px solid #3A3A3C !important;
 }
 
 .dark .border-yellow-200 {
@@ -66,11 +67,31 @@
 }
 
 .dark .text-yellow-800 {
-  color: #FFD60A !important;
+  color: #FF9F0A !important;
 }
 
 .dark .text-yellow-600 {
-  color: #FFD60A !important;
+  color: #FF9F0A !important;
+}
+
+.dark .bg-green-600 {
+  background-color: #1C3D1C !important;
+}
+
+.dark .bg-green-500 {
+  background-color: #1C3D1C !important;
+}
+
+.dark .text-green-700 {
+  color: #30D158 !important;
+}
+
+.dark .bg-green-50 {
+  background-color: #1C2E1C !important;
+}
+
+.dark .text-green-800 {
+  color: #30D158 !important;
 }
 
 .dark .bg-blue-50 {
