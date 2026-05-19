@@ -65,3 +65,20 @@
 .dark .bg-red-100 { background-color: #3D1A1A !important; }
 .dark .text-red-700 { color: #FF453A !important; }
 .dark .border-red-400 { border-color: #FF453A !important; }
+
+/* Apple Dark Mode - Secondary Labels */
+.dark .text-gray-500 { color: #8E8E93 !important; }
+.dark .text-gray-400 { color: #8E8E93 !important; }
+
+/* Apple Dark Mode - Blue */
+.dark .text-blue-600 { color: #0A84FF !important; }
+.dark .text-blue-500 { color: #0A84FF !important; }
+.dark .bg-blue-600 { background-color: #0A84FF !important; }
+.dark .bg-blue-100 { background-color: #1C3A5E !important; }
+.dark .text-blue-100 { color: #60A5FA !important; }
+
+/* Apple Dark Mode - Green */
+.dark .text-green-600 { color: #30D158 !important; }
+.dark .text-green-500 { color: #30D158 !important; }
+.dark .bg-green-100 { background-color: #1C2E1C !important; }
+.dark .text-green-700 { color: #30D158 !important; }
