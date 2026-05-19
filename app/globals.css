@@ -1,3 +1,58 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: #1C1C1E !important;
+  color: #F2F2F7 !important;
+}
+
+.dark .bg-white {
+  background-color: #2C2C2E !important;
+}
+
+.dark .bg-gray-50 {
+  background-color: #1C1C1E !important;
+}
+
+.dark .bg-gray-100 {
+  background-color: #3A3A3C !important;
+}
+
+.dark .text-gray-900 {
+  color: #F2F2F7 !important;
+}
+
+.dark .text-gray-700 {
+  color: #EBEBF5 !important;
+}
+
+.dark .text-gray-600 {
+  color: #EBEBF5 !important;
+}
+
+.dark .text-gray-500 {
+  color: #8E8E93 !important;
+}
+
+.dark .text-gray-400 {
+  color: #636366 !important;
+}
+
+.dark .border-gray-200 {
+  border-color: #3A3A3C !important;
+}
+
+.dark .border-gray-100 {
+  border-color: #3A3A3C !important;
+}
+
+.dark .divide-gray-100 > * + * {
+  border-color: #3A3A3C !important;
+}
+
+.dark .hover\:bg-gray-50:hover {
+  background-color: #3A3A3C !important;
+}
