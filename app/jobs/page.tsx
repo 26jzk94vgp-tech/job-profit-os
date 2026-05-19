@@ -39,7 +39,7 @@ export default function Jobs() {
     <div className="min-h-screen bg-gray-50 pb-20">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '工单列表' : 'Jobs'}</h1>
+          <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '工单列表' : 'Jobs'}</h1>
           <Link href="/jobs/new" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ {lang === 'zh' ? '新建工单' : 'New Job'}</Link>
         </div>
       </nav>
@@ -52,7 +52,7 @@ export default function Jobs() {
 
         <div className="flex items-center justify-between">
           <p className="text-gray-400 text-xs">{jobs.filter(j => !['archived'].includes(j.status)).length} {lang === 'zh' ? '个工单' : 'jobs'}</p>
-          <select className="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none text-gray-600" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <select className="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none text-gray-600 dark:text-gray-400 dark:text-gray-500" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
             <option value="date">{lang === 'zh' ? '最新创建' : 'Newest First'}</option>
             <option value="profit">{lang === 'zh' ? '按利润' : 'By Profit'}</option>
             <option value="revenue">{lang === 'zh' ? '按收入' : 'By Revenue'}</option>
@@ -68,16 +68,16 @@ export default function Jobs() {
 
         {activeJobs.length > 0 && (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-6 py-3 bg-gray-50 border-b border-gray-100">
+            <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 dark:border-gray-700">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '进行中' : 'Active'} ({activeJobs.length})</p>
             </div>
             <div className="divide-y divide-gray-100">
               {activeJobs.map((job: any) => {
                 const profit = Number(job.profit)
                 return (
-                  <Link href={'/jobs/' + job.id} key={job.id} className="flex justify-between items-center px-6 py-4 hover:bg-gray-50">
+                  <Link href={'/jobs/' + job.id} key={job.id} className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 dark:bg-gray-900">
                     <div>
-                      <p className="font-medium text-gray-900">{job.name}</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{job.name}</p>
                       <p className="text-gray-500 text-sm">{job.client_name}</p>
                     </div>
                     <div className="text-right">
@@ -93,7 +93,7 @@ export default function Jobs() {
 
         {completedJobs.length > 0 && (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-6 py-3 bg-green-50 border-b border-gray-100">
+            <div className="px-6 py-3 bg-green-50 border-b border-gray-100 dark:border-gray-700">
               <p className="text-xs font-semibold text-green-700 uppercase tracking-wide">{lang === 'zh' ? '已完成' : 'Completed'} ({completedJobs.length})</p>
             </div>
             <div className="divide-y divide-gray-100">
@@ -103,7 +103,7 @@ export default function Jobs() {
                 return (
                   <Link href={'/jobs/' + job.id} key={job.id} className={`flex justify-between items-center px-6 py-4 hover:bg-gray-50 ${unpaid > 0 ? 'border-l-4 border-red-400' : 'opacity-80'}`}>
                     <div>
-                      <p className="font-medium text-gray-900">{job.name}</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{job.name}</p>
                       <p className="text-gray-500 text-sm">{job.client_name}</p>
                       {unpaid > 0 && <p className="text-red-500 text-xs">💰 {lang === 'zh' ? `未收 $${unpaid.toLocaleString()}` : `Unpaid $${unpaid.toLocaleString()}`}</p>}
                     </div>
@@ -118,7 +118,7 @@ export default function Jobs() {
           </div>
         )}
 
-        <Link href="/archive" className="flex items-center justify-between px-6 py-4 bg-white rounded-xl border border-gray-200 hover:bg-gray-50">
+        <Link href="/archive" className="flex items-center justify-between px-6 py-4 bg-white rounded-xl border border-gray-200 hover:bg-gray-50 dark:bg-gray-900">
           <div className="flex items-center gap-3">
             <span className="text-xl">📦</span>
             <div>

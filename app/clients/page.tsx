@@ -36,12 +36,12 @@ export default function Clients() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>
-            <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '客户' : 'Clients'}</h1>
+            <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '客户' : 'Clients'}</h1>
           </div>
           <Link href="/clients/new" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ {lang === 'zh' ? '新建客户' : 'New Client'}</Link>
         </div>
@@ -51,13 +51,13 @@ export default function Clients() {
         <div className="md:hidden flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Link href="/" className="text-gray-500 text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>
-            <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '客户' : 'Clients'}</h1>
+            <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '客户' : 'Clients'}</h1>
           </div>
           <Link href="/clients/new" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ {lang === 'zh' ? '新建' : 'New'}</Link>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200">
-          {!clients.length && <div className="px-6 py-16 text-center text-gray-400">{lang === 'zh' ? '还没有客户' : 'No clients yet.'}</div>}
+        <div className="bg-white rounded-xl border border-gray-200 dark:border-gray-700">
+          {!clients.length && <div className="px-6 py-16 text-center text-gray-400 dark:text-gray-500">{lang === 'zh' ? '还没有客户' : 'No clients yet.'}</div>}
           <div className="divide-y divide-gray-100">
             {clients.map((client) => {
               const stats = getClientStats(client.name)
@@ -65,10 +65,10 @@ export default function Clients() {
               const isExpanded = expanded === client.id
               return (
                 <div key={client.id}>
-                  <div className="px-6 py-4 cursor-pointer hover:bg-gray-50" onClick={() => setExpanded(isExpanded ? null : client.id)}>
+                  <div className="px-6 py-4 cursor-pointer hover:bg-gray-50 dark:bg-gray-900" onClick={() => setExpanded(isExpanded ? null : client.id)}>
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="font-medium text-gray-900">{client.name}</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{client.name}</p>
                         <p className="text-gray-500 text-sm">{client.phone} {client.email}</p>
                         <p className="text-gray-400 text-xs">{client.address}</p>
                       </div>
@@ -79,14 +79,14 @@ export default function Clients() {
                       </div>
                     </div>
                     <div className="flex justify-between items-center mt-2">
-                      <div className="flex gap-3 text-xs text-gray-400">
+                      <div className="flex gap-3 text-xs text-gray-400 dark:text-gray-500">
                         <span>{lang === 'zh' ? '利润' : 'Profit'}: <span className={stats.totalProfit >= 0 ? 'text-green-600 font-medium' : 'text-red-500 font-medium'}>${stats.totalProfit.toLocaleString()}</span></span>
                       </div>
                       <span className="text-gray-400 text-xs">{isExpanded ? '▲' : '▼'}</span>
                     </div>
                   </div>
                   {isExpanded && clientJobs.length > 0 && (
-                    <div className="bg-gray-50 border-t border-gray-100">
+                    <div className="bg-gray-50 border-t border-gray-100 dark:border-gray-700">
                       {clientJobs.map(job => (
                         <Link href={'/jobs/' + job.id} key={job.id} className="flex justify-between items-center px-8 py-3 hover:bg-gray-100 border-b border-gray-100 last:border-0">
                           <div>
@@ -109,8 +109,8 @@ export default function Clients() {
                     </div>
                   )}
                   {isExpanded && getClientQuotes(client.id, client.name).length > 0 && (
-                    <div className="bg-yellow-50 border-t border-gray-100">
-                      <div className="px-6 py-2 border-b border-gray-100">
+                    <div className="bg-yellow-50 border-t border-gray-100 dark:border-gray-700">
+                      <div className="px-6 py-2 border-b border-gray-100 dark:border-gray-700">
                         <p className="text-xs font-semibold text-yellow-700 uppercase tracking-wide">📋 {lang === 'zh' ? '报价单' : 'Quotes'}</p>
                       </div>
                       {getClientQuotes(client.id, client.name).map((q: any) => (

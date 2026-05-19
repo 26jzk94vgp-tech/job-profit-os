@@ -61,12 +61,12 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>
-            <h1 className="font-semibold text-gray-900">{job.name}</h1>
+            <h1 className="font-semibold text-gray-900 dark:text-white">{job.name}</h1>
           </div>
           <div className="flex gap-2">
             <Link href={'/jobs/' + id + '/invoice'} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium">🧾 {lang === 'zh' ? '发票' : 'Invoice'}</Link>
@@ -81,7 +81,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
         <div className="md:hidden flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Link href="/" className="text-gray-500 text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>
-            <h1 className="font-semibold text-gray-900">{job.name}</h1>
+            <h1 className="font-semibold text-gray-900 dark:text-white">{job.name}</h1>
           </div>
           <div className="flex gap-2">
             <Link href={'/jobs/' + id + '/invoice'} className="bg-gray-100 text-gray-700 px-2 py-1.5 rounded-lg text-xs">🧾</Link>
@@ -92,7 +92,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
         </div>
 
         <div className="flex items-center justify-between mb-4">
-          <p className="text-gray-500">{job.client_name}</p>
+          <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500">{job.client_name}</p>
           <JobStatusToggle jobId={id} currentStatus={job.status} />
         </div>
 
@@ -128,7 +128,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
             <div className="flex justify-between items-center mb-2">
               <p className="text-gray-500 text-sm">{lang === 'zh' ? '收款进度' : 'Payment Progress'}</p>
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 ${(revenue - unpaidTotal).toLocaleString()} / ${revenue.toLocaleString()}
               </p>
             </div>
@@ -146,20 +146,20 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
         )}
 
         <div className="bg-white rounded-xl border border-gray-200 mb-6">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '成本明细' : 'Cost Breakdown'}</h2>
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '成本明细' : 'Cost Breakdown'}</h2>
           </div>
           <div className="divide-y divide-gray-100">
-            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '人工' : 'Labor'}</span><span className="text-red-500">${labor.toLocaleString()}</span></div>
-            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '材料' : 'Materials'}</span><span className="text-red-500">${material.toLocaleString()}</span></div>
-            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '分包' : 'Subcontract'}</span><span className="text-red-500">${subcontract.toLocaleString()}</span></div>
-            {fuel > 0 && <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '车辆/油费' : 'Vehicle/Fuel'}</span><span className="text-red-500">${fuel.toLocaleString()}</span></div>}
+            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">{lang === 'zh' ? '人工' : 'Labor'}</span><span className="text-red-500">${labor.toLocaleString()}</span></div>
+            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">{lang === 'zh' ? '材料' : 'Materials'}</span><span className="text-red-500">${material.toLocaleString()}</span></div>
+            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">{lang === 'zh' ? '分包' : 'Subcontract'}</span><span className="text-red-500">${subcontract.toLocaleString()}</span></div>
+            {fuel > 0 && <div className="px-6 py-3 flex justify-between"><span className="text-gray-600 dark:text-gray-400 dark:text-gray-500">{lang === 'zh' ? '车辆/油费' : 'Vehicle/Fuel'}</span><span className="text-red-500">${fuel.toLocaleString()}</span></div>}
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 mt-4">
           <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '备注' : 'Notes'}</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '备注' : 'Notes'}</h2>
             <button onClick={() => setEditingNotes(!editingNotes)} className="text-blue-500 text-xs">{editingNotes ? (lang === 'zh' ? '取消' : 'Cancel') : (lang === 'zh' ? '编辑' : 'Edit')}</button>
           </div>
           <div className="px-6 py-4">
@@ -169,7 +169,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
                 <button onClick={async () => { await supabase.from('jobs').update({ notes }).eq('id', id); setEditingNotes(false) }} className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm">{lang === 'zh' ? '保存' : 'Save'}</button>
               </div>
             ) : (
-              <p className="text-gray-600 text-sm">{notes || <span className="text-gray-400">{lang === 'zh' ? '暂无备注，点击编辑添加' : 'No notes yet. Click Edit to add.'}</span>}</p>
+              <p className="text-gray-600 text-sm">{notes || <span className="text-gray-400 dark:text-gray-500">{lang === 'zh' ? '暂无备注，点击编辑添加' : 'No notes yet. Click Edit to add.'}</span>}</p>
             )}
           </div>
         </div>
@@ -177,11 +177,11 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
         </>)}
 
         {activeTab === 'entries' && (
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '条目' : 'Entries'}</h2>
+        <div className="bg-white rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '条目' : 'Entries'}</h2>
           </div>
-          {!entries.length && <div className="px-6 py-8 text-center text-gray-400">{lang === 'zh' ? '还没有条目。' : 'No entries yet.'}</div>}
+          {!entries.length && <div className="px-6 py-8 text-center text-gray-400 dark:text-gray-500">{lang === 'zh' ? '还没有条目。' : 'No entries yet.'}</div>}
           <div className="divide-y divide-gray-100">
             {entries.map((entry: any) => (
               <div key={entry.id} className="px-6 py-4 flex justify-between items-start">
@@ -226,12 +226,12 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
         )}
 
         {activeTab === 'invoice' && (
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '发票条目' : 'Invoice Entries'}</h2>
+        <div className="bg-white rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '发票条目' : 'Invoice Entries'}</h2>
           </div>
           {entries.filter((e: any) => e.type === 'invoice').length === 0 && (
-            <div className="px-6 py-8 text-center text-gray-400">
+            <div className="px-6 py-8 text-center text-gray-400 dark:text-gray-500">
               <p>{lang === 'zh' ? '还没有发票条目' : 'No invoice entries yet.'}</p>
               <Link href={'/jobs/' + id + '/add'} className="mt-3 inline-block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">+ {lang === 'zh' ? '添加发票' : 'Add Invoice'}</Link>
             </div>
@@ -241,7 +241,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
               <div key={entry.id} className="px-6 py-4">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-medium text-gray-900">{entry.description || (lang === 'zh' ? '发票' : 'Invoice')}</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{entry.description || (lang === 'zh' ? '发票' : 'Invoice')}</p>
                     {entry.payment_due_date && <p className="text-gray-400 text-xs">{lang === 'zh' ? '到期' : 'Due'}: {formatDate(entry.payment_due_date)}</p>}
                     <span className={
                       entry.payment_status === 'paid' ? 'text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full' :

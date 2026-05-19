@@ -45,18 +45,18 @@ export default function TaxHub() {
 
   const superReminder = totalProfit > 45001
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>
-          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '税务中心' : 'Tax Hub'}</h1>
+          <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '税务中心' : 'Tax Hub'}</h1>
         </div>
       </nav>
 
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-4">
         <div className="md:hidden flex items-center gap-3 mb-2">
           <Link href="/" className="text-gray-500 text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>
-          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '税务中心' : 'Tax Hub'}</h1>
+          <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '税务中心' : 'Tax Hub'}</h1>
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-2">
@@ -99,18 +99,18 @@ export default function TaxHub() {
         )}
 
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-6 py-3 bg-gray-50 border-b border-gray-100">
+          <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 dark:border-gray-700">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '日常记录' : 'Daily Records'}</p>
           </div>
-          <Link href="/home-office" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
+          <Link href="/home-office" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100 dark:border-gray-700">
             <div className="flex items-center gap-3">
               <span className="text-2xl">🏠</span>
               <div>
-                <p className="font-medium text-gray-900">{lang === 'zh' ? '家庭办公室' : 'Home Office'}</p>
+                <p className="font-medium text-gray-900 dark:text-white">{lang === 'zh' ? '家庭办公室' : 'Home Office'}</p>
                 <p className="text-gray-400 text-xs">{totalHomeOfficeHours.toFixed(1)}h — ${homeOfficeDeduction.toFixed(2)}</p>
               </div>
             </div>
-            <span className="text-gray-400">→</span>
+            <span className="text-gray-400 dark:text-gray-500">→</span>
           </Link>
 
 
@@ -122,44 +122,44 @@ export default function TaxHub() {
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-6 py-3 bg-gray-50 border-b border-gray-100">
+          <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 dark:border-gray-700">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '季度申报' : 'Quarterly'}</p>
           </div>
-          <Link href="/reports" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
+          <Link href="/reports" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100 dark:border-gray-700">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📊</span>
               <div>
-                <p className="font-medium text-gray-900">{lang === 'zh' ? 'GST、BAS & ATO分类申报' : 'GST, BAS & ATO Categories'}</p>
+                <p className="font-medium text-gray-900 dark:text-white">{lang === 'zh' ? 'GST、BAS & ATO分类申报' : 'GST, BAS & ATO Categories'}</p>
                 <p className="text-gray-400 text-xs">{lang === 'zh' ? '净应缴GST' : 'Net GST Payable'}: ${netGst.toFixed(2)}</p>
               </div>
             </div>
-            <span className="text-gray-400">→</span>
+            <span className="text-gray-400 dark:text-gray-500">→</span>
           </Link>
-          <Link href="/vehicle-log" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50">
+          <Link href="/vehicle-log" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 dark:bg-gray-900">
             <div className="flex items-center gap-3">
               <span className="text-2xl">🚗</span>
               <div>
-                <p className="font-medium text-gray-900">{lang === 'zh' ? '车辆行程记录' : 'Vehicle Log'}</p>
+                <p className="font-medium text-gray-900 dark:text-white">{lang === 'zh' ? '车辆行程记录' : 'Vehicle Log'}</p>
                 <p className="text-gray-400 text-xs">{totalKm.toFixed(0)}km — ${totalFuelDeduction.toFixed(2)}</p>
               </div>
             </div>
-            <span className="text-gray-400">→</span>
+            <span className="text-gray-400 dark:text-gray-500">→</span>
           </Link>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-6 py-3 bg-gray-50 border-b border-gray-100">
+          <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 dark:border-gray-700">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '年度汇总' : 'Annual'}</p>
           </div>
-          <Link href="/tax-checklist" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50">
+          <Link href="/tax-checklist" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 dark:bg-gray-900">
             <div className="flex items-center gap-3">
               <span className="text-2xl">✅</span>
               <div>
-                <p className="font-medium text-gray-900">{lang === 'zh' ? '年度税务清单' : 'Year-End Checklist'}</p>
+                <p className="font-medium text-gray-900 dark:text-white">{lang === 'zh' ? '年度税务清单' : 'Year-End Checklist'}</p>
                 <p className="text-gray-400 text-xs">{lang === 'zh' ? '给会计师的完整摘要' : 'Complete summary for your accountant'}</p>
               </div>
             </div>
-            <span className="text-gray-400">→</span>
+            <span className="text-gray-400 dark:text-gray-500">→</span>
           </Link>
         </div>
 
