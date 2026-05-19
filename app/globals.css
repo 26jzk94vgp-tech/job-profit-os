@@ -1,8 +1,6 @@
 @import "tailwindcss";
 
-.dark {
-  color-scheme: dark;
-}
+/* ===== DARK MODE - Apple Design System ===== */
 
 /* Backgrounds */
 .dark body { background-color: #1C1C1E !important; }
@@ -12,73 +10,40 @@
 .dark .bg-yellow-50 { background-color: #2C2C2E !important; }
 .dark .bg-green-50 { background-color: #1C2E1C !important; }
 .dark .bg-green-500, .dark .bg-green-600 { background-color: #1C3D1C !important; }
+.dark .bg-green-100 { background-color: #1C2E1C !important; }
 .dark .bg-blue-50 { background-color: #1C3A5E !important; }
+.dark .bg-blue-100 { background-color: #1C3A5E !important; }
+.dark .bg-blue-600 { background-color: #0A84FF !important; }
 .dark .bg-red-50 { background-color: #2E1C1C !important; }
+.dark .bg-red-100 { background-color: #3D1A1A !important; }
 
 /* Borders */
 .dark .border-gray-200, .dark .border-gray-100 { border-color: #3A3A3C !important; }
 .dark .border-yellow-200 { border-color: #3A3A3C !important; }
 .dark .border-blue-200 { border-color: #2C5282 !important; }
+.dark .border-red-400 { border-color: #FF453A !important; }
 .dark .divide-gray-100 > * + * { border-color: #3A3A3C !important; }
 
-/* Text */
+/* Text - Labels */
 .dark .text-gray-900 { color: #F2F2F7 !important; }
 .dark .text-gray-800 { color: #F2F2F7 !important; }
 .dark .text-gray-700 { color: #EBEBF5 !important; }
 .dark .text-gray-600 { color: #EBEBF5 !important; }
 .dark .text-gray-500 { color: #8E8E93 !important; }
 .dark .text-gray-400 { color: #8E8E93 !important; }
-.dark .text-yellow-800, .dark .text-yellow-600 { color: #FF9F0A !important; }
+
+/* Text - Colors */
+.dark .text-blue-600, .dark .text-blue-500 { color: #0A84FF !important; }
+.dark .text-blue-800, .dark .text-blue-700 { color: #60A5FA !important; }
+.dark .text-blue-100 { color: #93C5FD !important; }
+.dark .text-green-600, .dark .text-green-500 { color: #30D158 !important; }
 .dark .text-green-700, .dark .text-green-800 { color: #30D158 !important; }
-.dark .text-blue-800 { color: #60A5FA !important; }
-.dark .text-blue-600 { color: #93C5FD !important; }
+.dark .text-red-600, .dark .text-red-500 { color: #FF453A !important; }
+.dark .text-red-400 { color: #FF6961 !important; }
+.dark .text-red-700 { color: #FF453A !important; }
+.dark .text-yellow-800, .dark .text-yellow-600 { color: #FF9F0A !important; }
 
 /* Hover */
-
-
-.dark .hover\:bg-white:hover {
-  background-color: #3A3A3C !important;
-}
-
-.dark a:hover, .dark button:hover {
-  opacity: 0.85;
-}
-
-.dark .hover\:bg-white:hover {
-  background-color: #3A3A3C !important;
-  color: #F2F2F7 !important;
-}
-
-.dark *:hover {
-  color: inherit;
-}
-
-.dark a:hover {
-  background-color: #3A3A3C !important;
-}
-
-/* Apple Dark Mode Red */
-.dark .text-red-600 { color: #FF453A !important; }
-.dark .text-red-500 { color: #FF453A !important; }
-.dark .text-red-400 { color: #FF6961 !important; }
-.dark .bg-red-600 { background-color: #FF453A !important; }
-.dark .bg-red-100 { background-color: #3D1A1A !important; }
-.dark .text-red-700 { color: #FF453A !important; }
-.dark .border-red-400 { border-color: #FF453A !important; }
-
-/* Apple Dark Mode - Secondary Labels */
-.dark .text-gray-500 { color: #8E8E93 !important; }
-.dark .text-gray-400 { color: #8E8E93 !important; }
-
-/* Apple Dark Mode - Blue */
-.dark .text-blue-600 { color: #0A84FF !important; }
-.dark .text-blue-500 { color: #0A84FF !important; }
-.dark .bg-blue-600 { background-color: #0A84FF !important; }
-.dark .bg-blue-100 { background-color: #1C3A5E !important; }
-.dark .text-blue-100 { color: #60A5FA !important; }
-
-/* Apple Dark Mode - Green */
-.dark .text-green-600 { color: #30D158 !important; }
-.dark .text-green-500 { color: #30D158 !important; }
-.dark .bg-green-100 { background-color: #1C2E1C !important; }
-.dark .text-green-700 { color: #30D158 !important; }
+.dark .hover\:bg-gray-50:hover { background-color: #3A3A3C !important; }
+.dark .hover\:bg-gray-100:hover { background-color: #3A3A3C !important; }
+.dark .hover\:bg-white:hover { background-color: #3A3A3C !important; }
