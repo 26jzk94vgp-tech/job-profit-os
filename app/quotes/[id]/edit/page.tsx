@@ -10,6 +10,9 @@ export default function EditQuote({ params }: { params: Promise<{ id: string }> 
   const supabase = createClient()
   const { lang } = useLanguage()
   const [loading, setLoading] = useState(false)
+  const [clientName, setClientName] = useState('')
+  const [clientId, setClientId] = useState('')
+  const [clients, setClients] = useState<any[]>([])
   const [quoteNumber, setQuoteNumber] = useState('')
   const [quoteType, setQuoteType] = useState('Residential')
   const [builderName, setBuilderName] = useState('')
@@ -19,6 +22,7 @@ export default function EditQuote({ params }: { params: Promise<{ id: string }> 
   const [items, setItems] = useState<any[]>([])
 
   useEffect(() => {
+    supabase.from('clients').select('*').order('name').then(({ data }) => setClients(data || []))
     supabase.from('quotes').select('*').eq('id', id).single().then(({ data }) => {
       if (data) {
         setQuoteNumber(data.quote_number || '')
@@ -27,6 +31,8 @@ export default function EditQuote({ params }: { params: Promise<{ id: string }> 
         setSiteAddress(data.site_address || '')
         setScopeOfWork(data.scope_of_work || '')
         setNotes(data.notes || '')
+        setClientName(data.client_name || '')
+        setClientId(data.client_id || '')
       }
     })
     supabase.from('quote_items').select('*').eq('quote_id', id).then(({ data }) => setItems(data || []))
@@ -57,6 +63,8 @@ export default function EditQuote({ params }: { params: Promise<{ id: string }> 
       builder_name: builderName,
       site_address: siteAddress,
       scope_of_work: scopeOfWork,
+      client_name: clientName || null,
+      client_id: clientId || null,
       notes
     }).eq('id', id)
 
@@ -111,7 +119,17 @@ export default function EditQuote({ params }: { params: Promise<{ id: string }> 
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
           <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '基本信息' : 'Basic Info'}</h2>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '报价单号' : 'Quote Number'}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={quoteNumber} onChange={(e) => setQuoteNumber(e.target.value)} placeholder="Q-001" /></div>
+            <div>
+            <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '客户名称' : 'Client Name'}</label>
+            <input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. John Smith" value={clientName} onChange={(e) => setClientName(e.target.value)} />
+            {clients.length > 0 && (
+              <select className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-gray-500 outline-none text-sm" value={clientId} onChange={(e) => { setClientId(e.target.value); const found = clients.find((c: any) => c.id === e.target.value); if (found) setClientName(found.name) }}>
+                <option value="">{lang === 'zh' ? '或从客户列表选择...' : 'Or select from client list...'}</option>
+                {clients.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            )}
+          </div>
+          <div><label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '报价单号' : 'Quote Number'}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={quoteNumber} onChange={(e) => setQuoteNumber(e.target.value)} placeholder="Q-001" /></div>
             <div>
               <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '类型' : 'Type'}</label>
               <select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={quoteType} onChange={(e) => setQuoteType(e.target.value)}>
