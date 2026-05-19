@@ -90,14 +90,14 @@ export default function MonthlyReport() {
     <div className="min-h-screen bg-gray-50 dark:bg-[#1C1C1E]">
       <nav className="bg-white dark:bg-[#2C2C2E] border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
-          <Link href="/reports" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
+          <Link href="/finance" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
           <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '月度损益表' : 'Monthly P&L'}</h1>
         </div>
       </nav>
 
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
         <div className="md:hidden flex items-center gap-3 mb-2">
-          <Link href="/reports" className="text-gray-500 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
+          <Link href="/finance" className="text-gray-500 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
           <h1 className="font-semibold text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '月度损益表' : 'Monthly P&L'}</h1>
         </div>
 
