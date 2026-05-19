@@ -163,13 +163,13 @@ export default function MonthlyReport() {
               </div>
               <div className="divide-y divide-gray-50">
                 <div className="px-6 py-3 flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-[#8E8E93] dark:text-[#636366]">{lang === 'zh' ? lang === 'zh' ? '收入' : 'Revenue' : 'Revenue'}</span>
+                  <span className="text-gray-700 dark:text-[#EBEBF5] font-medium">{lang === 'zh' ? lang === 'zh' ? '收入' : 'Revenue' : 'Revenue'}</span>
                   <span className="font-medium text-green-600">${data.revenue.toLocaleString()}</span>
                 </div>
-                {data.labor > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-500 dark:text-[#8E8E93] dark:text-[#636366]">{lang === 'zh' ? lang === 'zh' ? '人工' : 'Labor' : 'Labor'}</span><span className="text-red-400">-${data.labor.toLocaleString()}</span></div>}
-                {data.material > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-500 dark:text-[#8E8E93] dark:text-[#636366]">{lang === 'zh' ? lang === 'zh' ? '材料' : 'Materials' : 'Materials'}</span><span className="text-red-400">-${data.material.toLocaleString()}</span></div>}
-                {data.subcontract > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-500 dark:text-[#8E8E93] dark:text-[#636366]">{lang === 'zh' ? lang === 'zh' ? '分包' : 'Subcontract' : 'Subcontract'}</span><span className="text-red-400">-${data.subcontract.toLocaleString()}</span></div>}
-                {data.fuel > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-500 dark:text-[#8E8E93] dark:text-[#636366]">{lang === 'zh' ? lang === 'zh' ? '车辆' : 'Vehicle/Fuel' : 'Vehicle/Fuel'}</span><span className="text-red-400">-${data.fuel.toLocaleString()}</span></div>}
+                {data.labor > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-700 dark:text-[#EBEBF5] font-medium">{lang === 'zh' ? lang === 'zh' ? '人工' : 'Labor' : 'Labor'}</span><span className="text-red-400">-${data.labor.toLocaleString()}</span></div>}
+                {data.material > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-700 dark:text-[#EBEBF5] font-medium">{lang === 'zh' ? lang === 'zh' ? '材料' : 'Materials' : 'Materials'}</span><span className="text-red-400">-${data.material.toLocaleString()}</span></div>}
+                {data.subcontract > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-700 dark:text-[#EBEBF5] font-medium">{lang === 'zh' ? lang === 'zh' ? '分包' : 'Subcontract' : 'Subcontract'}</span><span className="text-red-400">-${data.subcontract.toLocaleString()}</span></div>}
+                {data.fuel > 0 && <div className="px-6 py-3 flex justify-between text-sm"><span className="text-gray-700 dark:text-[#EBEBF5] font-medium">{lang === 'zh' ? lang === 'zh' ? '车辆' : 'Vehicle/Fuel' : 'Vehicle/Fuel'}</span><span className="text-red-400">-${data.fuel.toLocaleString()}</span></div>}
                 <div className="px-6 py-3 flex justify-between text-sm font-medium bg-gray-50 dark:bg-[#1C1C1E]">
                   <span className="text-gray-700 dark:text-[#EBEBF5]">{lang === 'zh' ? '总支出' : 'Total Expenses'}</span>
                   <span className="text-red-500">-${totalExpenses.toLocaleString()}</span>
