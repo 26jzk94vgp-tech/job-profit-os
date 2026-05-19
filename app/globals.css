@@ -133,3 +133,11 @@
 .dark p {
   color: #F2F2F7;
 }
+
+.dark span {
+  color: inherit;
+}
+
+.dark .text-sm {
+  color: #F2F2F7;
+}
