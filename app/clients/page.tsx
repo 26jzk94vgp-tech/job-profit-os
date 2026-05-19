@@ -69,20 +69,20 @@ export default function Clients() {
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-medium text-gray-900">{client.name}</p>
-                        <p className="text-gray-500 text-sm">{client.phone} {client.email}</p>
-                        <p className="text-gray-400 text-xs">{client.address}</p>
+                        <p className="text-gray-500 text-sm font-medium">{client.phone} {client.email}</p>
+                        <p className="text-gray-400 text-sm">{client.address}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-green-600 font-semibold text-sm">${stats.totalRevenue.toLocaleString()}</p>
-                        <p className="text-gray-400 text-xs">{stats.jobCount} {lang === 'zh' ? '个工单' : 'job(s)'}</p>
-                        {stats.unpaid > 0 && <p className="text-red-500 text-xs">{lang === 'zh' ? '未收' : 'Unpaid'}: ${stats.unpaid.toLocaleString()}</p>}
+                        <p className="text-gray-400 text-sm">{stats.jobCount} {lang === 'zh' ? '个工单' : 'job(s)'}</p>
+                        {stats.unpaid > 0 && <p className="text-red-500 text-sm">{lang === 'zh' ? '未收' : 'Unpaid'}: ${stats.unpaid.toLocaleString()}</p>}
                       </div>
                     </div>
                     <div className="flex justify-between items-center mt-2">
-                      <div className="flex gap-3 text-xs text-gray-400">
+                      <div className="flex gap-3 text-sm text-gray-400">
                         <span>{lang === 'zh' ? '利润' : 'Profit'}: <span className={stats.totalProfit >= 0 ? 'text-green-600 font-medium' : 'text-red-500 font-medium'}>${stats.totalProfit.toLocaleString()}</span></span>
                       </div>
-                      <span className="text-gray-400 text-xs">{isExpanded ? '▲' : '▼'}</span>
+                      <span className="text-gray-400 text-sm">{isExpanded ? '▲' : '▼'}</span>
                     </div>
                   </div>
                   {isExpanded && clientJobs.length > 0 && (
@@ -97,7 +97,7 @@ export default function Clients() {
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-semibold text-green-600">${Number(job.revenue).toLocaleString()}</p>
-                            <p className={`text-xs ${Number(job.profit) >= 0 ? 'text-green-500' : 'text-red-500'}`}>{lang === 'zh' ? '利润' : 'Profit'}: ${Number(job.profit).toLocaleString()}</p>
+                            <p className={`text-sm ${Number(job.profit) >= 0 ? 'text-green-500' : 'text-red-500'}`}>{lang === 'zh' ? '利润' : 'Profit'}: ${Number(job.profit).toLocaleString()}</p>
                           </div>
                         </Link>
                       ))}
