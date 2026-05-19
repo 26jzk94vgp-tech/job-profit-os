@@ -219,7 +219,7 @@ export default function Home() {
                   <span className="text-gray-700">{e.jobs?.name} — {e.description || (lang === 'zh' ? '发票' : 'Invoice')}</span>
                   <div className="flex items-center gap-3">
                     {e.payment_due_date && (
-                      <span className={new Date(e.payment_due_date) < new Date() ? 'text-red-600 font-medium text-xs' : 'text-gray-500 text-xs'}>
+                      <span className={new Date(e.payment_due_date) < new Date() ? 'text-red-600 font-medium text-sm' : 'text-gray-500 text-sm'}>
                         {lang === 'zh' ? '到期' : 'Due'}: {formatDate(e.payment_due_date)}
                         {new Date(e.payment_due_date) < new Date() && (lang === 'zh' ? ' ⚠️逾期' : ' ⚠️Overdue')}
                       </span>
