@@ -39,3 +39,16 @@
 .dark .hover\:bg-white:hover {
   background-color: #3A3A3C !important;
 }
+
+.dark a:hover, .dark button:hover {
+  opacity: 0.85;
+}
+
+.dark .hover\:bg-white:hover {
+  background-color: #3A3A3C !important;
+  color: #F2F2F7 !important;
+}
+
+.dark *:hover {
+  color: inherit;
+}
