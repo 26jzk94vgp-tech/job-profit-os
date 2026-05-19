@@ -99,7 +99,7 @@ export default function Finance() {
           <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 dark:border-[#3A3A3C]">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '财务报告' : 'Reports'}</p>
           </div>
-          <Link href="/reports/monthly" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100 dark:border-[#3A3A3C]">
+          <Link href="/reports/monthly" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] border-b border-gray-100 dark:border-[#3A3A3C]">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📅</span>
               <div>
@@ -109,7 +109,7 @@ export default function Finance() {
             </div>
             <span className="text-gray-400 dark:text-[#636366]">→</span>
           </Link>
-          <Link href="/cashflow" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100 dark:border-[#3A3A3C]">
+          <Link href="/cashflow" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] border-b border-gray-100 dark:border-[#3A3A3C]">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📈</span>
               <div>
@@ -119,7 +119,7 @@ export default function Finance() {
             </div>
             <span className="text-gray-400 dark:text-[#636366]">→</span>
           </Link>
-          <Link href="/reports/annual" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100 dark:border-[#3A3A3C]">
+          <Link href="/reports/annual" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] border-b border-gray-100 dark:border-[#3A3A3C]">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📊</span>
               <div>
@@ -129,7 +129,7 @@ export default function Finance() {
             </div>
             <span className="text-gray-400 dark:text-[#636366]">→</span>
           </Link>
-          <Link href="/import-materials" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100 dark:border-[#3A3A3C]">
+          <Link href="/import-materials" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] border-b border-gray-100 dark:border-[#3A3A3C]">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📊</span>
               <div>
