@@ -102,7 +102,7 @@ export default function MonthlyReport() {
         </div>
 
         <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 p-5">
-          <p className="text-sm font-medium text-gray-700 mb-3">{lang === 'zh' ? lang === 'zh' ? '筛选范围' : 'Filter Period' : 'Filter Period'}</p>
+          <p className="text-sm font-medium text-gray-700 dark:text-[#EBEBF5] mb-3">{lang === 'zh' ? lang === 'zh' ? '筛选范围' : 'Filter Period' : 'Filter Period'}</p>
           <div className="flex flex-wrap gap-2 mb-4">
             <button onClick={() => setFilterType('all')} className={`px-3 py-1 rounded-full text-xs font-medium ${filterType === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{lang === 'zh' ? lang === 'zh' ? '全部' : 'All Time' : 'All Time'}</button>
             {quarters.map((q, i) => (
