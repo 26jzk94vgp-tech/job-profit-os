@@ -46,7 +46,7 @@ export default function TaxHub() {
   const superReminder = totalProfit > 45001
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
+      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>
           <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '税务中心' : 'Tax Hub'}</h1>
@@ -60,15 +60,15 @@ export default function TaxHub() {
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-2">
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 p-4">
             <p className="text-gray-500 text-xs">{lang === 'zh' ? '总收入' : 'Revenue'}</p>
             <p className="text-xl font-bold text-green-600 mt-1">${totalRevenue.toLocaleString()}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 p-4">
             <p className="text-gray-500 text-xs">{lang === 'zh' ? '净利润' : 'Net Profit'}</p>
             <p className={totalProfit >= 0 ? 'text-xl font-bold text-green-600 mt-1' : 'text-xl font-bold text-red-600 mt-1'}>${totalProfit.toLocaleString()}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4 cursor-pointer" onClick={() => alert(lang === 'zh' ? '应缴ATO金额说明：\n\n这是你每季度需要通过BAS申报交给ATO的GST净额。\n\n= 向客户收取的GST\n- 向供应商支付的GST\n\n💡 建议：每次收到含GST的发票时，预留1/11的金额作为GST备用金，避免BAS申报时资金不足。\n\n如果是负数，恭喜！ATO会退税给你。' : 'GST Payable to ATO:\n\nThis is the net GST you need to pay to the ATO each quarter via your BAS.\n\n= GST collected from clients\n- GST paid to suppliers\n\n💡 Tip: Set aside 1/11 of each invoice you receive to cover your GST liability.\n\nIf negative, ATO owes YOU a refund!')}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 p-4 cursor-pointer" onClick={() => alert(lang === 'zh' ? '应缴ATO金额说明：\n\n这是你每季度需要通过BAS申报交给ATO的GST净额。\n\n= 向客户收取的GST\n- 向供应商支付的GST\n\n💡 建议：每次收到含GST的发票时，预留1/11的金额作为GST备用金，避免BAS申报时资金不足。\n\n如果是负数，恭喜！ATO会退税给你。' : 'GST Payable to ATO:\n\nThis is the net GST you need to pay to the ATO each quarter via your BAS.\n\n= GST collected from clients\n- GST paid to suppliers\n\n💡 Tip: Set aside 1/11 of each invoice you receive to cover your GST liability.\n\nIf negative, ATO owes YOU a refund!')}>
             <div className="flex items-center gap-1">
               <p className="text-gray-500 text-xs">{lang === 'zh' ? '应缴ATO' : 'GST to ATO'}</p>
               <span className="text-blue-400 text-xs">ℹ️</span>
@@ -98,7 +98,7 @@ export default function TaxHub() {
           </div>
         )}
 
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 dark:border-gray-700">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '日常记录' : 'Daily Records'}</p>
           </div>
@@ -121,7 +121,7 @@ export default function TaxHub() {
 
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 dark:border-gray-700">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '季度申报' : 'Quarterly'}</p>
           </div>
@@ -147,7 +147,7 @@ export default function TaxHub() {
           </Link>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 dark:border-gray-700">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '年度汇总' : 'Annual'}</p>
           </div>

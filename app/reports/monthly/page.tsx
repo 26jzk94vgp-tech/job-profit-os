@@ -88,7 +88,7 @@ export default function MonthlyReport() {
   }), { revenue: 0, labor: 0, material: 0, subcontract: 0, fuel: 0, profit: 0 })
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
+      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           <Link href="/reports" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
           <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '月度损益表' : 'Monthly P&L'}</h1>
@@ -101,7 +101,7 @@ export default function MonthlyReport() {
           <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '月度损益表' : 'Monthly P&L'}</h1>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 p-5">
           <p className="text-sm font-medium text-gray-700 mb-3">{lang === 'zh' ? lang === 'zh' ? '筛选范围' : 'Filter Period' : 'Filter Period'}</p>
           <div className="flex flex-wrap gap-2 mb-4">
             <button onClick={() => setFilterType('all')} className={`px-3 py-1 rounded-full text-xs font-medium ${filterType === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{lang === 'zh' ? lang === 'zh' ? '全部' : 'All Time' : 'All Time'}</button>
@@ -124,7 +124,7 @@ export default function MonthlyReport() {
           )}
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
           <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? lang === 'zh' ? '期间汇总' : 'Period Summary' : 'Period Summary'}</h2>
           </div>
@@ -148,7 +148,7 @@ export default function MonthlyReport() {
           const margin = data.revenue > 0 ? ((data.profit / data.revenue) * 100).toFixed(1) : '0'
           const totalExpenses = data.labor + data.material + data.subcontract + data.fuel + data.other
           return (
-            <div key={month} className="bg-white rounded-xl border border-gray-200 dark:border-gray-700">
+            <div key={month} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">{month}</h3>
@@ -180,7 +180,7 @@ export default function MonthlyReport() {
         })}
 
         {Object.keys(monthlyData).length === 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center text-gray-400 dark:text-gray-500">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 px-6 py-16 text-center text-gray-400 dark:text-gray-500">
             {lang === 'zh' ? lang === 'zh' ? '该时间段内没有数据' : 'No data for this period.' : 'No data for this period.'}
           </div>
         )}

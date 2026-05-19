@@ -90,7 +90,7 @@ export default function Reports() {
   }
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
+      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/tax" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '税务中心' : 'Tax Hub'}</Link>
@@ -109,7 +109,7 @@ export default function Reports() {
 
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 p-5">
           <p className="text-sm font-medium text-gray-700 mb-3">{lang === 'zh' ? '筛选范围 (BAS季度)' : 'Filter Period (BAS Quarter)'}</p>
           <div className="flex flex-wrap gap-2 mb-4">
             <button onClick={() => setFilterType('all')} className={`px-3 py-1 rounded-full text-xs font-medium ${filterType === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{lang === 'zh' ? '全部' : 'All Time'}</button>
@@ -133,7 +133,7 @@ export default function Reports() {
           <p className="text-gray-400 text-xs mt-3">{lang === 'zh' ? `当前筛选: ${filtered.length} 条记录` : `Showing: ${filtered.length} entries`}</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
           <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? 'GST 汇总 (BAS)' : 'GST Summary (BAS)'}</h2>
             <p className="text-gray-400 text-xs mt-1">{lang === 'zh' ? '基于所有含GST条目' : 'Based on all entries marked as GST Inclusive'}</p>
@@ -165,7 +165,7 @@ export default function Reports() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
           <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? 'ATO分类明细' : 'ATO Category Breakdown'}</h2>
             <p className="text-gray-400 text-xs mt-1">{lang === 'zh' ? '用于所得税申报' : 'For income tax return preparation'}</p>
