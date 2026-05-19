@@ -161,7 +161,7 @@ export default function EditQuote({ params }: { params: Promise<{ id: string }> 
                     <td className="border border-gray-200 px-1"><input className="w-full p-1 outline-none text-sm" value={item.item_group || ''} onChange={(e) => updateItem(idx, 'item_group', e.target.value)} /></td>
                     <td className="border border-gray-200 px-1"><input type="number" className="w-full p-1 outline-none text-sm text-right" value={item.unit_price} onChange={(e) => updateItem(idx, 'unit_price', e.target.value)} /></td>
                     <td className="border border-gray-200 px-1 bg-yellow-50"><input type="number" className="w-full p-1 outline-none text-sm text-right bg-yellow-50" value={item.cost_price || ''} onChange={(e) => updateItem(idx, 'cost_price', e.target.value)} /></td>
-                    <td className="border border-gray-200 px-2 text-right text-gray-600">\${(Number(item.quantity) * Number(item.unit_price) || 0).toFixed(2)}</td>
+                    <td className="border border-gray-200 px-2 text-right text-gray-600">${(Number(item.quantity) * Number(item.unit_price) || 0).toFixed(2)}</td>
                     <td className="border border-gray-200 px-1 text-center"><button onClick={() => removeItem(item)} className="text-red-400 hover:text-red-600 text-xs">✕</button></td>
                   </tr>
                 ))}
