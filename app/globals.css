@@ -125,3 +125,11 @@
 .dark .divide-gray-100 > * {
   border-color: #3A3A3C !important;
 }
+
+.dark a {
+  color: #F2F2F7 !important;
+}
+
+.dark p {
+  color: #F2F2F7;
+}
