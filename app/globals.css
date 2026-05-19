@@ -35,3 +35,7 @@
 
 /* Hover */
 .dark .hover\:bg-gray-50:hover, .dark .hover\:bg-gray-100:hover { background-color: #3A3A3C !important; }
+
+.dark .hover\:bg-white:hover {
+  background-color: #3A3A3C !important;
+}
