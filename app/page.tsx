@@ -71,22 +71,22 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">JP</span>
             </div>
-            <span className="font-semibold text-gray-900">Job Profit OS</span>
+            <span className="font-semibold text-gray-900 dark:text-white">Job Profit OS</span>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/clients" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.clients}</Link>
-            <Link href="/quotes" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{t.quotes}</Link>
-            <Link href="/finance" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{lang === 'zh' ? '财务中心' : 'Finance'}</Link>
-            <Link href="/tax" className="text-gray-600 hover:text-gray-900 text-sm font-medium">{lang === 'zh' ? '税务中心' : 'Tax Hub'}</Link>
-            <Link href="/pricing" className="text-gray-600 hover:text-gray-900 text-sm font-medium">💳 {lang === 'zh' ? '订阅' : 'Pricing'}</Link>
-            <Link href="/settings" className="text-gray-600 hover:text-gray-900 text-sm font-medium">⚙️ {lang === 'zh' ? '设置' : 'Settings'}</Link>
+            <Link href="/clients" className="text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:text-white text-sm font-medium">{t.clients}</Link>
+            <Link href="/quotes" className="text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:text-white text-sm font-medium">{t.quotes}</Link>
+            <Link href="/finance" className="text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:text-white text-sm font-medium">{lang === 'zh' ? '财务中心' : 'Finance'}</Link>
+            <Link href="/tax" className="text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:text-white text-sm font-medium">{lang === 'zh' ? '税务中心' : 'Tax Hub'}</Link>
+            <Link href="/pricing" className="text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:text-white text-sm font-medium">💳 {lang === 'zh' ? '订阅' : 'Pricing'}</Link>
+            <Link href="/settings" className="text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:text-white text-sm font-medium">⚙️ {lang === 'zh' ? '设置' : 'Settings'}</Link>
             
             <Link href="/jobs/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">{t.newJob}</Link>
           </div>
@@ -95,21 +95,21 @@ export default function Home() {
 
       <main className="max-w-4xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">{t.dashboard}</h1>
-          <p className="text-gray-500 text-sm mt-1">{user?.email}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t.dashboard}</h1>
+          <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm mt-1">{user?.email}</p>
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-gray-500 text-sm">{t.totalJobs}</p>
-            <p className="text-3xl font-bold text-gray-900 mt-1">{jobs.length}</p>
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+            <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">{t.totalJobs}</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{jobs.length}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-gray-500 text-sm">{t.activeJobs}</p>
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+            <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">{t.activeJobs}</p>
             <p className="text-3xl font-bold text-blue-600 mt-1">{activeJobs}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-gray-500 text-sm">{t.totalProfit}</p>
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+            <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">{t.totalProfit}</p>
             <p className={totalProfit >= 0 ? 'text-3xl font-bold text-green-600 mt-1' : 'text-3xl font-bold text-red-600 mt-1'}>
               {totalProfit >= 0 ? '+' : '-'}${Math.abs(totalProfit).toLocaleString()}
             </p>
@@ -123,7 +123,7 @@ export default function Home() {
               <p className="text-white font-medium text-sm">{lang === 'zh' ? '告别手动录入！批量导入收据，GST自动计算' : 'Skip the paperwork — import receipts instantly!'}</p>
             </div>
             <div className="flex items-center gap-3">
-              <a href="/import-materials" className="bg-white text-green-600 text-xs font-medium px-3 py-1.5 rounded-lg">{lang === 'zh' ? '立即使用 →' : 'Try it →'}</a>
+              <a href="/import-materials" className="bg-white dark:bg-gray-800 text-green-600 text-xs font-medium px-3 py-1.5 rounded-lg">{lang === 'zh' ? '立即使用 →' : 'Try it →'}</a>
               <button onClick={() => setShowImportTip(false)} className="text-green-100 hover:text-white text-lg">✕</button>
             </div>
           </div>
@@ -147,8 +147,8 @@ export default function Home() {
             </div>
             <div className="space-y-2">
               {badDebts.filter(e => e.days_overdue > 90).map((e: any) => (
-                <div key={e.id} className="flex justify-between text-sm bg-white rounded-lg px-3 py-2">
-                  <span className="text-gray-700">{e.job_name} — {e.description || (lang === 'zh' ? '发票' : 'Invoice')}</span>
+                <div key={e.id} className="flex justify-between text-sm bg-white dark:bg-gray-800 rounded-lg px-3 py-2">
+                  <span className="text-gray-700 dark:text-gray-300">{e.job_name} — {e.description || (lang === 'zh' ? '发票' : 'Invoice')}</span>
                   <div className="flex items-center gap-3">
                     <span className="text-red-600 font-medium text-xs">
                       {e.days_overdue} {lang === 'zh' ? '天逾期' : 'days overdue'}
@@ -180,12 +180,12 @@ export default function Home() {
               </div>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-3">
-              <div className="bg-white rounded-lg p-3">
-                <p className="text-xs text-gray-500">{lang === 'zh' ? '2024-25 供款上限' : '2024-25 Concessional Cap'}</p>
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">{lang === 'zh' ? '2024-25 供款上限' : '2024-25 Concessional Cap'}</p>
                 <p className="font-bold text-purple-700">$30,000</p>
               </div>
-              <div className="bg-white rounded-lg p-3">
-                <p className="text-xs text-gray-500">{lang === 'zh' ? 'Super 税率 vs 个人税率' : 'Super Tax Rate vs Personal'}</p>
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">{lang === 'zh' ? 'Super 税率 vs 个人税率' : 'Super Tax Rate vs Personal'}</p>
                 <p className="font-bold text-purple-700">15% vs 32.5%+</p>
               </div>
             </div>
@@ -215,11 +215,11 @@ export default function Home() {
             </div>
             <div className="space-y-2">
               {unpaidInvoices.slice(0, 3).map((e: any) => (
-                <div key={e.id} className="flex justify-between text-sm bg-white rounded-lg px-3 py-2">
-                  <span className="text-gray-700">{e.jobs?.name} — {e.description || (lang === 'zh' ? '发票' : 'Invoice')}</span>
+                <div key={e.id} className="flex justify-between text-sm bg-white dark:bg-gray-800 rounded-lg px-3 py-2">
+                  <span className="text-gray-700 dark:text-gray-300">{e.jobs?.name} — {e.description || (lang === 'zh' ? '发票' : 'Invoice')}</span>
                   <div className="flex items-center gap-3">
                     {e.payment_due_date && (
-                      <span className={new Date(e.payment_due_date) < new Date() ? 'text-red-600 font-medium text-xs' : 'text-gray-500 text-xs'}>
+                      <span className={new Date(e.payment_due_date) < new Date() ? 'text-red-600 font-medium text-xs' : 'text-gray-500 dark:text-gray-400 dark:text-gray-500 text-xs'}>
                         {lang === 'zh' ? '到期' : 'Due'}: {formatDate(e.payment_due_date)}
                         {new Date(e.payment_due_date) < new Date() && (lang === 'zh' ? ' ⚠️逾期' : ' ⚠️Overdue')}
                       </span>
@@ -234,15 +234,15 @@ export default function Home() {
 
         <div className="md:hidden space-y-3 mb-4">
           {unpaidInvoices.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{lang === 'zh' ? '最近到期应收账款' : 'Upcoming Receivables'}</p>
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">{lang === 'zh' ? '最近到期应收账款' : 'Upcoming Receivables'}</p>
               <div className="space-y-2">
                 {unpaidInvoices.slice(0, 3).sort((a: any, b: any) => new Date(a.payment_due_date || '9999').getTime() - new Date(b.payment_due_date || '9999').getTime()).map((e: any) => (
                   <div key={e.id} className="flex justify-between items-center text-sm">
                     <div>
-                      <p className="font-medium text-gray-900">{e.jobs?.name}</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{e.jobs?.name}</p>
                       {e.payment_due_date && (
-                        <p className={new Date(e.payment_due_date) < new Date() ? 'text-xs text-red-500' : 'text-xs text-gray-400'}>
+                        <p className={new Date(e.payment_due_date) < new Date() ? 'text-xs text-red-500' : 'text-xs text-gray-400 dark:text-gray-500'}>
                           {lang === 'zh' ? '到期' : 'Due'}: {formatDate(e.payment_due_date)}
                           {new Date(e.payment_due_date) < new Date() && ' ⚠️'}
                         </p>
@@ -256,22 +256,22 @@ export default function Home() {
           )}
 
           {jobs.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{lang === 'zh' ? '最近工单' : 'Recent Jobs'}</p>
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">{lang === 'zh' ? '最近工单' : 'Recent Jobs'}</p>
               <div className="space-y-2">
                 {jobs.slice(0, 3).map((job: any) => {
                   const profit = Number(job.profit)
                   return (
                     <a href={"/jobs/" + job.id} key={job.id} className="flex justify-between items-center text-sm">
                       <div>
-                        <p className="font-medium text-gray-900">{job.name}</p>
-                        <p className="text-xs text-gray-400">{job.client_name}</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{job.name}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{job.client_name}</p>
                       </div>
                       <div className="text-right">
                         <p className={profit >= 0 ? 'font-semibold text-green-600' : 'font-semibold text-red-600'}>
                           {profit >= 0 ? '+' : '-'}${Math.abs(profit).toLocaleString()}
                         </p>
-                        <p className="text-xs text-gray-400">{statusLabel(job.status)}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{statusLabel(job.status)}</p>
                       </div>
                     </a>
                   )
@@ -281,11 +281,11 @@ export default function Home() {
           )}
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-100">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '工单列表' : 'Jobs'}</h2>
-              <select className="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none text-gray-600" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '工单列表' : 'Jobs'}</h2>
+              <select className="text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 outline-none text-gray-600 dark:text-gray-400 dark:text-gray-500" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
                 <option value="date">{lang === 'zh' ? '最新创建' : 'Newest First'}</option>
                 <option value="due">{lang === 'zh' ? '到期日最近' : 'Due Date'}</option>
               </select>
@@ -293,7 +293,7 @@ export default function Home() {
           </div>
           {jobs.length === 0 && (
             <div className="px-6 py-16 text-center">
-              <p className="text-gray-400">{t.noJobs}</p>
+              <p className="text-gray-400 dark:text-gray-500">{t.noJobs}</p>
               <Link href="/jobs/new" className="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">{t.newJob}</Link>
             </div>
           )}
@@ -303,10 +303,10 @@ export default function Home() {
               const isProfit = profit >= 0
               return (
                 <Link href={"/jobs/" + job.id} key={job.id}>
-                  <div className="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition">
+                  <div className="px-6 py-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-900 transition">
                     <div>
-                      <p className="font-medium text-gray-900">{job.name}</p>
-                      <p className="text-gray-500 text-sm">{job.client_name}</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{job.name}</p>
+                      <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">{job.client_name}</p>
                     </div>
                     <div className="text-right">
                       <p className={isProfit ? "font-semibold text-green-600" : "font-semibold text-red-600"}>
@@ -321,7 +321,7 @@ export default function Home() {
           </div>
           {sortJobs(jobs.filter((j: any) => j.status === 'completed')).length > 0 && (
             <>
-              <div className="px-6 py-2 bg-green-50 border-t border-gray-100">
+              <div className="px-6 py-2 bg-green-50 border-t border-gray-100 dark:border-gray-700">
                 <p className="text-xs font-semibold text-green-700 uppercase tracking-wide">{lang === 'zh' ? '已完成' : 'Completed'}</p>
               </div>
               {sortJobs(jobs.filter((j: any) => j.status === 'completed'), true).map((job: any) => {
@@ -331,10 +331,10 @@ export default function Home() {
                 const hasUnpaid = unpaid > 0
                 return (
                   <Link href={"/jobs/" + job.id} key={job.id}>
-                    <div className={`px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition ${hasUnpaid ? 'border-l-4 border-red-400' : 'opacity-80'}`}>
+                    <div className={`px-6 py-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-900 transition ${hasUnpaid ? 'border-l-4 border-red-400' : 'opacity-80'}`}>
                       <div>
-                        <p className="font-medium text-gray-900">{job.name}</p>
-                        <p className="text-gray-500 text-sm">{job.client_name}</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{job.name}</p>
+                        <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500 text-sm">{job.client_name}</p>
                         {hasUnpaid && <p className="text-red-500 text-xs mt-0.5">💰 {lang === 'zh' ? `未收款 $${unpaid.toLocaleString()}` : `Unpaid $${unpaid.toLocaleString()}`} {job.earliest_due_date ? `· ${lang === 'zh' ? '到期' : 'Due'}: ${job.earliest_due_date}` : ''}</p>}
                       </div>
                       <div className="text-right">
@@ -349,15 +349,15 @@ export default function Home() {
               })}
             </>
           )}
-          <Link href="/archive" className="flex items-center justify-between px-6 py-4 bg-gray-50 hover:bg-gray-100 border-t border-gray-200 rounded-b-xl transition">
+          <Link href="/archive" className="flex items-center justify-between px-6 py-4 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 border-t border-gray-200 dark:border-gray-700 rounded-b-xl transition">
             <div className="flex items-center gap-3">
               <span className="text-xl">📦</span>
               <div>
-                <p className="font-medium text-gray-700 text-sm">{lang === 'zh' ? '工单历史' : 'Job History'}</p>
-                <p className="text-gray-400 text-xs">{lang === 'zh' ? '查看已归档和已暂停的工单' : 'View archived & paused jobs'}</p>
+                <p className="font-medium text-gray-700 dark:text-gray-300 text-sm">{lang === 'zh' ? '工单历史' : 'Job History'}</p>
+                <p className="text-gray-400 dark:text-gray-500 text-xs">{lang === 'zh' ? '查看已归档和已暂停的工单' : 'View archived & paused jobs'}</p>
               </div>
             </div>
-            <span className="text-gray-400 text-sm">→</span>
+            <span className="text-gray-400 dark:text-gray-500 text-sm">→</span>
           </Link>
         </div>
       </main>
