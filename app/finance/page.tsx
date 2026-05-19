@@ -84,8 +84,8 @@ export default function Finance() {
               <span className="text-xl font-bold text-yellow-800">${totalReceivable.toLocaleString()}</span>
             </div>
             {unpaidInvoices.slice(0, 3).map((e: any) => (
-              <div key={e.id} className="flex justify-between text-xs bg-white rounded-lg px-3 py-2 mt-2">
-                <span className="text-gray-700 dark:text-[#EBEBF5]">{e.jobs?.name} — {e.description || (lang === 'zh' ? '发票' : 'Invoice')}</span>
+              <div key={e.id} className="flex justify-between text-sm bg-white dark:bg-[#2C2C2E] rounded-lg px-3 py-2 mt-2 border border-gray-100 dark:border-[#3A3A3C]">
+                <span className="text-gray-900 dark:text-[#F2F2F7] font-medium">{e.jobs?.name} — {e.description || (lang === 'zh' ? '发票' : 'Invoice')}</span>
                 <div className="flex items-center gap-2">
                   {e.payment_due_date && <span className={new Date(e.payment_due_date) < new Date() ? 'text-red-600 font-medium' : 'text-gray-400'}>{lang === 'zh' ? '到期' : 'Due'}: {e.payment_due_date}</span>}
                   <span className="font-medium text-yellow-800">${Number(e.amount).toLocaleString()}</span>
