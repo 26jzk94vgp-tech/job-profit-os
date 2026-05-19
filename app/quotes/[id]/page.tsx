@@ -170,8 +170,8 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
                           <td className="border border-gray-300 px-2 py-1">{item.item_type || ''}</td>
                           <td className="border border-gray-300 px-2 py-1">{item.item_unit || item.unit || ''}</td>
                           <td className="border border-gray-300 px-2 py-1 text-right">{item.quantity}</td>
-                          <td className="border border-gray-300 px-2 py-1 text-right">\${Number(item.unit_price).toFixed(2)}</td>
-                          <td className="border border-gray-300 px-2 py-1 text-right">\${(Number(item.quantity) * Number(item.unit_price)).toFixed(2)}</td>
+                          <td className="border border-gray-300 px-2 py-1 text-right">${Number(item.unit_price).toFixed(2)}</td>
+                          <td className="border border-gray-300 px-2 py-1 text-right">${(Number(item.quantity) * Number(item.unit_price)).toFixed(2)}</td>
                         </tr>
                       ))}
                     </>
@@ -185,8 +185,8 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
                       <td className="border border-gray-300 px-2 py-1">{item.item_type || ''}</td>
                       <td className="border border-gray-300 px-2 py-1">{item.item_unit || item.unit || ''}</td>
                       <td className="border border-gray-300 px-2 py-1 text-right">{item.quantity}</td>
-                      <td className="border border-gray-300 px-2 py-1 text-right">\${Number(item.unit_price).toFixed(2)}</td>
-                      <td className="border border-gray-300 px-2 py-1 text-right">\${(Number(item.quantity) * Number(item.unit_price)).toFixed(2)}</td>
+                      <td className="border border-gray-300 px-2 py-1 text-right">${Number(item.unit_price).toFixed(2)}</td>
+                      <td className="border border-gray-300 px-2 py-1 text-right">${(Number(item.quantity) * Number(item.unit_price)).toFixed(2)}</td>
                     </tr>
                   ))}
                 </>
