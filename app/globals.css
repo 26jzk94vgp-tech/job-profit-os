@@ -117,3 +117,11 @@
 .dark .bg-red-50 {
   background-color: #2E1C1C !important;
 }
+
+.dark .text-gray-800 {
+  color: #EBEBF5 !important;
+}
+
+.dark .divide-gray-100 > * {
+  border-color: #3A3A3C !important;
+}
