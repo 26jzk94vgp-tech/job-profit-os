@@ -7,18 +7,20 @@
   --foreground: #111827;
   --card: #ffffff;
   --border: #e5e7eb;
-  --muted: #6b7280;
 }
 
 .dark {
-  --background: #111827;
-  --foreground: #f9fafb;
-  --card: #1f2937;
-  --border: #374151;
-  --muted: #9ca3af;
+  --background: #1C1C1E;
+  --foreground: #F2F2F7;
+  --card: #2C2C2E;
+  --border: #3A3A3C;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
+}
+
+.dark body {
+  background-color: #1C1C1E;
 }
