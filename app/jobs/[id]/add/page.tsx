@@ -176,7 +176,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
       ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#1C1C1E]">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           <button onClick={() => window.location.href = "/jobs/" + id} className="text-gray-500 hover:text-gray-700 text-sm">← {t.back}</button>
@@ -194,7 +194,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
             <p className="text-gray-300 text-sm">{lang === 'zh' ? '收据扫描功能升级中，敬请期待' : 'Receipt scanning coming soon'}</p>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 p-6">
           <div className="flex gap-3 mb-4">
             <button
               onClick={() => { setCategory('expense'); setType('material'); setAmount(''); setQuantity(''); setUnitPrice(''); setHours(''); setHourlyRate(''); setTaxCategory('cogs_material') }}
@@ -234,21 +234,21 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                   <p className="text-blue-600 text-xs">{lang === 'zh' ? '• 如果是你自己做工，无需填写 — 你的劳动价值已包含在利润中' : '• If you do the work yourself, skip this — your labor value is reflected in profit'}</p>
                   <p className="text-blue-600 text-xs">{lang === 'zh' ? '• 如果对方有ABN，请使用「分包」类型' : '• If the worker has an ABN, use Subcontract instead'}</p>
                 </div>
-                <div><label className="text-gray-700 text-sm font-medium">{t.workerName}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. Tom" value={workerName} onChange={(e) => setWorkerName(e.target.value)} /></div>
-                <div><label className="text-gray-700 text-sm font-medium">{t.hours}</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 8 (or /)" value={hours} onChange={(e) => { setHours(e.target.value); validatePositive(e.target.value, 'hours') }} />{errors.hours && <p className="text-red-500 text-xs mt-1">{errors.hours}</p>}</div>
-                <div><label className="text-gray-700 text-sm font-medium">{t.hourlyRate}</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 65 (or /)" value={hourlyRate} onChange={(e) => { setHourlyRate(e.target.value); validatePositive(e.target.value, 'hourlyRate') }} />{errors.hourlyRate && <p className="text-red-500 text-xs mt-1">{errors.hourlyRate}</p>}</div>
+                <div><label className="text-gray-700 text-sm font-medium">{t.workerName}</label><input className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" placeholder="e.g. Tom" value={workerName} onChange={(e) => setWorkerName(e.target.value)} /></div>
+                <div><label className="text-gray-700 text-sm font-medium">{t.hours}</label><input type="text" className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" placeholder="e.g. 8 (or /)" value={hours} onChange={(e) => { setHours(e.target.value); validatePositive(e.target.value, 'hours') }} />{errors.hours && <p className="text-red-500 text-xs mt-1">{errors.hours}</p>}</div>
+                <div><label className="text-gray-700 text-sm font-medium">{t.hourlyRate}</label><input type="text" className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" placeholder="e.g. 65 (or /)" value={hourlyRate} onChange={(e) => { setHourlyRate(e.target.value); validatePositive(e.target.value, 'hourlyRate') }} />{errors.hourlyRate && <p className="text-red-500 text-xs mt-1">{errors.hourlyRate}</p>}</div>
                 {hours && hourlyRate && hours !== '/' && hourlyRate !== '/' && <p className="text-green-600 text-sm font-medium">{t.total}: ${(Number(hours) * Number(hourlyRate)).toLocaleString()}</p>}
               </div>
             ) : type === 'material' ? (
               <div className="space-y-4">
-                <div><label className="text-gray-700 text-sm font-medium">{t.description}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. Timber" value={description} onChange={(e) => setDescription(e.target.value)} /></div>
+                <div><label className="text-gray-700 text-sm font-medium">{t.description}</label><input className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" placeholder="e.g. Timber" value={description} onChange={(e) => setDescription(e.target.value)} /></div>
                 <div className="flex gap-3">
-                  <div className="flex-1"><label className="text-gray-700 text-sm font-medium">{t.quantity}</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 10" value={quantity} onChange={(e) => { setQuantity(e.target.value); validatePositive(e.target.value, 'quantity') }} />{errors.quantity && <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>}</div>
-                  <div className="w-24"><label className="text-gray-700 text-sm font-medium">{t.unit}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="m/kg" value={unit} onChange={(e) => setUnit(e.target.value)} /></div>
+                  <div className="flex-1"><label className="text-gray-700 text-sm font-medium">{t.quantity}</label><input type="text" className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" placeholder="e.g. 10" value={quantity} onChange={(e) => { setQuantity(e.target.value); validatePositive(e.target.value, 'quantity') }} />{errors.quantity && <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>}</div>
+                  <div className="w-24"><label className="text-gray-700 text-sm font-medium">{t.unit}</label><input className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" placeholder="m/kg" value={unit} onChange={(e) => setUnit(e.target.value)} /></div>
                 </div>
-                <div><label className="text-gray-700 text-sm font-medium">{t.unitPrice}</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 12.50" value={unitPrice} onChange={(e) => { setUnitPrice(e.target.value); validatePositive(e.target.value, 'unitPrice') }} />{errors.unitPrice && <p className="text-red-500 text-xs mt-1">{errors.unitPrice}</p>}</div>
+                <div><label className="text-gray-700 text-sm font-medium">{t.unitPrice}</label><input type="text" className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" placeholder="e.g. 12.50" value={unitPrice} onChange={(e) => { setUnitPrice(e.target.value); validatePositive(e.target.value, 'unitPrice') }} />{errors.unitPrice && <p className="text-red-500 text-xs mt-1">{errors.unitPrice}</p>}</div>
                 {quantity && unitPrice && quantity !== '/' && unitPrice !== '/' && <p className="text-green-600 text-sm font-medium">{t.total}: ${(Number(quantity) * Number(unitPrice)).toLocaleString()}</p>}
-                <div><label className="text-gray-700 text-sm font-medium">{t.orTotal}</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 1200 (or /)" value={amount} onChange={(e) => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}</div>
+                <div><label className="text-gray-700 text-sm font-medium">{t.orTotal}</label><input type="text" className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" placeholder="e.g. 1200 (or /)" value={amount} onChange={(e) => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}</div>
               </div>
             ) : type === 'fuel' ? (
               <div className="space-y-4">
@@ -256,13 +256,13 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                   <p className="text-green-800 text-sm font-medium">🚗 {t.fuelTitle}</p>
                   <p className="text-green-600 text-xs mt-1">{t.fuelHint}</p>
                 </div>
-                <div><label className="text-gray-700 text-sm font-medium">{t.atoMethod}</label><select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={atoMethod} onChange={(e) => setAtoMethod(e.target.value)}><option value="cents_per_km">{t.centsPerKm}</option><option value="actual_cost">{t.actualCostMethod}</option></select></div>
-                <div><label className="text-gray-700 text-sm font-medium">{t.from}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={tripFrom} onChange={(e) => setTripFrom(e.target.value)} /></div>
-                <div><label className="text-gray-700 text-sm font-medium">{t.to}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={tripTo} onChange={(e) => setTripTo(e.target.value)} /></div>
+                <div><label className="text-gray-700 text-sm font-medium">{t.atoMethod}</label><select className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={atoMethod} onChange={(e) => setAtoMethod(e.target.value)}><option value="cents_per_km">{t.centsPerKm}</option><option value="actual_cost">{t.actualCostMethod}</option></select></div>
+                <div><label className="text-gray-700 text-sm font-medium">{t.from}</label><input className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={tripFrom} onChange={(e) => setTripFrom(e.target.value)} /></div>
+                <div><label className="text-gray-700 text-sm font-medium">{t.to}</label><input className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={tripTo} onChange={(e) => setTripTo(e.target.value)} /></div>
                 {atoMethod === 'cents_per_km' ? (
-                  <div><label className="text-gray-700 text-sm font-medium">{t.distance}</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 25" value={kilometers} onChange={(e) => { setKilometers(e.target.value); validatePositive(e.target.value, 'kilometers') }} />{errors.kilometers && <p className="text-red-500 text-xs mt-1">{errors.kilometers}</p>}{kilometers && kilometers !== '/' && <p className="text-green-600 text-sm font-medium mt-1">{t.deduction}: ${(Number(kilometers) * 0.88).toFixed(2)}</p>}</div>
+                  <div><label className="text-gray-700 text-sm font-medium">{t.distance}</label><input type="text" className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" placeholder="e.g. 25" value={kilometers} onChange={(e) => { setKilometers(e.target.value); validatePositive(e.target.value, 'kilometers') }} />{errors.kilometers && <p className="text-red-500 text-xs mt-1">{errors.kilometers}</p>}{kilometers && kilometers !== '/' && <p className="text-green-600 text-sm font-medium mt-1">{t.deduction}: ${(Number(kilometers) * 0.88).toFixed(2)}</p>}</div>
                 ) : (
-                  <div><label className="text-gray-700 text-sm font-medium">{t.actualCost}</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 80" value={amount} onChange={(e) => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}<p className="text-gray-400 text-xs mt-1">{t.keepReceipt}</p></div>
+                  <div><label className="text-gray-700 text-sm font-medium">{t.actualCost}</label><input type="text" className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" placeholder="e.g. 80" value={amount} onChange={(e) => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}<p className="text-gray-400 text-xs mt-1">{t.keepReceipt}</p></div>
                 )}
               </div>
             ) : (
@@ -276,11 +276,11 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                     <p className="text-orange-600 text-xs">{lang === 'zh' ? '• 请保留所有分包商的ABN和付款记录' : '• Keep records of all subcontractor ABNs and payments'}</p>
                   </div>
                 )}
-                <div><label className="text-gray-700 text-sm font-medium">{t.description}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder={type === 'invoice' ? (lang === 'zh' ? '例如：进度款' : 'e.g. Progress payment') : (lang === 'zh' ? '例如：分包商' : 'e.g. Subcontractor')} value={description} onChange={(e) => setDescription(e.target.value)} /></div>
-                <div><label className="text-gray-700 text-sm font-medium">{t.amount}</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 1200 (or /)" value={amount} onChange={(e) => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}</div>
+                <div><label className="text-gray-700 text-sm font-medium">{t.description}</label><input className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" placeholder={type === 'invoice' ? (lang === 'zh' ? '例如：进度款' : 'e.g. Progress payment') : (lang === 'zh' ? '例如：分包商' : 'e.g. Subcontractor')} value={description} onChange={(e) => setDescription(e.target.value)} /></div>
+                <div><label className="text-gray-700 text-sm font-medium">{t.amount}</label><input type="text" className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" placeholder="e.g. 1200 (or /)" value={amount} onChange={(e) => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}</div>
                 {type === 'invoice' && (
                   <>
-                    <div><label className="text-gray-700 text-sm font-medium">{t.paymentDueDate}</label><input type="date" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={paymentDueDate} onChange={(e) => setPaymentDueDate(e.target.value)} /></div>
+                    <div><label className="text-gray-700 text-sm font-medium">{t.paymentDueDate}</label><input type="date" className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={paymentDueDate} onChange={(e) => setPaymentDueDate(e.target.value)} /></div>
 
                   </>
                 )}
@@ -302,7 +302,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                     <p>• <strong>GST Free</strong>: {t.gstInfoFree} {lang === 'zh' ? '— 无GST，如工资' : '— No GST, e.g. wages'}</p>
                   </div>
                 )}
-                <select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={gstStatus} onChange={(e) => setGstStatus(e.target.value)}>
+                <select className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={gstStatus} onChange={(e) => setGstStatus(e.target.value)}>
                   <option value="inclusive">{t.gstInclusive}</option>
                   <option value="exclusive">{t.gstExclusive}</option>
                   <option value="free">{t.gstFree}</option>
@@ -336,7 +336,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                   <p className="text-blue-600">{lang === 'zh' ? '💡 系统已根据条目类型自动设置，一般无需修改' : '💡 Auto-set based on entry type — usually no need to change'}</p>
                 </div>
               )}
-                <select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={taxCategory} onChange={(e) => setTaxCategory(e.target.value)}>
+                <select className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={taxCategory} onChange={(e) => setTaxCategory(e.target.value)}>
                   <option value="">{t.selectCategory}</option>
                   {category === 'income' ? (
                     <optgroup label={lang === 'zh' ? '收入' : 'Income'}>

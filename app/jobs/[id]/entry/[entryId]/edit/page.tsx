@@ -111,7 +111,7 @@ export default function EditEntry({ params }: { params: Promise<{ id: string, en
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#1C1C1E]">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           <button onClick={() => window.location.href = '/jobs/' + id} className="text-gray-500 hover:text-gray-700 text-sm">← {t.back}</button>
@@ -123,38 +123,38 @@ export default function EditEntry({ params }: { params: Promise<{ id: string, en
           <button onClick={() => window.location.href = '/jobs/' + id} className="text-gray-500 text-sm">← {t.back}</button>
           <h1 className="font-semibold text-gray-900">{t.editEntry}</h1>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+        <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 p-6 space-y-4">
           {type === 'labor' && (
             <>
-              <div><label className="text-gray-700 text-sm font-medium">{t.workerName}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={workerName} onChange={(e) => setWorkerName(e.target.value)} /></div>
-              <div><label className="text-gray-700 text-sm font-medium">{t.hours}</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={hours} onChange={(e) => setHours(e.target.value)} /></div>
-              <div><label className="text-gray-700 text-sm font-medium">{t.hourlyRate}</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} /></div>
+              <div><label className="text-gray-700 text-sm font-medium">{t.workerName}</label><input className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={workerName} onChange={(e) => setWorkerName(e.target.value)} /></div>
+              <div><label className="text-gray-700 text-sm font-medium">{t.hours}</label><input type="text" className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={hours} onChange={(e) => setHours(e.target.value)} /></div>
+              <div><label className="text-gray-700 text-sm font-medium">{t.hourlyRate}</label><input type="text" className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} /></div>
               {hours && hourlyRate && <p className="text-green-600 text-sm font-medium">{t.total}: ${(Number(hours) * Number(hourlyRate)).toLocaleString()}</p>}
             </>
           )}
           {type === 'material' && (
             <>
-              <div><label className="text-gray-700 text-sm font-medium">{t.description}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={description} onChange={(e) => setDescription(e.target.value)} /></div>
+              <div><label className="text-gray-700 text-sm font-medium">{t.description}</label><input className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={description} onChange={(e) => setDescription(e.target.value)} /></div>
               <div className="flex gap-3">
-                <div className="flex-1"><label className="text-gray-700 text-sm font-medium">{t.quantity}</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={quantity} onChange={(e) => setQuantity(e.target.value)} /></div>
-                <div className="w-24"><label className="text-gray-700 text-sm font-medium">{t.unit}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={unit} onChange={(e) => setUnit(e.target.value)} /></div>
+                <div className="flex-1"><label className="text-gray-700 text-sm font-medium">{t.quantity}</label><input type="text" className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={quantity} onChange={(e) => setQuantity(e.target.value)} /></div>
+                <div className="w-24"><label className="text-gray-700 text-sm font-medium">{t.unit}</label><input className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={unit} onChange={(e) => setUnit(e.target.value)} /></div>
               </div>
-              <div><label className="text-gray-700 text-sm font-medium">{t.unitPrice}</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} /></div>
-              <div><label className="text-gray-700 text-sm font-medium">{t.amount}</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
+              <div><label className="text-gray-700 text-sm font-medium">{t.unitPrice}</label><input type="text" className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} /></div>
+              <div><label className="text-gray-700 text-sm font-medium">{t.amount}</label><input type="text" className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
             </>
           )}
           {(type === 'invoice' || type === 'subcontract') && (
             <>
-              <div><label className="text-gray-700 text-sm font-medium">{t.description}</label><input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={description} onChange={(e) => setDescription(e.target.value)} /></div>
-              <div><label className="text-gray-700 text-sm font-medium">{t.amount}</label><input type="text" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
+              <div><label className="text-gray-700 text-sm font-medium">{t.description}</label><input className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={description} onChange={(e) => setDescription(e.target.value)} /></div>
+              <div><label className="text-gray-700 text-sm font-medium">{t.amount}</label><input type="text" className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
               {type === 'invoice' && (
                 <>
-                  <div><label className="text-gray-700 text-sm font-medium">{t.paymentDueDate}</label><input type="date" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={paymentDueDate} onChange={(e) => setPaymentDueDate(e.target.value)} /></div>
-                  <div><label className="text-gray-700 text-sm font-medium">{t.paymentStatus}</label><select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)}><option value="unpaid">{t.unpaid}</option><option value="partial">{t.partial}</option><option value="paid">{t.paid}</option><option value="overdue">{t.overdue}</option></select></div>
+                  <div><label className="text-gray-700 text-sm font-medium">{t.paymentDueDate}</label><input type="date" className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={paymentDueDate} onChange={(e) => setPaymentDueDate(e.target.value)} /></div>
+                  <div><label className="text-gray-700 text-sm font-medium">{t.paymentStatus}</label><select className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)}><option value="unpaid">{t.unpaid}</option><option value="partial">{t.partial}</option><option value="paid">{t.paid}</option><option value="overdue">{t.overdue}</option></select></div>
                   {paymentStatus === 'partial' && (
                     <div>
                       <label className="text-gray-700 text-sm font-medium">{t.amountReceived}</label>
-                      <input type="number" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={paymentReceived} onChange={(e) => setPaymentReceived(e.target.value)} />
+                      <input type="number" className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={paymentReceived} onChange={(e) => setPaymentReceived(e.target.value)} />
                       {paymentReceived && amount && <p className="text-xs text-gray-500 mt-1">{t.outstanding}: ${(Number(amount) - Number(paymentReceived)).toLocaleString()}</p>}
                     </div>
                   )}
@@ -175,7 +175,7 @@ export default function EditEntry({ params }: { params: Promise<{ id: string, en
                   <p>• <strong>GST Free</strong>: {t.gstInfoFree}</p>
                 </div>
               )}
-              <select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={gstStatus} onChange={(e) => setGstStatus(e.target.value)}>
+              <select className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={gstStatus} onChange={(e) => setGstStatus(e.target.value)}>
                 <option value="inclusive">{t.gstInclusive}</option>
                 <option value="exclusive">{t.gstExclusive}</option>
                 <option value="free">{t.gstFree}</option>
@@ -187,7 +187,7 @@ export default function EditEntry({ params }: { params: Promise<{ id: string, en
             </div>
             <div>
               <label className="text-gray-700 text-sm font-medium">{t.atoCategory}</label>
-              <select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={taxCategory} onChange={(e) => setTaxCategory(e.target.value)}>
+              <select className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none" value={taxCategory} onChange={(e) => setTaxCategory(e.target.value)}>
                 <option value="">{t.selectCategory}</option>
                 <optgroup label={lang === 'zh' ? '收入' : 'Income'}><option value="other_income">{lang === 'zh' ? '工单收入' : 'Job Revenue / Income'}</option></optgroup>
                 <optgroup label={lang === 'zh' ? '销售成本' : 'Cost of Goods Sold'}>
