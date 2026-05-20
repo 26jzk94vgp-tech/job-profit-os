@@ -133,6 +133,15 @@ export default function Settings() {
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
           <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '账户信息 / Account' : 'Account'}</h2>
           <p className="text-gray-500 text-sm">{userEmail}</p>
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-2">
+            <p className="text-blue-800 text-sm font-medium">👥 {lang === 'zh' ? '共享账号' : 'Share Account'}</p>
+            <p className="text-blue-600 text-xs mt-1">{lang === 'zh' ? '将以下账号信息分享给同事，他们可以直接登录使用相同的数据。' : 'Share the login below with your colleague to access the same data.'}</p>
+            <div className="mt-3 bg-white rounded-lg p-3 border border-blue-100">
+              <p className="text-xs text-gray-500">{lang === 'zh' ? '登录邮箱' : 'Login Email'}</p>
+              <p className="text-gray-900 font-medium text-sm mt-0.5">{userEmail}</p>
+            </div>
+            <p className="text-blue-500 text-xs mt-2">⚠️ {lang === 'zh' ? '请仅与信任的人分享登录信息' : 'Only share with people you trust'}</p>
+          </div>
           <button onClick={handleSignOut} className="w-full py-2 rounded-lg text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100">
             {lang === 'zh' ? '退出登录 / Sign Out' : 'Sign Out'}
           </button>

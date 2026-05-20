@@ -1,20 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "../lib/i18n/LanguageContext";
 import BottomNav from "./components/BottomNav";
 import MobileHeader from "./components/MobileHeader";
 import InstallBanner from "./components/InstallBanner";
 import ServiceWorkerRegistrar from './components/ServiceWorkerRegistrar';
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Job Profit OS",
@@ -27,19 +17,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col pb-16 md:pb-0 pt-10 md:pt-0">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              try {
+                if (localStorage.getItem('darkMode') === 'true') {
+                  document.documentElement.classList.add('dark');
+                }
+              } catch(e) {}
+            })();
+          `
+        }} />
+      </head>
+      <body className="antialiased">
         <LanguageProvider>
-          <MobileHeader />
-          <InstallBanner />
           <ServiceWorkerRegistrar />
-          {children}
+          <InstallBanner />
+          <MobileHeader />
+          <main className="pb-20">
+            {children}
+          </main>
           <BottomNav />
         </LanguageProvider>
       </body>
     </html>
-  );
+  )
 }
