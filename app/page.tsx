@@ -190,10 +190,10 @@ export default function Home() {
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+      <main className="max-w-4xl mx-auto px-4 pt-20 pb-8 md:pt-8 space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-[34px] font-bold tracking-tight text-gray-900 dark:text-white leading-tight">{t.dashboard}</h1>
+          <h1 className="text-[24px] md:text-[34px] font-bold tracking-tight text-gray-900 dark:text-white leading-tight">{t.dashboard}</h1>
           <p className="text-[15px] text-gray-400 dark:text-[#8E8E93] mt-1">{user?.email}</p>
         </div>
 
@@ -201,24 +201,24 @@ export default function Home() {
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent p-5 space-y-1">
             <p className="text-[13px] font-medium text-[#8E8E93] uppercase tracking-wide">{lang === 'zh' ? '总工单' : 'Total Jobs'}</p>
-            <p className="text-[34px] font-bold text-gray-900 dark:text-white leading-tight">{jobs.length}</p>
+            <p className="text-[24px] md:text-[34px] font-bold text-gray-900 dark:text-white leading-tight">{jobs.length}</p>
             <p className="text-[13px] text-[#8E8E93]">{activeJobs} {lang === 'zh' ? '进行中' : 'active'} · {completedJobs} {lang === 'zh' ? '已完成' : 'done'}</p>
           </div>
           <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent p-5 space-y-1">
             <p className="text-[13px] font-medium text-[#8E8E93] uppercase tracking-wide">{lang === 'zh' ? '总收入' : 'Revenue'}</p>
-            <p className="text-[34px] font-bold text-gray-900 dark:text-white leading-tight">${totalRevenue.toLocaleString()}</p>
+            <p className="text-[24px] md:text-[34px] font-bold text-gray-900 dark:text-white leading-tight">${totalRevenue.toLocaleString()}</p>
             <p className="text-[13px] text-[#8E8E93]">{lang === 'zh' ? '成本' : 'Cost'} ${totalCost.toLocaleString()}</p>
           </div>
           <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent p-5 space-y-1">
             <p className="text-[13px] font-medium text-[#8E8E93] uppercase tracking-wide">{lang === 'zh' ? '总利润' : 'Profit'}</p>
-            <p className={`text-[34px] font-bold leading-tight ${totalProfit >= 0 ? 'text-[#30D158]' : 'text-[#FF453A]'}`}>
+            <p className={`text-[24px] md:text-[34px] font-bold leading-tight ${totalProfit >= 0 ? 'text-[#30D158]' : 'text-[#FF453A]'}`}>
               {totalProfit >= 0 ? '+' : '-'}${Math.abs(totalProfit).toLocaleString()}
             </p>
             <p className="text-[13px] text-[#8E8E93]">{lang === 'zh' ? '利润率' : 'Margin'} {marginPct}%</p>
           </div>
           <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent p-5 space-y-1">
             <p className="text-[13px] font-medium text-[#8E8E93] uppercase tracking-wide">{lang === 'zh' ? '未收款' : 'Receivable'}</p>
-            <p className={`text-[34px] font-bold leading-tight ${totalReceivable > 0 ? 'text-[#FF9F0A]' : 'text-gray-900 dark:text-white'}`}>
+            <p className={`text-[24px] md:text-[34px] font-bold leading-tight ${totalReceivable > 0 ? 'text-[#FF9F0A]' : 'text-gray-900 dark:text-white'}`}>
               ${totalReceivable.toLocaleString()}
             </p>
             <p className="text-[13px] text-[#8E8E93]">
@@ -228,14 +228,14 @@ export default function Home() {
           </div>
           <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent p-5 space-y-1">
             <p className="text-[13px] font-medium text-[#8E8E93] uppercase tracking-wide">{lang === 'zh' ? '平均利润' : 'Avg Profit'}</p>
-            <p className="text-[34px] font-bold text-gray-900 dark:text-white leading-tight">
+            <p className="text-[24px] md:text-[34px] font-bold text-gray-900 dark:text-white leading-tight">
               ${jobs.length > 0 ? Math.round(totalProfit / jobs.length).toLocaleString() : '0'}
             </p>
             <p className="text-[13px] text-[#8E8E93]">{lang === 'zh' ? '每工单' : 'per job'}</p>
           </div>
           <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent p-5 space-y-1">
             <p className="text-[13px] font-medium text-[#8E8E93] uppercase tracking-wide">{lang === 'zh' ? '坏账风险' : 'Bad Debt Risk'}</p>
-            <p className="text-[34px] font-bold text-[#FF453A] leading-tight">
+            <p className="text-[24px] md:text-[34px] font-bold text-[#FF453A] leading-tight">
               ${badDebts.filter(e => e.days_overdue > 90).reduce((sum: number, e: any) => sum + Number(e.amount), 0).toLocaleString()}
             </p>
             <p className="text-[13px] text-[#8E8E93]">
