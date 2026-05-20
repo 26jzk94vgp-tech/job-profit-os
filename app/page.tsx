@@ -17,6 +17,7 @@ export default function Home() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [bulkLoading, setBulkLoading] = useState(false)
+  const [showExport, setShowExport] = useState(false)
   const supabase = createClient()
   const { t, lang } = useLanguage()
 
@@ -39,13 +40,80 @@ export default function Home() {
     const { data: entryData } = await supabase
       .from('job_entries')
       .select('*, jobs(name)')
-      .in('type', ['invoice', 'material', 'subcontract'])
+      .in('type', ['invoice', 'material', 'subcontract', 'labor', 'fuel'])
     setEntries(entryData || [])
     const { data: overdueData } = await supabase.from('overdue_invoices').select('*')
     setBadDebts(overdueData || [])
   }
 
   useEffect(() => { loadData() }, [])
+
+  // ── Export functions ──
+  function toCSV(headers: string[], rows: string[][]): string {
+    const escape = (v: string) => `"${String(v).replace(/"/g, '""')}"`
+    return [headers, ...rows].map(r => r.map(escape).join(',')).join('\n')
+  }
+
+  function downloadCSV(filename: string, csv: string) {
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function exportJobs() {
+    const headers = lang === 'zh'
+      ? ['工单名称', '客户', '状态', '收入', '成本', '利润', '利润率', '创建日期']
+      : ['Job Name', 'Client', 'Status', 'Revenue', 'Cost', 'Profit', 'Margin %', 'Created']
+    const rows = jobs.map(j => {
+      const revenue = Number(j.revenue)
+      const profit = Number(j.profit)
+      const cost = revenue - profit
+      const margin = revenue > 0 ? ((profit / revenue) * 100).toFixed(1) : '0'
+      return [
+        j.name || '',
+        j.client_name || '',
+        j.status || '',
+        revenue.toFixed(2),
+        cost.toFixed(2),
+        profit.toFixed(2),
+        margin,
+        j.created_at ? new Date(j.created_at).toLocaleDateString('en-AU') : ''
+      ]
+    })
+    const date = new Date().toISOString().split('T')[0]
+    downloadCSV(`jobs-${date}.csv`, toCSV(headers, rows))
+    setShowExport(false)
+  }
+
+  function exportEntries() {
+    const headers = lang === 'zh'
+      ? ['工单', '类型', '描述', '日期', '数量', '单位', '单价', '金额', '付款状态', '到期日']
+      : ['Job', 'Type', 'Description', 'Date', 'Qty', 'Unit', 'Unit Price', 'Amount', 'Payment Status', 'Due Date']
+    const rows = entries.map(e => {
+      const amount = e.type === 'labor'
+        ? (Number(e.hours) * Number(e.hourly_rate)).toFixed(2)
+        : Number(e.amount).toFixed(2)
+      return [
+        e.jobs?.name || '',
+        e.type || '',
+        e.description || e.worker_name || '',
+        e.entry_date ? new Date(e.entry_date).toLocaleDateString('en-AU') : '',
+        e.quantity || e.hours || '',
+        e.unit || '',
+        e.unit_price || e.hourly_rate || '',
+        amount,
+        e.payment_status || '',
+        e.payment_due_date ? new Date(e.payment_due_date).toLocaleDateString('en-AU') : ''
+      ]
+    })
+    const date = new Date().toISOString().split('T')[0]
+    downloadCSV(`entries-${date}.csv`, toCSV(headers, rows))
+    setShowExport(false)
+  }
 
   const totalProfit = jobs.reduce((sum, j) => sum + Number(j.profit), 0)
   const totalRevenue = jobs.reduce((sum, j) => sum + Number(j.revenue), 0)
@@ -58,7 +126,6 @@ export default function Home() {
   const overdueInvoices = unpaidInvoices.filter(e => e.payment_due_date && new Date(e.payment_due_date) < new Date())
   const TAX_THRESHOLD = 45001
   const superReminder = totalProfit > TAX_THRESHOLD
-
   const visibleJobs = jobs.filter(j => !['archived'].includes(j.status))
 
   function toggleSelect(id: string) {
@@ -267,7 +334,6 @@ export default function Home() {
 
         {/* Jobs list */}
         <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm overflow-hidden">
-          {/* Header */}
           <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -283,14 +349,28 @@ export default function Home() {
               </div>
               <div className="flex items-center gap-3">
                 {!editMode && (
-                  <select
-                    className="text-xs border border-gray-200 dark:border-[#3A3A3C] rounded-lg px-2 py-1 outline-none text-gray-600 dark:text-[#8E8E93] bg-white dark:bg-[#3A3A3C]"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                  >
-                    <option value="date">{lang === 'zh' ? '最新创建' : 'Newest First'}</option>
-                    <option value="due">{lang === 'zh' ? '到期日最近' : 'Due Date'}</option>
-                  </select>
+                  <>
+                    <select
+                      className="text-xs border border-gray-200 dark:border-[#3A3A3C] rounded-lg px-2 py-1 outline-none text-gray-600 dark:text-[#8E8E93] bg-white dark:bg-[#3A3A3C]"
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                    >
+                      <option value="date">{lang === 'zh' ? '最新创建' : 'Newest First'}</option>
+                      <option value="due">{lang === 'zh' ? '到期日最近' : 'Due Date'}</option>
+                    </select>
+                    {/* 分享/导出按钮 */}
+                    <button
+                      onClick={() => setShowExport(true)}
+                      className="text-[#0A84FF] hover:text-blue-400 transition-colors"
+                      title={lang === 'zh' ? '导出数据' : 'Export'}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                        <polyline points="16 6 12 2 8 6"/>
+                        <line x1="12" y1="2" x2="12" y2="15"/>
+                      </svg>
+                    </button>
+                  </>
                 )}
                 <button
                   onClick={() => editMode ? exitEditMode() : setEditMode(true)}
@@ -309,17 +389,12 @@ export default function Home() {
             </div>
           )}
 
-          {/* Active jobs */}
           <div className="divide-y divide-gray-100 dark:divide-[#3A3A3C]">
             {sortJobs(jobs.filter((j: any) => ['active', 'paused'].includes(j.status))).map((job: any) => {
               const profit = Number(job.profit)
               const isSelected = selected.has(job.id)
               return (
-                <div
-                  key={job.id}
-                  className={`flex items-center px-6 py-4 transition-colors ${isSelected ? 'bg-blue-50 dark:bg-[#0A84FF]/10' : 'hover:bg-gray-50 dark:hover:bg-[#3A3A3C]'}`}
-                >
-                  {/* Apple-style selection circle */}
+                <div key={job.id} className={`flex items-center px-6 py-4 transition-colors ${isSelected ? 'bg-blue-50 dark:bg-[#0A84FF]/10' : 'hover:bg-gray-50 dark:hover:bg-[#3A3A3C]'}`}>
                   {editMode && (
                     <button onClick={() => toggleSelect(job.id)} className="mr-4 shrink-0">
                       <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-[#0A84FF] border-[#0A84FF]' : 'border-gray-300 dark:border-[#8E8E93]'}`}>
@@ -344,7 +419,6 @@ export default function Home() {
             })}
           </div>
 
-          {/* Completed jobs */}
           {sortJobs(jobs.filter((j: any) => j.status === 'completed')).length > 0 && (
             <>
               <div className="px-6 py-2 bg-green-50 dark:bg-[#1C2E1C] border-t border-gray-100 dark:border-[#3A3A3C]">
@@ -355,10 +429,7 @@ export default function Home() {
                 const unpaid = Number(job.unpaid_amount || 0)
                 const isSelected = selected.has(job.id)
                 return (
-                  <div
-                    key={job.id}
-                    className={`flex items-center px-6 py-4 transition-colors ${isSelected ? 'bg-blue-50 dark:bg-[#0A84FF]/10' : 'hover:bg-gray-50 dark:hover:bg-[#3A3A3C]'} ${unpaid > 0 && !isSelected ? 'border-l-4 border-[#FF453A]' : ''}`}
-                  >
+                  <div key={job.id} className={`flex items-center px-6 py-4 transition-colors ${isSelected ? 'bg-blue-50 dark:bg-[#0A84FF]/10' : 'hover:bg-gray-50 dark:hover:bg-[#3A3A3C]'} ${unpaid > 0 && !isSelected ? 'border-l-4 border-[#FF453A]' : ''}`}>
                     {editMode && (
                       <button onClick={() => toggleSelect(job.id)} className="mr-4 shrink-0">
                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-[#0A84FF] border-[#0A84FF]' : 'border-gray-300 dark:border-[#8E8E93]'}`}>
@@ -398,13 +469,11 @@ export default function Home() {
         </div>
       </main>
 
-      {/* 底部浮动操作栏 — Apple Sheet 风格 */}
+      {/* 批量操作浮动栏 */}
       {editMode && selected.size > 0 && (
         <div className="fixed bottom-24 left-0 right-0 flex justify-center px-4 z-50">
           <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl shadow-2xl border border-gray-200 dark:border-[#3A3A3C] p-3 flex items-center gap-2 max-w-lg w-full">
-            <span className="text-xs text-[#8E8E93] px-2 shrink-0">
-              {selected.size} {lang === 'zh' ? '已选' : 'selected'}
-            </span>
+            <span className="text-xs text-[#8E8E93] px-2 shrink-0">{selected.size} {lang === 'zh' ? '已选' : 'selected'}</span>
             <div className="flex-1 flex items-center gap-2 flex-wrap justify-center">
               <button onClick={() => bulkUpdateStatus('active')} disabled={bulkLoading}
                 className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-100 dark:bg-[#0A84FF]/20 text-blue-700 dark:text-[#0A84FF] hover:bg-blue-200 disabled:opacity-50 transition-colors">
@@ -425,18 +494,73 @@ export default function Home() {
                 </button>
               ) : (
                 <div className="flex items-center gap-2 bg-red-50 dark:bg-[#FF453A]/10 rounded-xl px-3 py-1.5">
-                  <span className="text-xs text-[#FF453A] font-medium">
-                    {lang === 'zh' ? `删除 ${selected.size} 个？` : `Delete ${selected.size}?`}
-                  </span>
-                  <button onClick={bulkDelete} disabled={bulkLoading} className="text-xs font-bold text-[#FF453A] disabled:opacity-50">
-                    {lang === 'zh' ? '确认' : 'Yes'}
-                  </button>
-                  <button onClick={() => setConfirmDelete(false)} className="text-xs text-[#8E8E93]">
-                    {lang === 'zh' ? '取消' : 'No'}
-                  </button>
+                  <span className="text-xs text-[#FF453A] font-medium">{lang === 'zh' ? `删除 ${selected.size} 个？` : `Delete ${selected.size}?`}</span>
+                  <button onClick={bulkDelete} disabled={bulkLoading} className="text-xs font-bold text-[#FF453A] disabled:opacity-50">{lang === 'zh' ? '确认' : 'Yes'}</button>
+                  <button onClick={() => setConfirmDelete(false)} className="text-xs text-[#8E8E93]">{lang === 'zh' ? '取消' : 'No'}</button>
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 导出面板 — Apple Action Sheet 风格 */}
+      {showExport && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setShowExport(false)}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="relative w-full max-w-lg mx-4 mb-8 space-y-2" onClick={e => e.stopPropagation()}>
+            {/* Action sheet */}
+            <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl overflow-hidden shadow-2xl">
+              <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C] text-center">
+                <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                  {lang === 'zh' ? '导出数据' : 'Export Data'}
+                </p>
+                <p className="text-xs text-[#8E8E93] mt-0.5">
+                  {lang === 'zh' ? '选择要导出的内容' : 'Choose what to export'}
+                </p>
+              </div>
+              <button
+                onClick={exportJobs}
+                className="w-full px-6 py-4 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] transition-colors border-b border-gray-100 dark:border-[#3A3A3C]"
+              >
+                <div className="w-10 h-10 bg-blue-100 dark:bg-[#0A84FF]/20 rounded-xl flex items-center justify-center shrink-0">
+                  <span className="text-lg">📋</span>
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-gray-900 dark:text-white text-sm">
+                    {lang === 'zh' ? '工单列表' : 'Jobs List'}
+                  </p>
+                  <p className="text-xs text-[#8E8E93]">
+                    {lang === 'zh' ? `${jobs.length} 个工单 · 名称、收入、利润、状态` : `${jobs.length} jobs · name, revenue, profit, status`}
+                  </p>
+                </div>
+                <span className="ml-auto text-[#8E8E93] text-xs">CSV</span>
+              </button>
+              <button
+                onClick={exportEntries}
+                className="w-full px-6 py-4 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] transition-colors"
+              >
+                <div className="w-10 h-10 bg-green-100 dark:bg-[#30D158]/20 rounded-xl flex items-center justify-center shrink-0">
+                  <span className="text-lg">📊</span>
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-gray-900 dark:text-white text-sm">
+                    {lang === 'zh' ? '条目明细' : 'Entry Details'}
+                  </p>
+                  <p className="text-xs text-[#8E8E93]">
+                    {lang === 'zh' ? `${entries.length} 条记录 · 发票、材料、人工、分包` : `${entries.length} entries · invoices, materials, labor`}
+                  </p>
+                </div>
+                <span className="ml-auto text-[#8E8E93] text-xs">CSV</span>
+              </button>
+            </div>
+            {/* Cancel button — Apple style */}
+            <button
+              onClick={() => setShowExport(false)}
+              className="w-full bg-white dark:bg-[#2C2C2E] rounded-2xl py-4 font-semibold text-[#0A84FF] hover:bg-gray-50 dark:hover:bg-[#3A3A3C] transition-colors shadow-xl"
+            >
+              {lang === 'zh' ? '取消' : 'Cancel'}
+            </button>
           </div>
         </div>
       )}

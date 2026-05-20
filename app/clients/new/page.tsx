@@ -24,40 +24,54 @@ export default function NewClient() {
     setLoading(false)
   }
 
+  const inputCls = "w-full border border-gray-200 dark:border-gray-700 rounded-xl p-3 mt-1 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-500/40 transition"
+  const labelCls = "text-sm font-medium text-gray-700 dark:text-gray-300"
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700/60 px-6 py-4 hidden md:block">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
-          <button onClick={() => router.back()} className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</button>
-          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '新建客户' : 'New Client'}</h1>
+          <button onClick={() => router.back()} className="text-gray-400 dark:text-[#8E8E93] hover:text-gray-600 dark:hover:text-white text-sm transition-colors">
+            ← {lang === 'zh' ? '返回' : 'Back'}
+          </button>
+          <span className="text-gray-300 dark:text-[#3A3A3C]">/</span>
+          <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '新建客户' : 'New Client'}</h1>
         </div>
       </nav>
-      <div className="md:hidden flex items-center gap-3 px-6 py-4 bg-white border-b border-gray-200">
-        <button onClick={() => router.back()} className="text-gray-500 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</button>
-        <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '新建客户' : 'New Client'}</h1>
-      </div>
-      <main className="max-w-2xl mx-auto px-6 py-8">
-        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <div>
-            <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '姓名 *' : 'Name *'}</label>
-            <input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. John Smith" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div>
-            <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '电话' : 'Phone'}</label>
-            <input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="0400 000 000" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          </div>
-          <div>
-            <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '邮箱' : 'Email'}</label>
-            <input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="john@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </div>
-          <div>
-            <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '地址' : 'Address'}</label>
-            <input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none focus:ring-2 focus:ring-blue-500" placeholder="123 Main St, Sydney" value={address} onChange={(e) => setAddress(e.target.value)} />
-          </div>
-          <button onClick={handleSubmit} disabled={loading || !name} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium disabled:opacity-50">
-            {loading ? (lang === 'zh' ? '保存中...' : 'Saving...') : (lang === 'zh' ? '保存客户' : 'Save Client')}
-          </button>
+
+      <main className="max-w-2xl mx-auto px-4 py-8 space-y-5">
+        <div className="md:hidden flex items-center gap-2 mb-2">
+          <button onClick={() => router.back()} className="text-[#8E8E93] text-sm">← {lang === 'zh' ? '返回' : 'Back'}</button>
+          <span className="text-[#3A3A3C]">/</span>
+          <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '新建客户' : 'New Client'}</h1>
         </div>
+
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700/60 shadow-sm p-6 space-y-4">
+          <div>
+            <label className={labelCls}>{lang === 'zh' ? '客户名称' : 'Client Name'} *</label>
+            <input className={inputCls} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. John Smith" />
+          </div>
+          <div>
+            <label className={labelCls}>{lang === 'zh' ? '电话' : 'Phone'}</label>
+            <input className={inputCls} value={phone} onChange={e => setPhone(e.target.value)} placeholder="e.g. 0412 345 678" />
+          </div>
+          <div>
+            <label className={labelCls}>{lang === 'zh' ? '邮箱' : 'Email'}</label>
+            <input className={inputCls} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="e.g. john@email.com" />
+          </div>
+          <div>
+            <label className={labelCls}>{lang === 'zh' ? '地址' : 'Address'}</label>
+            <input className={inputCls} value={address} onChange={e => setAddress(e.target.value)} placeholder="e.g. 123 Main St, Perth WA" />
+          </div>
+        </div>
+
+        <button
+          onClick={handleSubmit}
+          disabled={loading || !name}
+          className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-2xl font-semibold disabled:opacity-50 transition-colors"
+        >
+          {loading ? (lang === 'zh' ? '保存中...' : 'Saving...') : (lang === 'zh' ? '保存客户' : 'Save Client')}
+        </button>
       </main>
     </div>
   )

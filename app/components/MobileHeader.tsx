@@ -17,14 +17,13 @@ export default function MobileHeader() {
   }
 
   return (
-    <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 px-4 py-2 z-50 flex justify-between items-center">
-      <span className="font-semibold text-gray-900 text-sm">Job Profit OS</span>
+    <div className="md:hidden fixed top-0 left-0 right-0 bg-white dark:bg-[#1C1C1E] border-b border-gray-200 dark:border-[#3A3A3C] px-4 py-2 z-50 flex justify-between items-center">
+      <span className="font-semibold text-gray-900 dark:text-white text-sm">Job Profit OS</span>
       <div className="flex items-center gap-2">
-      
-        <a href="/settings" className="text-xs font-medium px-3 py-2 rounded-lg bg-gray-100 text-gray-700">⚙️</a>
+        <a href="/settings" className="text-xs font-medium px-3 py-2 rounded-lg bg-gray-100 dark:bg-[#2C2C2E] text-gray-700 dark:text-[#8E8E93]">⚙️</a>
         <button
           onClick={handleSignOut}
-          className="text-xs font-medium px-3 py-2 rounded-lg bg-red-50 text-red-600 active:bg-red-100"
+          className="text-xs font-medium px-3 py-2 rounded-lg bg-red-50 dark:bg-[#FF453A]/20 text-red-600 dark:text-[#FF453A] active:bg-red-100 dark:active:bg-[#FF453A]/30"
         >
           {lang === 'zh' ? '退出' : 'Log Out'}
         </button>
