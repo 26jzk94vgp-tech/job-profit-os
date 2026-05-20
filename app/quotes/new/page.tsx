@@ -7,7 +7,6 @@ import { useLanguage } from '../../../lib/i18n/LanguageContext'
 export default function NewQuote() {
   const supabase = createClient()
   const { lang } = useLanguage()
-
   const [jobs, setJobs] = useState<any[]>([])
   const [clientName, setClientName] = useState('')
   const [clientId, setClientId] = useState('')
@@ -19,7 +18,6 @@ export default function NewQuote() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-
     supabase.from('jobs').select('*').then(({ data }) => setJobs(data || []))
     supabase.from('clients').select('*').order('name').then(({ data }) => setClients(data || []))
   }, [])
@@ -32,96 +30,90 @@ export default function NewQuote() {
   const totalCost = items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.cost_price) || 0), 0)
   const totalProfit = totalSell - totalCost
   const margin = totalSell > 0 ? (totalProfit / totalSell * 100).toFixed(1) : '0'
-
-  const groups = [...new Set(items.map(i => i.item_group || ''))].filter(Boolean)
   const defaultGroups = ['Floors & Walls', 'Waterproofing', 'General Items', 'Labour']
+  const areaOptions = ['Bath', 'Ensuite', 'PWC', 'Kitchen', 'Laundry', 'Alfresco', 'Living', 'General']
+  const typeOptions = ['Tile', 'Floor', 'Wall', 'Floor&Wall', 'Waterproofing', 'General Items', 'Labour']
 
   async function handleSubmit() {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     const { data: quote, error } = await supabase.from('quotes').insert({
-      client_name: clientName || null,
-      client_id: clientId || null,
-      job_id: jobId || null,
-      notes,
-      scope_of_work: scopeOfWork || null,
-      owner_id: user?.id
+      client_name: clientName || null, client_id: clientId || null, job_id: jobId || null,
+      notes, scope_of_work: scopeOfWork || null, owner_id: user?.id
     }).select().single()
     if (error) { alert('Error: ' + error.message); setLoading(false); return }
     const quoteItems = items.filter(i => i.description && i.unit_price).map(i => ({
-      quote_id: quote.id,
-      description: i.description,
-      area: i.area || null,
-      item_type: i.item_type || null,
-      item_group: i.item_group || null,
-      quantity: Number(i.quantity) || 1,
-      unit: i.unit,
-      unit_price: Number(i.unit_price),
-      cost_price: Number(i.cost_price) || 0
+      quote_id: quote.id, description: i.description, area: i.area || null,
+      item_type: i.item_type || null, item_group: i.item_group || null,
+      quantity: Number(i.quantity) || 1, unit: i.unit,
+      unit_price: Number(i.unit_price), cost_price: Number(i.cost_price) || 0
     }))
     if (quoteItems.length > 0) await supabase.from('quote_items').insert(quoteItems)
     window.location.href = '/quotes'
     setLoading(false)
   }
 
-  const areaOptions = ['Bath', 'Ensuite', 'PWC', 'Kitchen', 'Laundry', 'Alfresco', 'Living', 'General']
-  const typeOptions = ['Tile', 'Floor', 'Wall', 'Floor&Wall', 'Waterproofing', 'General Items', 'Labour']
+  const inputCls = "w-full border border-gray-200 dark:border-gray-700 rounded-xl p-2.5 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none text-sm focus:ring-2 focus:ring-blue-500/40 transition"
+  const selectCls = "border border-gray-200 dark:border-gray-700 rounded-xl p-2.5 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none text-sm focus:ring-2 focus:ring-blue-500/40 transition"
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700/60 px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
-          <button onClick={() => window.history.back()} className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</button>
-          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '新建报价单' : 'New Quote'}</h1>
+          <button onClick={() => window.history.back()} className="text-gray-400 dark:text-[#8E8E93] hover:text-gray-600 dark:hover:text-white text-sm transition-colors">
+            ← {lang === 'zh' ? '返回' : 'Back'}
+          </button>
+          <span className="text-gray-300 dark:text-[#3A3A3C]">/</span>
+          <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '新建报价单' : 'New Quote'}</h1>
         </div>
       </nav>
-      <main className="max-w-3xl mx-auto px-6 py-8">
-        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+
+      <main className="max-w-3xl mx-auto px-4 py-8">
+        <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-5">
+
+          {/* Client + Job */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '客户名称' : 'Client Name'}</label>
-              <input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder={lang === 'zh' ? '例如：张先生' : 'e.g. John Smith'} value={clientName} onChange={(e) => setClientName(e.target.value)} />
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '客户名称' : 'Client Name'}</label>
+              <input className={inputCls + ' mt-1'} placeholder={lang === 'zh' ? '例如：张先生' : 'e.g. John Smith'} value={clientName} onChange={e => setClientName(e.target.value)} />
               {clients.length > 0 && (
-                <select className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-gray-500 outline-none text-sm" value={clientId} onChange={(e) => {
-                  setClientId(e.target.value)
-                  const found = clients.find(c => c.id === e.target.value)
-                  if (found) setClientName(found.name)
-                }}>
+                <select className={selectCls + ' w-full mt-1'} value={clientId} onChange={e => { setClientId(e.target.value); const found = clients.find(c => c.id === e.target.value); if (found) setClientName(found.name) }}>
                   <option value="">{lang === 'zh' ? '或从客户列表选择...' : 'Or select from client list...'}</option>
-                  {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               )}
             </div>
             <div>
-              <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '工单' : 'Job'}</label>
-              <select className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={jobId} onChange={(e) => setJobId(e.target.value)}>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '工单' : 'Job'}</label>
+              <select className={selectCls + ' w-full mt-1'} value={jobId} onChange={e => setJobId(e.target.value)}>
                 <option value="">{lang === 'zh' ? '选择工单...' : 'Select job...'}</option>
-                {jobs.map((j) => <option key={j.id} value={j.id}>{j.name}</option>)}
+                {jobs.map(j => <option key={j.id} value={j.id}>{j.name}</option>)}
               </select>
             </div>
           </div>
 
+          {/* Items */}
           <div>
             <div className="mb-3">
-              <label className="text-gray-700 text-sm font-medium mb-2 block">{lang === 'zh' ? '报价条目' : 'Quote Items'}</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">{lang === 'zh' ? '报价条目' : 'Quote Items'}</label>
               <div className="flex flex-wrap gap-2">
                 {defaultGroups.map(g => (
-                  <button key={g} onClick={() => addItem(g)} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-lg hover:bg-gray-200">+ {g}</button>
+                  <button key={g} onClick={() => addItem(g)} className="text-xs bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93] px-2 py-1 rounded-lg hover:bg-gray-200 dark:hover:bg-[#48484A] transition-colors">+ {g}</button>
                 ))}
-                <button onClick={() => addItem()} className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-lg">+ {lang === 'zh' ? '条目' : 'Item'}</button>
+                <button onClick={() => addItem()} className="text-xs bg-blue-100 dark:bg-[#0A84FF]/20 text-blue-600 dark:text-[#0A84FF] px-2 py-1 rounded-lg hover:bg-blue-200 dark:hover:bg-[#0A84FF]/30 transition-colors">+ {lang === 'zh' ? '条目' : 'Item'}</button>
               </div>
             </div>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
-              <p className="text-yellow-800 text-xs">💡 {lang === 'zh' ? '成本价仅自己可见，不会出现在报价单中' : 'Cost price is private — not shown on the quote'}</p>
+
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/40 rounded-xl p-3 mb-3">
+              <p className="text-yellow-800 dark:text-yellow-300 text-xs">💡 {lang === 'zh' ? '成本价仅自己可见，不会出现在报价单中' : 'Cost price is private — not shown on the quote'}</p>
             </div>
 
-            {/* 按分组显示 */}
             {[...new Set(['', ...items.map(i => i.item_group || '')])].map(group => {
               const groupItems = items.filter(i => (i.item_group || '') === group)
               if (groupItems.length === 0) return null
               return (
                 <div key={group} className="mb-4">
-                  {group && <div className="bg-gray-100 px-3 py-1 rounded-lg mb-2 text-sm font-semibold text-gray-700">📁 {group}</div>}
+                  {group && <div className="bg-gray-100 dark:bg-[#3A3A3C] px-3 py-1 rounded-xl mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">📁 {group}</div>}
                   <div className="space-y-2">
                     {groupItems.map((item) => {
                       const index = items.indexOf(item)
@@ -129,30 +121,30 @@ export default function NewQuote() {
                       const cost = Number(item.quantity) * Number(item.cost_price) || 0
                       const profit = sell - cost
                       return (
-                        <div key={index} className="border border-gray-200 rounded-xl p-3 space-y-2">
+                        <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-2xl p-3 space-y-2 bg-white dark:bg-gray-800">
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-400 text-xs">#{index + 1} {item.item_group && <span className="bg-blue-100 text-blue-600 px-1 rounded text-xs">{item.item_group}</span>}</span>
-                            {items.length > 1 && <button onClick={() => removeItem(index)} className="text-red-400 text-xs">{lang === 'zh' ? '删除' : 'Remove'}</button>}
+                            <span className="text-[#8E8E93] text-xs">#{index + 1} {item.item_group && <span className="bg-blue-100 dark:bg-[#0A84FF]/20 text-blue-600 dark:text-[#0A84FF] px-1 rounded text-xs">{item.item_group}</span>}</span>
+                            {items.length > 1 && <button onClick={() => removeItem(index)} className="text-[#FF453A] text-xs">{lang === 'zh' ? '删除' : 'Remove'}</button>}
                           </div>
-                          <input className="w-full border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" placeholder={lang === 'zh' ? '描述' : 'Description'} value={item.description} onChange={(e) => updateItem(index, 'description', e.target.value)} />
+                          <input className={inputCls} placeholder={lang === 'zh' ? '描述' : 'Description'} value={item.description} onChange={e => updateItem(index, 'description', e.target.value)} />
                           <div className="flex gap-2">
-                            <select className="flex-1 border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" value={item.area} onChange={(e) => updateItem(index, 'area', e.target.value)}>
+                            <select className={selectCls + ' flex-1'} value={item.area} onChange={e => updateItem(index, 'area', e.target.value)}>
                               <option value="">{lang === 'zh' ? '区域' : 'Area'}</option>
                               {areaOptions.map(a => <option key={a} value={a}>{a}</option>)}
                             </select>
-                            <select className="flex-1 border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" value={item.item_type} onChange={(e) => updateItem(index, 'item_type', e.target.value)}>
+                            <select className={selectCls + ' flex-1'} value={item.item_type} onChange={e => updateItem(index, 'item_type', e.target.value)}>
                               <option value="">{lang === 'zh' ? '类型' : 'Type'}</option>
                               {typeOptions.map(t => <option key={t} value={t}>{t}</option>)}
                             </select>
                           </div>
                           <div className="flex gap-2">
-                            <input className="w-20 border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" placeholder="Qty" value={item.quantity} onChange={(e) => updateItem(index, 'quantity', e.target.value)} />
-                            <input className="w-20 border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" placeholder="Unit" value={item.unit} onChange={(e) => updateItem(index, 'unit', e.target.value)} />
+                            <input className={selectCls + ' w-20'} placeholder="Qty" value={item.quantity} onChange={e => updateItem(index, 'quantity', e.target.value)} />
+                            <input className={selectCls + ' w-20'} placeholder="Unit" value={item.unit} onChange={e => updateItem(index, 'unit', e.target.value)} />
                           </div>
-                          <div className="flex gap-2">
-                            <input className="flex-1 border border-gray-200 rounded-lg p-2 text-gray-900 outline-none text-sm" placeholder={lang === 'zh' ? '售价 $' : 'Rate $'} value={item.unit_price} onChange={(e) => updateItem(index, 'unit_price', e.target.value)} />
-                            <input className="flex-1 border border-yellow-300 bg-yellow-50 rounded-lg p-2 text-gray-900 outline-none text-sm" placeholder={lang === 'zh' ? '成本 $' : 'Cost $'} value={item.cost_price} onChange={(e) => updateItem(index, 'cost_price', e.target.value)} />
-                            {sell > 0 && <span className={profit >= 0 ? 'text-green-600 text-xs self-center font-medium' : 'text-red-500 text-xs self-center font-medium'}>${sell.toFixed(0)} {cost > 0 && '→ ' + (profit >= 0 ? '+' : '') + '$' + profit.toFixed(0)}</span>}
+                          <div className="flex gap-2 items-center">
+                            <input className={inputCls + ' flex-1'} placeholder={lang === 'zh' ? '售价 $' : 'Rate $'} value={item.unit_price} onChange={e => updateItem(index, 'unit_price', e.target.value)} />
+                            <input className="flex-1 border border-yellow-300 dark:border-yellow-700/60 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-2.5 text-gray-900 dark:text-gray-100 outline-none text-sm" placeholder={lang === 'zh' ? '成本 $' : 'Cost $'} value={item.cost_price} onChange={e => updateItem(index, 'cost_price', e.target.value)} />
+                            {sell > 0 && <span className={`text-xs font-medium shrink-0 ${profit >= 0 ? 'text-[#30D158]' : 'text-[#FF453A]'}`}>${sell.toFixed(0)} {cost > 0 && '→ ' + (profit >= 0 ? '+' : '') + '$' + profit.toFixed(0)}</span>}
                           </div>
                         </div>
                       )
@@ -163,36 +155,39 @@ export default function NewQuote() {
             })}
           </div>
 
-          <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+          {/* Totals */}
+          <div className="bg-gray-50 dark:bg-[#1C1C1E] rounded-2xl p-4 space-y-2">
             <div className="flex justify-between">
-              <span className="font-semibold">{lang === 'zh' ? '报价总额' : 'Quote Total'}</span>
-              <span className="font-semibold text-green-600">${totalSell.toLocaleString()}</span>
+              <span className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '报价总额' : 'Quote Total'}</span>
+              <span className="font-semibold text-[#30D158]">${totalSell.toLocaleString()}</span>
             </div>
             {totalCost > 0 && (
               <>
-                <div className="flex justify-between text-sm text-gray-500">
+                <div className="flex justify-between text-sm text-[#8E8E93]">
                   <span>{lang === 'zh' ? '总成本（私密）' : 'Total Cost (private)'}</span>
                   <span>${totalCost.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">{lang === 'zh' ? '预计利润' : 'Est. Profit'}</span>
-                  <span className={totalProfit >= 0 ? 'text-green-600 font-medium' : 'text-red-500 font-medium'}>${totalProfit.toLocaleString()} ({margin}%)</span>
+                  <span className="text-[#8E8E93]">{lang === 'zh' ? '预计利润' : 'Est. Profit'}</span>
+                  <span className={totalProfit >= 0 ? 'text-[#30D158] font-medium' : 'text-[#FF453A] font-medium'}>${totalProfit.toLocaleString()} ({margin}%)</span>
                 </div>
               </>
             )}
           </div>
 
+          {/* Scope */}
           <div>
-            <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '工程范围 (General Scope of Work)' : 'General Scope of Work'}</label>
-            <textarea className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none text-sm" rows={4} placeholder={lang === 'zh' ? '例如：\n- 地板和墙壁安装\n- 防水处理\n- 瓷砖供应' : 'e.g.\n- Installation of floors & walls\n- Waterproofing\n- Tiling materials supply'} value={scopeOfWork} onChange={(e) => setScopeOfWork(e.target.value)} />
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '工程范围' : 'General Scope of Work'}</label>
+            <textarea className="w-full border border-gray-200 dark:border-gray-700 rounded-xl p-3 mt-1 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none text-sm focus:ring-2 focus:ring-blue-500/40 transition resize-none" rows={4} placeholder={lang === 'zh' ? '例如：\n- 地板和墙壁安装\n- 防水处理' : 'e.g.\n- Installation of floors & walls\n- Waterproofing'} value={scopeOfWork} onChange={e => setScopeOfWork(e.target.value)} />
           </div>
 
+          {/* Notes */}
           <div>
-            <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '备注' : 'Notes'}</label>
-            <textarea className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" rows={2} placeholder={lang === 'zh' ? '例如：14天内付款' : 'e.g. Payment due within 14 days'} value={notes} onChange={(e) => setNotes(e.target.value)} />
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '备注' : 'Notes'}</label>
+            <textarea className="w-full border border-gray-200 dark:border-gray-700 rounded-xl p-3 mt-1 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none resize-none focus:ring-2 focus:ring-blue-500/40 transition" rows={2} placeholder={lang === 'zh' ? '例如：14天内付款' : 'e.g. Payment due within 14 days'} value={notes} onChange={e => setNotes(e.target.value)} />
           </div>
 
-          <button onClick={handleSubmit} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium disabled:opacity-50">
+          <button onClick={handleSubmit} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-2xl font-semibold disabled:opacity-50 transition-colors">
             {loading ? (lang === 'zh' ? '保存中...' : 'Saving...') : (lang === 'zh' ? '创建报价单' : 'Create Quote')}
           </button>
         </div>
