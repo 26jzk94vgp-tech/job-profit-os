@@ -113,7 +113,7 @@ export default function Jobs() {
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-4 pt-20 pb-6 md:pt-6 space-y-4">
+      <main className="max-w-4xl mx-auto px-4 pt-24 pb-6 md:pt-6 space-y-4">
         <div className="md:hidden flex items-center justify-between">
           <h1 className="font-semibold text-gray-900 dark:text-white text-lg">{lang === 'zh' ? '工单列表' : 'Jobs'}</h1>
           <div className="flex items-center gap-2">

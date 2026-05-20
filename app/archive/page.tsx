@@ -36,7 +36,7 @@ export default function Archive() {
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-4 pt-20 pb-8 md:pt-8 space-y-5">
+      <main className="max-w-4xl mx-auto px-4 pt-24 pb-8 md:pt-8 space-y-5">
         <div className="md:hidden flex items-center gap-2 mb-2">
           <Link href="/" className="text-[#8E8E93] text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
           <span className="text-[#3A3A3C]">/</span>
