@@ -95,7 +95,7 @@ export default function Home() {
     <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent p-4 flex md:block items-center justify-between gap-3">
       <p className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide shrink-0">{label}</p>
       <div className="text-right md:text-left md:mt-1">
-        <p className={`text-[22px] md:text-[34px] font-bold leading-tight ${valueClass}`}>{value}</p>
+        <p className={`text-[26px] md:text-[34px] font-bold leading-tight ${valueClass}`}>{value}</p>
         {sub && <p className="text-[11px] md:text-[13px] text-[#8E8E93] mt-0.5">{sub}</p>}
       </div>
     </div>
@@ -125,7 +125,7 @@ export default function Home() {
       <main className="max-w-4xl mx-auto px-4 pt-20 pb-8 md:pt-8 space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-[22px] md:text-[34px] font-bold tracking-tight text-gray-900 dark:text-white leading-tight">{t.dashboard}</h1>
+          <h1 className="text-[26px] md:text-[34px] font-bold tracking-tight text-gray-900 dark:text-white leading-tight">{t.dashboard}</h1>
           <p className="text-[15px] text-gray-400 dark:text-[#8E8E93] mt-1">{user?.email}</p>
         </div>
 
