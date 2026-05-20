@@ -9,16 +9,14 @@ export default function Login() {
   const [isSignUp, setIsSignUp] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
-
   const supabase = createClient()
 
   async function handleSubmit() {
     setLoading(true)
     setMessage('')
-
     if (isSignUp) {
-const { error } = await supabase.auth.signUp({ email, password })
-if (error) { setMessage(error.message) } else { window.location.href = '/' }
+      const { error } = await supabase.auth.signUp({ email, password })
+      if (error) { setMessage(error.message) } else { window.location.href = '/' }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) { setMessage(error.message) } else { window.location.href = '/' }
@@ -29,47 +27,47 @@ if (error) { setMessage(error.message) } else { window.location.href = '/' }
   return (
     <main className="min-h-screen bg-gray-950 text-white flex items-center justify-center p-6">
       <div className="w-full max-w-sm">
-        <h1 className="text-3xl font-bold mb-2 text-center">Job Profit OS</h1>
-        <p className="text-gray-400 text-center mb-8">For Australian tradies & builders</p>
+        <h1 className="text-3xl font-bold mb-2 text-center tracking-tight">Job Profit OS</h1>
+        <p className="text-[#8E8E93] text-center mb-8 text-sm">For Australian tradies & builders</p>
 
-        <div className="bg-gray-900 rounded-2xl p-6 space-y-4">
-          <h2 className="text-xl font-semibold">{isSignUp ? 'Create Account' : 'Sign In'}</h2>
+        <div className="bg-[#1C1C1E] rounded-2xl p-6 space-y-4 border border-[#3A3A3C]">
+          <h2 className="text-xl font-semibold text-white">{isSignUp ? 'Create Account' : 'Sign In'}</h2>
 
           <div>
-            <label className="text-gray-400 text-sm">Email</label>
+            <label className="text-[#8E8E93] text-sm">Email</label>
             <input
               type="email"
-              className="w-full bg-gray-800 rounded-lg p-3 mt-1 text-white outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full bg-[#2C2C2E] border border-[#3A3A3C] rounded-xl p-3 mt-1 text-white outline-none focus:ring-2 focus:ring-[#0A84FF]/50 transition"
               placeholder="you@email.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
             />
           </div>
 
           <div>
-            <label className="text-gray-400 text-sm">Password</label>
+            <label className="text-[#8E8E93] text-sm">Password</label>
             <input
               type="password"
-              className="w-full bg-gray-800 rounded-lg p-3 mt-1 text-white outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full bg-[#2C2C2E] border border-[#3A3A3C] rounded-xl p-3 mt-1 text-white outline-none focus:ring-2 focus:ring-[#0A84FF]/50 transition"
               placeholder="••••••••"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
             />
           </div>
 
-          {message && <p className="text-sm text-blue-400">{message}</p>}
+          {message && <p className="text-sm text-[#0A84FF]">{message}</p>}
 
           <button
             onClick={handleSubmit}
             disabled={loading || !email || !password}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium disabled:opacity-50"
+            className="w-full bg-[#0A84FF] hover:bg-blue-500 text-white py-3 rounded-xl font-semibold disabled:opacity-50 transition-colors"
           >
             {loading ? 'Loading...' : isSignUp ? 'Create Account' : 'Sign In'}
           </button>
 
           <button
             onClick={() => setIsSignUp(!isSignUp)}
-            className="w-full text-gray-400 text-sm py-3"
+            className="w-full text-[#0A84FF] text-sm py-2"
           >
             {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
           </button>

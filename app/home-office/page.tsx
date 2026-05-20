@@ -13,14 +13,10 @@ export default function HomeOffice() {
   const [hours, setHours] = useState('')
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
-
-  const RATE_PER_HOUR = 0.67 // ATO 2024-25 rate
+  const RATE_PER_HOUR = 0.67
 
   async function loadLogs() {
-    const { data } = await supabase
-      .from('home_office_logs')
-      .select('*')
-      .order('log_date', { ascending: false })
+    const { data } = await supabase.from('home_office_logs').select('*').order('log_date', { ascending: false })
     setLogs(data || [])
   }
 
@@ -28,17 +24,8 @@ export default function HomeOffice() {
     if (!hours) return
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
-    const { error } = await supabase.from('home_office_logs').insert({
-      owner_id: user?.id,
-      log_date: date,
-      hours: Number(hours),
-      description
-    })
-    if (error) { alert('Error: ' + error.message) } else {
-      setHours('')
-      setDescription('')
-      loadLogs()
-    }
+    const { error } = await supabase.from('home_office_logs').insert({ owner_id: user?.id, log_date: date, hours: Number(hours), description })
+    if (error) { alert('Error: ' + error.message) } else { setHours(''); setDescription(''); loadLogs() }
     setLoading(false)
   }
 
@@ -53,7 +40,6 @@ export default function HomeOffice() {
   const totalHours = logs.reduce((sum, l) => sum + Number(l.hours), 0)
   const totalDeduction = totalHours * RATE_PER_HOUR
 
-  // 按月分组
   const byMonth: Record<string, { hours: number, logs: any[] }> = {}
   logs.forEach(l => {
     const key = new Date(l.log_date).toLocaleString('en-AU', { month: 'long', year: 'numeric' })
@@ -61,81 +47,83 @@ export default function HomeOffice() {
     byMonth[key].hours += Number(l.hours)
     byMonth[key].logs.push(l)
   })
+
+  const inputCls = "w-full border border-gray-200 dark:border-gray-700 rounded-xl p-3 mt-1 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-500/40 transition"
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700/60 px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
-          <Link href="/tax" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '税务中心' : 'Tax Hub'}</Link>
-          <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '家庭办公室' : 'Home Office'}</h1>
+          <Link href="/tax" className="text-gray-400 dark:text-[#8E8E93] hover:text-gray-600 dark:hover:text-white text-sm transition-colors">← {lang === 'zh' ? '税务中心' : 'Tax Hub'}</Link>
+          <span className="text-gray-300 dark:text-[#3A3A3C]">/</span>
+          <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '家庭办公室' : 'Home Office'}</h1>
         </div>
       </nav>
-      <div className="md:hidden flex items-center gap-3 px-6 py-4 bg-white border-b border-gray-200">
-        <Link href="/tax" className="text-gray-500 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
-        <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '家庭办公室' : 'Home Office'}</h1>
+      <div className="md:hidden flex items-center gap-2 px-4 py-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700/60">
+        <Link href="/tax" className="text-[#8E8E93] text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
+        <span className="text-[#3A3A3C]">/</span>
+        <h1 className="font-semibold text-gray-900 dark:text-white text-sm">{lang === 'zh' ? '家庭办公室' : 'Home Office'}</h1>
       </div>
 
-      <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
-
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
-          <p className="text-blue-800 font-medium text-sm">💡 ATO Fixed Rate Method 2024-25</p>
-          <p className="text-blue-600 text-xs mt-1">每小时记录在家工作的时间，ATO 标准扣除率为 67分/小时。适用于报税、做账、处理发票等在家工作时间。/ Record hours working from home. ATO allows 67c/hour deduction for eligible home office expenses.</p>
+      <main className="max-w-4xl mx-auto px-4 py-8 space-y-5">
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-2xl p-5">
+          <p className="text-blue-800 dark:text-blue-300 font-medium text-sm">💡 ATO Fixed Rate Method 2024-25</p>
+          <p className="text-blue-600 dark:text-blue-400 text-xs mt-1">{lang === 'zh' ? '每小时记录在家工作的时间，ATO 标准扣除率为 67分/小时。' : 'Record hours working from home. ATO allows 67c/hour deduction for eligible home office expenses.'}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-gray-500 text-sm">今年总工时 / Total Hours</p>
-            <p className="text-3xl font-bold text-blue-600 mt-1">{totalHours.toFixed(1)}h</p>
+          <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent p-5">
+            <p className="text-[#8E8E93] text-sm">{lang === 'zh' ? '今年总工时' : 'Total Hours'}</p>
+            <p className="text-3xl font-bold text-[#0A84FF] mt-1">{totalHours.toFixed(1)}h</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-gray-500 text-sm">可抵扣金额 / Total Deduction</p>
-            <p className="text-3xl font-bold text-green-600 mt-1">${totalDeduction.toFixed(2)}</p>
-            <p className="text-gray-400 text-xs mt-1">@ 67c/hr</p>
+          <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent p-5">
+            <p className="text-[#8E8E93] text-sm">{lang === 'zh' ? '可抵扣金额' : 'Total Deduction'}</p>
+            <p className="text-3xl font-bold text-[#30D158] mt-1">${totalDeduction.toFixed(2)}</p>
+            <p className="text-[#8E8E93] text-xs mt-1">@ 67c/hr</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">记录工时 / Add Hours</h2>
-          <div className="space-y-3">
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <label className="text-gray-700 text-sm font-medium">日期 / Date</label>
-                <input type="date" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" value={date} onChange={(e) => setDate(e.target.value)} />
-              </div>
-              <div className="w-32">
-                <label className="text-gray-700 text-sm font-medium">工时 / Hours</label>
-                <input type="number" step="0.5" min="0" max="24" className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 2" value={hours} onChange={(e) => setHours(e.target.value)} />
-              </div>
+        <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-3">
+          <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '记录工时' : 'Add Hours'}</h2>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '日期' : 'Date'}</label>
+              <input type="date" className={inputCls} value={date} onChange={e => setDate(e.target.value)} />
             </div>
-            <div>
-              <label className="text-gray-700 text-sm font-medium">描述 / Description</label>
-              <input className="w-full border border-gray-200 rounded-lg p-3 mt-1 text-gray-900 outline-none" placeholder="e.g. 处理发票和报价单 / Processing invoices and quotes" value={description} onChange={(e) => setDescription(e.target.value)} />
+            <div className="w-32">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '工时' : 'Hours'}</label>
+              <input type="number" step="0.5" min="0" max="24" className={inputCls} placeholder="e.g. 2" value={hours} onChange={e => setHours(e.target.value)} />
             </div>
-            {hours && <p className="text-green-600 text-sm">可抵扣 / Deduction: ${(Number(hours) * RATE_PER_HOUR).toFixed(2)}</p>}
-            <button onClick={handleAdd} disabled={loading || !hours} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium disabled:opacity-50">
-              {loading ? '保存中...' : '添加记录 / Add Entry'}
-            </button>
           </div>
+          <div>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '描述' : 'Description'}</label>
+            <input className={inputCls} placeholder={lang === 'zh' ? '处理发票和报价单' : 'Processing invoices and quotes'} value={description} onChange={e => setDescription(e.target.value)} />
+          </div>
+          {hours && <p className="text-[#30D158] text-sm">{lang === 'zh' ? '可抵扣' : 'Deduction'}: ${(Number(hours) * RATE_PER_HOUR).toFixed(2)}</p>}
+          <button onClick={handleAdd} disabled={loading || !hours} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-semibold disabled:opacity-50 transition-colors">
+            {loading ? (lang === 'zh' ? '保存中...' : 'Saving...') : (lang === 'zh' ? '添加记录' : 'Add Entry')}
+          </button>
         </div>
 
         {Object.entries(byMonth).map(([month, data]) => (
-          <div key={month} className="bg-white rounded-xl border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="font-semibold text-gray-900">{month}</h3>
+          <div key={month} className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C] flex justify-between items-center">
+              <h3 className="font-semibold text-gray-900 dark:text-white">{month}</h3>
               <div className="text-right">
-                <p className="text-sm font-medium text-blue-600">{data.hours.toFixed(1)}h</p>
-                <p className="text-xs text-green-600">${(data.hours * RATE_PER_HOUR).toFixed(2)}</p>
+                <p className="text-sm font-medium text-[#0A84FF]">{data.hours.toFixed(1)}h</p>
+                <p className="text-xs text-[#30D158]">${(data.hours * RATE_PER_HOUR).toFixed(2)}</p>
               </div>
             </div>
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-100 dark:divide-[#3A3A3C]">
               {data.logs.map((log: any) => (
-                <div key={log.id} className="px-6 py-3 flex justify-between items-center">
+                <div key={log.id} className="px-6 py-3 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-[#3A3A3C] transition-colors">
                   <div>
-                    <p className="text-gray-900 text-sm">{log.log_date} — {log.hours}h</p>
-                    {log.description && <p className="text-gray-400 text-xs">{log.description}</p>}
+                    <p className="text-gray-900 dark:text-[#F2F2F7] text-sm">{log.log_date} — {log.hours}h</p>
+                    {log.description && <p className="text-[#8E8E93] text-xs">{log.description}</p>}
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-green-600 text-sm">${(Number(log.hours) * RATE_PER_HOUR).toFixed(2)}</span>
-                    <button onClick={() => handleDelete(log.id)} className="text-red-400 text-xs hover:text-red-600">删除</button>
+                    <span className="text-[#30D158] text-sm">${(Number(log.hours) * RATE_PER_HOUR).toFixed(2)}</span>
+                    <button onClick={() => handleDelete(log.id)} className="text-[#FF453A] text-xs hover:text-red-400 transition-colors">{lang === 'zh' ? '删除' : 'Delete'}</button>
                   </div>
                 </div>
               ))}
@@ -144,16 +132,15 @@ export default function HomeOffice() {
         ))}
 
         {logs.length === 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center text-gray-400">
-            还没有记录 / No entries yet. Start tracking your home office hours!
+          <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent px-6 py-16 text-center text-[#8E8E93]">
+            {lang === 'zh' ? '还没有记录，开始追踪工时吧！' : 'No entries yet. Start tracking your home office hours!'}
           </div>
         )}
 
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5">
-          <p className="text-yellow-800 font-medium text-sm">⚠️ ATO 要求 / ATO Requirements</p>
-          <p className="text-yellow-600 text-xs mt-1">使用 Fixed Rate Method 需要保留记录证明您在家工作的时间。本页面的记录可以作为您的工时日志。/ Using the Fixed Rate Method requires you to keep records of actual hours worked from home. This log serves as your evidence.</p>
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/40 rounded-2xl p-5">
+          <p className="text-yellow-800 dark:text-yellow-300 font-medium text-sm">⚠️ ATO {lang === 'zh' ? '要求' : 'Requirements'}</p>
+          <p className="text-yellow-600 dark:text-yellow-400 text-xs mt-1">{lang === 'zh' ? '使用 Fixed Rate Method 需要保留记录证明您在家工作的时间。本页面的记录可以作为您的工时日志。' : 'Using the Fixed Rate Method requires you to keep records of actual hours worked from home. This log serves as your evidence.'}</p>
         </div>
-
       </main>
     </div>
   )
