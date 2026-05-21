@@ -268,7 +268,7 @@ export default function NewQuote() {
       {showImport && (
         <div className="fixed inset-0 z-50 flex flex-col justify-end">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={closeImport} />
-          <div className="relative bg-white dark:bg-[#1C1C1E] rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto">
+          <div className="relative bg-white dark:bg-[#1C1C1E] rounded-t-3xl shadow-2xl max-h-[75vh] mb-20 md:mb-0 overflow-y-auto">
             <div className="flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 bg-gray-300 dark:bg-[#3A3A3C] rounded-full" />
             </div>
@@ -308,7 +308,7 @@ export default function NewQuote() {
                     <input
                       type="file"
                       accept="image/*,application/pdf"
-                      capture="environment"
+                      
                       onChange={handleFileSelect}
                       className="block w-full text-sm text-gray-500 dark:text-[#8E8E93]
                         file:mr-3 file:py-3 file:px-6
