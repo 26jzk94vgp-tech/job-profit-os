@@ -129,7 +129,7 @@ export default function NewQuote() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700/60 px-6 py-4">
+      <nav className="bg-white dark:bg-gray-900 border-b mt-12 md:mt-0 border-gray-200 dark:border-gray-700/60 px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={() => window.history.back()} className="text-gray-400 dark:text-[#8E8E93] hover:text-gray-600 dark:hover:text-white text-sm transition-colors">
