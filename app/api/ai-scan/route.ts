@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
+        max_tokens: 2000,
         messages: [{
           role: 'user',
           content: [
@@ -33,13 +33,17 @@ export async function POST(req: NextRequest) {
     })
 
     const data = await response.json()
+    console.log('Claude raw response:', JSON.stringify(data).slice(0, 500))
+
     const text = data.content?.find((c: any) => c.type === 'text')?.text || '[]'
+    console.log('Claude text:', text.slice(0, 300))
+
     const clean = text.replace(/```json|```/g, '').trim()
     const items = JSON.parse(clean)
 
     return NextResponse.json({ items })
   } catch (err) {
     console.error('AI scan error:', err)
-    return NextResponse.json({ error: 'Recognition failed' }, { status: 500 })
+    return NextResponse.json({ error: String(err) }, { status: 500 })
   }
 }
