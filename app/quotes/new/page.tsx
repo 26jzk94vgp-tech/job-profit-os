@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '../../../utils/supabase/client'
 import { useLanguage } from '../../../lib/i18n/LanguageContext'
 
@@ -21,7 +21,6 @@ export default function NewQuote() {
   const [importLoading, setImportLoading] = useState(false)
   const [importedItems, setImportedItems] = useState<Item[]>([])
   const [showPreview, setShowPreview] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     supabase.from('jobs').select('*').then(({ data }) => setJobs(data || []))
@@ -63,11 +62,9 @@ export default function NewQuote() {
       setShowPreview(true)
     } catch (err) {
       alert(lang === 'zh' ? '识别失败，请重试' : 'Recognition failed, please try again')
-      console.error(err)
     }
     setImportLoading(false)
-    // reset input so same file can be selected again
-    if (fileInputRef.current) fileInputRef.current.value = ''
+    e.target.value = ''
   }
 
   function handleImportConfirm() {
@@ -101,15 +98,6 @@ export default function NewQuote() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pt-12 md:pt-0">
-      {/* Hidden file input — triggered by AI Scan button */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*,application/pdf"
-        className="hidden"
-        onChange={handleFileSelect}
-      />
-
       <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700/60 px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -119,11 +107,8 @@ export default function NewQuote() {
             <span className="text-gray-300 dark:text-[#3A3A3C]">/</span>
             <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '新建报价单' : 'New Quote'}</h1>
           </div>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={importLoading}
-            className="flex items-center gap-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 px-3 py-2 rounded-xl text-sm font-medium hover:bg-purple-100 transition-colors disabled:opacity-50"
-          >
+          {/* AI Scan — label直接包裹input，iOS原生支持 */}
+          <label className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium cursor-pointer transition-colors ${importLoading ? 'bg-gray-100 dark:bg-[#3A3A3C] text-[#8E8E93]' : 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 hover:bg-purple-100'}`}>
             {importLoading ? (
               <>
                 <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
@@ -138,7 +123,14 @@ export default function NewQuote() {
                 <span>{lang === 'zh' ? 'AI 识别' : 'AI Scan'}</span>
               </>
             )}
-          </button>
+            <input
+              type="file"
+              accept="image/*,application/pdf"
+              className="sr-only"
+              onChange={handleFileSelect}
+              disabled={importLoading}
+            />
+          </label>
         </div>
       </nav>
 
@@ -156,9 +148,9 @@ export default function NewQuote() {
             <div className="space-y-2 max-h-48 overflow-y-auto mb-3">
               {importedItems.map((item, i) => (
                 <div key={i} className="bg-white dark:bg-[#2C2C2E] rounded-xl px-3 py-2 flex justify-between items-center">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[200px]">{item.description}</p>
-                    <div className="flex gap-1 mt-0.5 flex-wrap">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{item.description}</p>
+                    <div className="flex gap-1 mt-0.5">
                       {item.item_group && <span className="text-xs text-purple-600 dark:text-purple-300">{item.item_group}</span>}
                       {item.area && <span className="text-xs text-[#8E8E93]">· {item.area}</span>}
                       {item.unit && <span className="text-xs text-[#8E8E93]">· {item.quantity}{item.unit}</span>}
@@ -205,11 +197,9 @@ export default function NewQuote() {
                 <button onClick={() => addItem()} className="text-xs bg-blue-100 dark:bg-[#0A84FF]/20 text-blue-600 dark:text-[#0A84FF] px-2 py-1 rounded-lg hover:bg-blue-200 dark:hover:bg-[#0A84FF]/30 transition-colors">+ {lang === 'zh' ? '条目' : 'Item'}</button>
               </div>
             </div>
-
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/40 rounded-xl p-3 mb-3">
               <p className="text-yellow-800 dark:text-yellow-300 text-xs">💡 {lang === 'zh' ? '成本价仅自己可见，不会出现在报价单中' : 'Cost price is private — not shown on the quote'}</p>
             </div>
-
             {[...new Set(['', ...items.map(i => i.item_group || '')])].map(group => {
               const groupItems = items.filter(i => (i.item_group || '') === group)
               if (groupItems.length === 0) return null
