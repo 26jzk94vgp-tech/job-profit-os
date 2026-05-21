@@ -92,7 +92,7 @@ export default function Home() {
 
   // Stat card — 手机横条，桌面竖排
   const StatCard = ({ label, value, sub, valueClass = 'text-gray-900 dark:text-white' }: { label: string, value: string, sub?: React.ReactNode, valueClass?: string }) => (
-    <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent p-4 flex md:block items-center justify-between gap-3">
+    <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent p-4">
       <p className="text-[12px] font-medium text-[#8E8E93] uppercase tracking-wide shrink-0">{label}</p>
       <div className="text-right md:text-left md:mt-1">
         <p className={`text-[28px] md:text-[34px] font-bold leading-tight ${valueClass}`}>{value}</p>
