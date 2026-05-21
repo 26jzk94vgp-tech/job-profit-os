@@ -78,7 +78,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
       </nav>
 
       <main className="max-w-4xl mx-auto px-6 pt-16 pb-8 md:pt-8">
-        <div className="md:hidden flex items-center justify-between mb-4 pt-2">
+        <div className="md:hidden flex items-center justify-between mb-4 mt-8">
           <div className="flex items-center gap-2">
             <Link href="/" className="text-gray-500 text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>
             <h1 className="font-semibold text-gray-900">{job.name}</h1>
