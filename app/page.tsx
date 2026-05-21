@@ -289,7 +289,7 @@ export default function Home() {
           )}
 
           <div className="divide-y divide-gray-100 dark:divide-[#3A3A3C]">
-            {sortJobs(jobs.filter((j: any) => ['active', 'paused'].includes(j.status))).map((job: any) => {
+            {sortJobs(jobs.filter((j: any) => ['active', 'paused', 'cancelled'].includes(j.status))).map((job: any) => {
               const profit = Number(job.profit); const isSelected = selected.has(job.id)
               return (
                 <div key={job.id} className={`flex items-center px-6 py-4 transition-colors ${isSelected ? 'bg-blue-50 dark:bg-[#0A84FF]/10' : 'hover:bg-gray-50 dark:hover:bg-[#3A3A3C]'}`}>
