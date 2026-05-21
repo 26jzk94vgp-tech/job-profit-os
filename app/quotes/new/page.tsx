@@ -290,18 +290,19 @@ export default function NewQuote() {
               {importStep === 'upload' && (
                 <>
                   {/* 用 label 包裹 input，iOS Safari 兼容 */}
-                  <label className={`block border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors ${importFile ? 'border-purple-400 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-[#3A3A3C]'}`}>
-                    {importPreview ? (
-                      <img src={importPreview} alt="preview" className="max-h-40 mx-auto rounded-xl object-contain mb-3" />
-                    ) : (
-                      <div className="text-4xl mb-3">{importFile ? '📄' : '📁'}</div>
-                    )}
-                    <p className="font-medium text-gray-900 dark:text-white text-sm">
-                      {importFile ? importFile.name : (lang === 'zh' ? '点击上传图片或PDF' : 'Tap to upload image or PDF')}
+                  <div className={`border-2 border-dashed rounded-2xl p-6 text-center transition-colors ${importFile ? 'border-purple-400 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-[#3A3A3C]'}`}>
+                    {importPreview && <img src={importPreview} alt="preview" className="max-h-40 mx-auto rounded-xl object-contain mb-3" />}
+                    <div className="text-4xl mb-2">{importFile ? '📄' : '📁'}</div>
+                    <p className="font-medium text-gray-900 dark:text-white text-sm mb-3">
+                      {importFile ? importFile.name : (lang === 'zh' ? '选择图片或PDF' : 'Select image or PDF')}
                     </p>
-                    {!importFile && <p className="text-[#8E8E93] text-xs mt-1">JPG · PNG · PDF</p>}
-                    <input type="file" accept="image/*,application/pdf" className="hidden" onChange={handleFileSelect} />
-                  </label>
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf"
+                      className="w-full text-sm text-[#8E8E93] file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-purple-100 file:text-purple-700 dark:file:bg-purple-900/40 dark:file:text-purple-300"
+                      onChange={handleFileSelect}
+                    />
+                  </div>
 
                   {importFile && (
                     <button onClick={handleRecognize} disabled={importLoading} className="w-full bg-purple-600 hover:bg-purple-500 text-white py-3.5 rounded-2xl font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
