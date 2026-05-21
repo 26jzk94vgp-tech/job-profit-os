@@ -14,7 +14,16 @@ export default function Reports() {
   const [endDate, setEndDate] = useState('')
 
   useEffect(() => {
-    supabase.from('job_entries').select('*, jobs(name)').order('created_at', { ascending: false }).then(({ data }: { data: any }) => setEntries(data || []))
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data } = await supabase
+        .from('job_entries')
+        .select('*, jobs(name)')
+        .eq('owner_id', user?.id)
+        .order('created_at', { ascending: false })
+      setEntries(data || [])
+    }
+    load()
   }, [])
 
   const quarters = [
@@ -78,7 +87,6 @@ export default function Reports() {
     other_expense: { en: 'Other Expense', zh: '其他支出' },
   }
 
-  // ── Export CSV ──
   function exportCSV() {
     const periodLabel = filterType === 'all'
       ? (lang === 'zh' ? '全部时间' : 'All Time')
@@ -89,50 +97,32 @@ export default function Reports() {
     const lines: string[] = []
     const escape = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`
 
-    // Header info
     lines.push(`${escape(lang === 'zh' ? '税务报告' : 'Tax Report')},${escape(periodLabel)}`)
     lines.push(`${escape(lang === 'zh' ? '生成日期' : 'Generated')},${escape(new Date().toLocaleDateString('en-AU'))}`)
     lines.push('')
-
-    // GST Summary
     lines.push(escape(lang === 'zh' ? 'GST 汇总（商品及服务税）' : 'GST (Goods and Services Tax) Summary'))
     lines.push([escape(lang === 'zh' ? '项目' : 'Item'), escape(lang === 'zh' ? '金额' : 'Amount')].join(','))
     lines.push([escape(lang === 'zh' ? '已收 GST（来自发票）' : 'GST Collected (from invoices)'), escape(`$${gstCollected.toFixed(2)}`)].join(','))
     lines.push([escape(lang === 'zh' ? '已付 GST（进项税抵扣）' : 'GST Paid (input tax credits)'), escape(`-$${gstPaid.toFixed(2)}`)].join(','))
     lines.push([escape(lang === 'zh' ? `净 GST ${netGst >= 0 ? '（应缴）' : '（退税）'}` : `Net GST ${netGst >= 0 ? '(payable)' : '(refund)'}`), escape(`$${Math.abs(netGst).toFixed(2)}`)].join(','))
     lines.push('')
-
-    // ATO Category Breakdown
-    lines.push(escape(lang === 'zh' ? 'ATO 税务分类明细（澳洲税务局）' : 'ATO (Australian Taxation Office) Category Breakdown'))
+    lines.push(escape(lang === 'zh' ? '税务分类明细' : 'Tax Category Breakdown'))
     lines.push([escape(lang === 'zh' ? '分类' : 'Category'), escape(lang === 'zh' ? '金额' : 'Amount')].join(','))
-
-    // Income
     Object.entries(categoryTotals).filter(([cat]) => cat === 'other_income').forEach(([cat, total]) => {
-      const label = lang === 'zh' ? categoryLabels[cat]?.zh : categoryLabels[cat]?.en || cat
-      lines.push([escape(label), escape(`$${total.toLocaleString()}`)].join(','))
+      lines.push([escape(lang === 'zh' ? categoryLabels[cat]?.zh : categoryLabels[cat]?.en || cat), escape(`$${total.toLocaleString()}`)].join(','))
     })
-
-    // Expenses
     Object.entries(categoryTotals).filter(([cat]) => cat !== 'other_income').forEach(([cat, total]) => {
-      const label = lang === 'zh' ? categoryLabels[cat]?.zh : categoryLabels[cat]?.en || cat
-      lines.push([escape(label), escape(`-$${total.toLocaleString()}`)].join(','))
+      lines.push([escape(lang === 'zh' ? categoryLabels[cat]?.zh : categoryLabels[cat]?.en || cat), escape(`-$${total.toLocaleString()}`)].join(','))
     })
-
-    // Taxable profit
-    const taxableProfit = (categoryTotals['other_income'] || 0) -
-      Object.entries(categoryTotals).filter(([cat]) => cat !== 'other_income').reduce((sum, [, v]) => sum + v, 0)
+    const taxableProfit = (categoryTotals['other_income'] || 0) - Object.entries(categoryTotals).filter(([cat]) => cat !== 'other_income').reduce((sum, [, v]) => sum + v, 0)
     lines.push('')
     lines.push([escape(lang === 'zh' ? '应税利润' : 'Taxable Profit'), escape(`$${taxableProfit.toLocaleString()}`)].join(','))
     lines.push('')
-    lines.push(escape(lang === 'zh' ? '* 本报告仅供参考，提交申报前请咨询注册税务代理或 CPA（注册会计师）。' : '* For reference only. Consult a registered tax agent or CPA before lodging.'))
+    lines.push(escape(lang === 'zh' ? '* 本报告仅供参考，提交申报前请咨询注册税务代理或 CPA。' : '* For reference only. Consult a registered tax agent or CPA before lodging.'))
 
-    const csv = lines.join('\n')
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+    const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `tax-report-${new Date().toISOString().split('T')[0]}.csv`
-    a.click()
+    const a = document.createElement('a'); a.href = url; a.download = `tax-report-${new Date().toISOString().split('T')[0]}.csv`; a.click()
     URL.revokeObjectURL(url)
   }
 
@@ -244,7 +234,7 @@ export default function Reports() {
           </div>
         </div>
 
-        {/* ATO Category Breakdown */}
+        {/* Category Breakdown */}
         <div className={cardCls}>
           <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C]">
             <h2 className="font-semibold text-gray-900 dark:text-white">
@@ -266,32 +256,24 @@ export default function Reports() {
             </div>
             {Object.entries(categoryTotals).filter(([cat]) => cat === 'other_income').map(([cat, total]) => (
               <div key={cat} className="px-6 py-4 flex justify-between items-center">
-                <p className="font-medium text-gray-900 dark:text-[#F2F2F7]">
-                  {lang === 'zh' ? categoryLabels[cat]?.zh : categoryLabels[cat]?.en || cat}
-                </p>
+                <p className="font-medium text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? categoryLabels[cat]?.zh : categoryLabels[cat]?.en || cat}</p>
                 <span className="font-semibold text-[#30D158]">${total.toLocaleString()}</span>
               </div>
             ))}
             {Object.entries(categoryTotals).filter(([cat]) => cat === 'other_income').length === 0 && (
-              <div className="px-6 py-3 text-[#8E8E93] text-sm italic">
-                {lang === 'zh' ? '无收入记录' : 'No income recorded'}
-              </div>
+              <div className="px-6 py-3 text-[#8E8E93] text-sm italic">{lang === 'zh' ? '无收入记录' : 'No income recorded'}</div>
             )}
             <div className="px-6 py-3 bg-red-50 dark:bg-[#2C1A1A]">
               <p className="text-xs font-bold text-red-700 dark:text-[#FF453A] uppercase tracking-wider">📤 {lang === 'zh' ? '支出' : 'Expenses'}</p>
             </div>
             {Object.entries(categoryTotals).filter(([cat]) => cat !== 'other_income').map(([cat, total]) => (
               <div key={cat} className="px-6 py-4 flex justify-between items-center">
-                <p className="font-medium text-gray-900 dark:text-[#F2F2F7]">
-                  {lang === 'zh' ? categoryLabels[cat]?.zh : categoryLabels[cat]?.en || cat}
-                </p>
+                <p className="font-medium text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? categoryLabels[cat]?.zh : categoryLabels[cat]?.en || cat}</p>
                 <span className="font-semibold text-[#FF453A]">-${total.toLocaleString()}</span>
               </div>
             ))}
             {Object.entries(categoryTotals).filter(([cat]) => cat !== 'other_income').length === 0 && (
-              <div className="px-6 py-3 text-[#8E8E93] text-sm italic">
-                {lang === 'zh' ? '无支出记录' : 'No expenses recorded'}
-              </div>
+              <div className="px-6 py-3 text-[#8E8E93] text-sm italic">{lang === 'zh' ? '无支出记录' : 'No expenses recorded'}</div>
             )}
             {Object.keys(categoryTotals).length > 0 && (
               <div className="px-6 py-4 flex justify-between items-center bg-gray-50 dark:bg-[#1C1C1E]">
