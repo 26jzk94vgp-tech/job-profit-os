@@ -50,7 +50,7 @@ export default function Clients() {
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-4 pt-14 pb-8 md:pt-8">
+      <main className="max-w-4xl mx-auto px-4 pt-16 pb-8 md:pt-8">
         <div className="md:hidden flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <Link href="/" className="text-[#8E8E93] text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>

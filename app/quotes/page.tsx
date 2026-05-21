@@ -25,7 +25,7 @@ export default function Quotes() {
           <Link href="/quotes/new" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ {lang === 'zh' ? '新建报价单' : 'New Quote'}</Link>
         </div>
       </nav>
-      <main className="max-w-4xl mx-auto px-6 pt-14 pb-8 md:pt-8">
+      <main className="max-w-4xl mx-auto px-6 pt-16 pb-8 md:pt-8">
         <div className="md:hidden flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Link href="/" className="text-gray-500 text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>

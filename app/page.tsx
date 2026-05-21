@@ -122,7 +122,7 @@ export default function Home() {
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-4 pt-14 pb-8 md:pt-8 space-y-6">
+      <main className="max-w-4xl mx-auto px-4 pt-16 pb-8 md:pt-8 space-y-6">
         {/* Header */}
         <div>
           <h1 className="text-[28px] md:text-[34px] font-bold tracking-tight text-gray-900 dark:text-white leading-tight">{t.dashboard}</h1>
