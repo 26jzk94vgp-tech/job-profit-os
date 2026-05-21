@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '../../../utils/supabase/client'
 import { useLanguage } from '../../../lib/i18n/LanguageContext'
 
@@ -18,13 +18,10 @@ export default function NewQuote() {
   const [scopeOfWork, setScopeOfWork] = useState('')
   const [items, setItems] = useState<Item[]>([{ description: '', area: '', item_type: '', item_group: '', quantity: '1', unit: '', unit_price: '', cost_price: '' }])
   const [loading, setLoading] = useState(false)
-
-  const [showImport, setShowImport] = useState(false)
-  const [importFile, setImportFile] = useState<File | null>(null)
-  const [importPreview, setImportPreview] = useState<string | null>(null)
   const [importLoading, setImportLoading] = useState(false)
   const [importedItems, setImportedItems] = useState<Item[]>([])
-  const [importStep, setImportStep] = useState<'upload' | 'preview'>('upload')
+  const [showPreview, setShowPreview] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     supabase.from('jobs').select('*').then(({ data }) => setJobs(data || []))
@@ -43,61 +40,40 @@ export default function NewQuote() {
   const areaOptions = ['Bath', 'Ensuite', 'PWC', 'Kitchen', 'Laundry', 'Alfresco', 'Living', 'General']
   const typeOptions = ['Tile', 'Floor', 'Wall', 'Floor&Wall', 'Waterproofing', 'General Items', 'Labour']
 
-  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    setImportFile(file)
-    if (file.type.startsWith('image/')) {
-      const reader = new FileReader()
-      reader.onload = (ev) => setImportPreview(ev.target?.result as string)
-      reader.readAsDataURL(file)
-    } else {
-      setImportPreview(null)
-    }
-  }
-
-  async function handleRecognize() {
-    if (!importFile) return
     setImportLoading(true)
     try {
       const reader = new FileReader()
       const base64 = await new Promise<string>((res, rej) => {
         reader.onload = (ev) => res((ev.target?.result as string).split(',')[1])
         reader.onerror = rej
-        reader.readAsDataURL(importFile)
+        reader.readAsDataURL(file)
       })
       const response = await fetch('/api/ai-scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ base64, mediaType: importFile.type })
+        body: JSON.stringify({ base64, mediaType: file.type })
       })
       const data = await response.json()
       const parsed: Item[] = data.items
       if (!parsed || parsed.length === 0) throw new Error('No items found')
       setImportedItems(parsed)
-      setImportStep('preview')
+      setShowPreview(true)
     } catch (err) {
       alert(lang === 'zh' ? '识别失败，请重试' : 'Recognition failed, please try again')
       console.error(err)
     }
     setImportLoading(false)
+    // reset input so same file can be selected again
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   function handleImportConfirm() {
     const currentItems = items.filter(i => i.description || i.unit_price)
     setItems([...currentItems, ...importedItems])
-    setShowImport(false)
-    setImportStep('upload')
-    setImportFile(null)
-    setImportPreview(null)
-    setImportedItems([])
-  }
-
-  function closeImport() {
-    setShowImport(false)
-    setImportStep('upload')
-    setImportFile(null)
-    setImportPreview(null)
+    setShowPreview(false)
     setImportedItems([])
   }
 
@@ -125,6 +101,15 @@ export default function NewQuote() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pt-12 md:pt-0">
+      {/* Hidden file input — triggered by AI Scan button */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,application/pdf"
+        className="hidden"
+        onChange={handleFileSelect}
+      />
+
       <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700/60 px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -135,18 +120,61 @@ export default function NewQuote() {
             <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '新建报价单' : 'New Quote'}</h1>
           </div>
           <button
-            onClick={() => setShowImport(true)}
-            className="flex items-center gap-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 px-3 py-2 rounded-xl text-sm font-medium hover:bg-purple-100 transition-colors"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importLoading}
+            className="flex items-center gap-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 px-3 py-2 rounded-xl text-sm font-medium hover:bg-purple-100 transition-colors disabled:opacity-50"
           >
-            <span>📷</span>
-            <span>{lang === 'zh' ? 'AI 识别' : 'AI Scan'}</span>
+            {importLoading ? (
+              <>
+                <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+                <span>{lang === 'zh' ? '识别中...' : 'Scanning...'}</span>
+              </>
+            ) : (
+              <>
+                <span>📷</span>
+                <span>{lang === 'zh' ? 'AI 识别' : 'AI Scan'}</span>
+              </>
+            )}
           </button>
         </div>
       </nav>
 
       <main className="max-w-3xl mx-auto px-4 py-6">
-        <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-5">
+        {/* AI Preview banner */}
+        {showPreview && importedItems.length > 0 && (
+          <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/40 rounded-2xl p-4 mb-5">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="font-semibold text-purple-800 dark:text-purple-300">✅ {lang === 'zh' ? `识别到 ${importedItems.length} 个条目` : `Found ${importedItems.length} items`}</p>
+                <p className="text-purple-600 dark:text-purple-400 text-xs mt-0.5">{lang === 'zh' ? '确认后导入到报价单' : 'Confirm to add to quote'}</p>
+              </div>
+              <button onClick={() => setShowPreview(false)} className="text-purple-400 text-sm">✕</button>
+            </div>
+            <div className="space-y-2 max-h-48 overflow-y-auto mb-3">
+              {importedItems.map((item, i) => (
+                <div key={i} className="bg-white dark:bg-[#2C2C2E] rounded-xl px-3 py-2 flex justify-between items-center">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[200px]">{item.description}</p>
+                    <div className="flex gap-1 mt-0.5 flex-wrap">
+                      {item.item_group && <span className="text-xs text-purple-600 dark:text-purple-300">{item.item_group}</span>}
+                      {item.area && <span className="text-xs text-[#8E8E93]">· {item.area}</span>}
+                      {item.unit && <span className="text-xs text-[#8E8E93]">· {item.quantity}{item.unit}</span>}
+                    </div>
+                  </div>
+                  {item.unit_price && <p className="text-sm font-semibold text-[#30D158] shrink-0 ml-2">${Number(item.unit_price).toLocaleString()}</p>}
+                </div>
+              ))}
+            </div>
+            <button onClick={handleImportConfirm} className="w-full bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-xl font-semibold transition-colors">
+              {lang === 'zh' ? `✨ 导入 ${importedItems.length} 个条目` : `✨ Import ${importedItems.length} items`}
+            </button>
+          </div>
+        )}
 
+        <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '客户名称' : 'Client Name'}</label>
@@ -263,114 +291,6 @@ export default function NewQuote() {
           </button>
         </div>
       </main>
-
-      {/* AI Import Sheet */}
-      {showImport && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={closeImport} />
-          <div className="relative bg-white dark:bg-[#1C1C1E] rounded-t-3xl shadow-2xl max-h-[75vh] mb-20 md:mb-0 overflow-y-auto">
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 bg-gray-300 dark:bg-[#3A3A3C] rounded-full" />
-            </div>
-            <div className="px-6 pb-10 pt-2 space-y-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="font-semibold text-gray-900 dark:text-white text-lg">
-                    {importStep === 'upload' ? (lang === 'zh' ? '📷 AI 识别报价单' : '📷 AI Quote Scan') : (lang === 'zh' ? '✅ 识别结果' : '✅ Recognition Result')}
-                  </h2>
-                  <p className="text-[#8E8E93] text-sm mt-0.5">
-                    {importStep === 'upload'
-                      ? (lang === 'zh' ? '上传图片或PDF，自动识别条目' : 'Upload image or PDF to auto-extract items')
-                      : (lang === 'zh' ? `识别到 ${importedItems.length} 个条目` : `Found ${importedItems.length} items`)}
-                  </p>
-                </div>
-                <button onClick={closeImport} className="w-8 h-8 bg-gray-100 dark:bg-[#3A3A3C] rounded-full flex items-center justify-center text-[#8E8E93]">✕</button>
-              </div>
-
-              {importStep === 'upload' && (
-                <>
-                  {/* 预览区 */}
-                  {importPreview && (
-                    <img src={importPreview} alt="preview" className="max-h-40 mx-auto rounded-xl object-contain" />
-                  )}
-                  {importFile && !importPreview && (
-                    <div className="bg-gray-50 dark:bg-[#2C2C2E] rounded-2xl p-4 text-center">
-                      <div className="text-3xl mb-1">📄</div>
-                      <p className="text-sm text-gray-600 dark:text-[#8E8E93] truncate">{importFile.name}</p>
-                    </div>
-                  )}
-
-                  {/* 原生 file input — 直接显示，iOS Safari 兼容 */}
-                  <div className="space-y-3">
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {lang === 'zh' ? '选择文件' : 'Select file'}
-                    </p>
-                    <input
-                      type="file"
-                      accept="image/*,application/pdf"
-                      
-                      onChange={handleFileSelect}
-                      className="block w-full text-sm text-gray-500 dark:text-[#8E8E93]
-                        file:mr-3 file:py-3 file:px-6
-                        file:rounded-xl file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-purple-600 file:text-white
-                        hover:file:bg-purple-500
-                        file:cursor-pointer cursor-pointer"
-                    />
-                  </div>
-
-                  {importFile && (
-                    <button onClick={handleRecognize} disabled={importLoading} className="w-full bg-purple-600 hover:bg-purple-500 text-white py-3.5 rounded-2xl font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
-                      {importLoading ? (
-                        <>
-                          <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                          </svg>
-                          {lang === 'zh' ? 'AI 识别中...' : 'Recognizing...'}
-                        </>
-                      ) : (lang === 'zh' ? '✨ 开始识别' : '✨ Recognize')}
-                    </button>
-                  )}
-                </>
-              )}
-
-              {importStep === 'preview' && (
-                <>
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
-                    {importedItems.map((item, i) => (
-                      <div key={i} className="bg-gray-50 dark:bg-[#2C2C2E] rounded-2xl p-4">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 dark:text-white text-sm truncate">{item.description}</p>
-                            <div className="flex gap-2 mt-1 flex-wrap">
-                              {item.item_group && <span className="text-xs bg-blue-100 dark:bg-[#0A84FF]/20 text-blue-600 dark:text-[#0A84FF] px-2 py-0.5 rounded-full">{item.item_group}</span>}
-                              {item.area && <span className="text-xs bg-gray-100 dark:bg-[#3A3A3C] text-[#8E8E93] px-2 py-0.5 rounded-full">{item.area}</span>}
-                              {item.unit && <span className="text-xs text-[#8E8E93]">×{item.quantity} {item.unit}</span>}
-                            </div>
-                          </div>
-                          <div className="text-right ml-3 shrink-0">
-                            {item.unit_price && <p className="font-semibold text-[#30D158]">${Number(item.unit_price).toLocaleString()}</p>}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex gap-3">
-                    <button onClick={() => { setImportStep('upload'); setImportedItems([]) }} className="flex-1 bg-gray-100 dark:bg-[#3A3A3C] text-gray-700 dark:text-[#8E8E93] py-3 rounded-2xl font-medium">
-                      {lang === 'zh' ? '重新上传' : 'Re-upload'}
-                    </button>
-                    <button onClick={handleImportConfirm} className="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-2xl font-semibold">
-                      {lang === 'zh' ? `导入 ${importedItems.length} 条` : `Import ${importedItems.length} items`}
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
