@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '../../../utils/supabase/client'
 import { useLanguage } from '../../../lib/i18n/LanguageContext'
 
@@ -19,14 +19,12 @@ export default function NewQuote() {
   const [items, setItems] = useState<Item[]>([{ description: '', area: '', item_type: '', item_group: '', quantity: '1', unit: '', unit_price: '', cost_price: '' }])
   const [loading, setLoading] = useState(false)
 
-  // AI Import
   const [showImport, setShowImport] = useState(false)
   const [importFile, setImportFile] = useState<File | null>(null)
   const [importPreview, setImportPreview] = useState<string | null>(null)
   const [importLoading, setImportLoading] = useState(false)
   const [importedItems, setImportedItems] = useState<Item[]>([])
   const [importStep, setImportStep] = useState<'upload' | 'preview'>('upload')
-  const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     supabase.from('jobs').select('*').then(({ data }) => setJobs(data || []))
@@ -68,7 +66,6 @@ export default function NewQuote() {
         reader.onerror = rej
         reader.readAsDataURL(importFile)
       })
-
       const response = await fetch('/api/ai-scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -76,7 +73,6 @@ export default function NewQuote() {
       })
       const data = await response.json()
       const parsed: Item[] = data.items
-
       if (!parsed || parsed.length === 0) throw new Error('No items found')
       setImportedItems(parsed)
       setImportStep('preview')
@@ -140,7 +136,7 @@ export default function NewQuote() {
           </div>
           <button
             onClick={() => setShowImport(true)}
-            className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 px-3 py-2 rounded-xl text-sm font-medium hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
+            className="flex items-center gap-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 px-3 py-2 rounded-xl text-sm font-medium hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
           >
             <span>📷</span>
             <span>{lang === 'zh' ? 'AI 识别' : 'AI Scan'}</span>
@@ -148,7 +144,7 @@ export default function NewQuote() {
         </div>
       </nav>
 
-      <main className="max-w-3xl mx-auto px-4 pt-12 pb-8 md:pt-8">
+      <main className="max-w-3xl mx-auto px-4 py-6">
         <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-5">
 
           <div className="grid grid-cols-2 gap-4">
@@ -285,18 +281,16 @@ export default function NewQuote() {
                   <p className="text-[#8E8E93] text-sm mt-0.5">
                     {importStep === 'upload'
                       ? (lang === 'zh' ? '上传图片或PDF，自动识别条目' : 'Upload image or PDF to auto-extract items')
-                      : (lang === 'zh' ? `识别到 ${importedItems.length} 个条目，确认后导入` : `Found ${importedItems.length} items — confirm to import`)}
+                      : (lang === 'zh' ? `识别到 ${importedItems.length} 个条目` : `Found ${importedItems.length} items`)}
                   </p>
                 </div>
-                <button onClick={closeImport} className="w-8 h-8 bg-gray-100 dark:bg-[#3A3A3C] rounded-full flex items-center justify-center text-[#8E8E93] hover:bg-gray-200 dark:hover:bg-[#48484A] transition-colors">✕</button>
+                <button onClick={closeImport} className="w-8 h-8 bg-gray-100 dark:bg-[#3A3A3C] rounded-full flex items-center justify-center text-[#8E8E93]">✕</button>
               </div>
 
               {importStep === 'upload' && (
                 <>
-                  <div
-                    onClick={() => fileRef.current?.click()}
-                    className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors ${importFile ? 'border-purple-400 dark:border-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-[#3A3A3C] hover:border-purple-400 dark:hover:border-purple-500'}`}
-                  >
+                  {/* 用 label 包裹 input，iOS Safari 兼容 */}
+                  <label className={`block border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors ${importFile ? 'border-purple-400 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-[#3A3A3C]'}`}>
                     {importPreview ? (
                       <img src={importPreview} alt="preview" className="max-h-40 mx-auto rounded-xl object-contain mb-3" />
                     ) : (
@@ -305,9 +299,9 @@ export default function NewQuote() {
                     <p className="font-medium text-gray-900 dark:text-white text-sm">
                       {importFile ? importFile.name : (lang === 'zh' ? '点击上传图片或PDF' : 'Tap to upload image or PDF')}
                     </p>
-                    {!importFile && <p className="text-[#8E8E93] text-xs mt-1">{lang === 'zh' ? '支持 JPG、PNG、PDF' : 'JPG, PNG, PDF supported'}</p>}
-                    <input ref={fileRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleFileSelect} />
-                  </div>
+                    {!importFile && <p className="text-[#8E8E93] text-xs mt-1">JPG · PNG · PDF</p>}
+                    <input type="file" accept="image/*,application/pdf" className="hidden" onChange={handleFileSelect} />
+                  </label>
 
                   {importFile && (
                     <button onClick={handleRecognize} disabled={importLoading} className="w-full bg-purple-600 hover:bg-purple-500 text-white py-3.5 rounded-2xl font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
@@ -347,10 +341,10 @@ export default function NewQuote() {
                     ))}
                   </div>
                   <div className="flex gap-3">
-                    <button onClick={() => { setImportStep('upload'); setImportedItems([]) }} className="flex-1 bg-gray-100 dark:bg-[#3A3A3C] text-gray-700 dark:text-[#8E8E93] py-3 rounded-2xl font-medium transition-colors">
+                    <button onClick={() => { setImportStep('upload'); setImportedItems([]) }} className="flex-1 bg-gray-100 dark:bg-[#3A3A3C] text-gray-700 dark:text-[#8E8E93] py-3 rounded-2xl font-medium">
                       {lang === 'zh' ? '重新上传' : 'Re-upload'}
                     </button>
-                    <button onClick={handleImportConfirm} className="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-2xl font-semibold transition-colors">
+                    <button onClick={handleImportConfirm} className="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-2xl font-semibold">
                       {lang === 'zh' ? `导入 ${importedItems.length} 条` : `Import ${importedItems.length} items`}
                     </button>
                   </div>
