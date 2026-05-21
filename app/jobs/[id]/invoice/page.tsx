@@ -26,6 +26,12 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
     supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }: { data: any }) => {
       setJob(data)
       if (data?.client_name) setToName(data.client_name)
+      if (data?.client_id) {
+        supabase.from('clients').select('address, email').eq('id', data.client_id).single().then(({ data: c }) => {
+          if (c?.address) setToAddress(c.address)
+          if (c?.email) setToEmail(c.email)
+        })
+      }
     })
     supabase.from('job_entries').select('*').eq('job_id', id).then(({ data }: { data: any }) => setEntries(data || []))
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -70,8 +76,8 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
             <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '发票编号' : 'Invoice Number'}</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} /></div>
             <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '到期日' : 'Due Date'}</label><input type="date" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={dueDate} onChange={e => setDueDate(e.target.value)} /></div>
           </div>
-          <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '客户名称 (Bill To)' : 'Bill To (Client Name)'}</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={toName} onChange={e => setToName(e.target.value)} /></div>
-          <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '工地地址' : 'Site Address'}</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" placeholder="e.g. 123 Smith St, Perth WA" value={toAddress} onChange={e => setToAddress(e.target.value)} /></div>
+          <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '客户名称 (账单送达)' : 'Client Name (Bill To)'}</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={toName} onChange={e => setToName(e.target.value)} /></div>
+          <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '客户地址' : 'Client Address'}</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" placeholder="e.g. 123 Smith St, Perth WA" value={toAddress} onChange={e => setToAddress(e.target.value)} /></div>
           <hr />
           <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '发送到客户邮箱' : 'Send to Client Email'}</label><input type="email" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" placeholder="client@email.com" value={toEmail} onChange={e => setToEmail(e.target.value)} /></div>
           {sent && <p className="text-green-600 text-sm">✅ {lang === 'zh' ? '发票已发送！' : 'Invoice sent!'}</p>}
@@ -110,7 +116,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
           </div>
         </div>
 
-        {/* Payment Details — moved above Bill To */}
+        {/* Payment Details */}
         {profile?.account_name && (
           <div className="mb-4 bg-blue-50 rounded-lg p-4">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{lang === 'zh' ? '付款信息' : 'Payment Details'}</p>
@@ -121,11 +127,11 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
           </div>
         )}
 
-        {/* Bill To — moved below Payment Details */}
+        {/* Bill To */}
         <div className="mb-6 bg-gray-50 rounded-lg p-4">
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{lang === 'zh' ? '账单送达' : 'Bill To'}</p>
           {toName && <p className="text-sm text-gray-700"><span className="text-gray-400">{lang === 'zh' ? '客户名称: ' : 'Client Name: '}</span><span className="font-semibold text-gray-900">{toName}</span></p>}
-          {toAddress && <p className="text-sm text-gray-700 mt-1"><span className="text-gray-400">{lang === 'zh' ? '地址: ' : 'Address: '}</span><span className="font-medium">{toAddress}</span></p>}
+          {toAddress && <p className="text-sm text-gray-700 mt-1"><span className="text-gray-400">{lang === 'zh' ? '客户地址: ' : 'Address: '}</span><span className="font-medium">{toAddress}</span></p>}
           {!toName && !toAddress && <p className="text-sm text-gray-400 italic">{lang === 'zh' ? '请在上方填写客户名称和地址' : 'Please fill in client name and address above'}</p>}
         </div>
 
