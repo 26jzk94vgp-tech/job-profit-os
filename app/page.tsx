@@ -130,7 +130,7 @@ export default function Home() {
         </div>
 
         {/* Stats — 手机单列横条，桌面3列 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <StatCard
             label={lang === 'zh' ? '总工单' : 'Total Jobs'}
             value={String(jobs.length)}
@@ -162,7 +162,7 @@ export default function Home() {
             label={lang === 'zh' ? '坏账风险' : 'Bad Debt Risk'}
             value={`$${badDebts.filter(e => e.days_overdue > 90).reduce((sum: number, e: any) => sum + Number(e.amount), 0).toLocaleString()}`}
             sub={`${badDebts.filter(e => e.days_overdue > 90).length} ${lang === 'zh' ? '张逾期90天+' : 'invoices 90d+'}`}
-            valueClass="text-[#FF453A]"
+            valueClass={badDebts.filter(e => e.days_overdue > 90).reduce((sum: number, e: any) => sum + Number(e.amount), 0) > 0 ? "text-[#FF453A]" : "text-gray-900 dark:text-white"}
           />
         </div>
 
@@ -171,7 +171,7 @@ export default function Home() {
           <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📊</span>
-              <p className="text-white font-medium text-sm">{lang === 'zh' ? '📷 新功能：拍照识别报价单，成交自动建工单' : '📷 New: Scan quotes with AI, auto-create jobs when won'}</p>
+              <p className="text-white font-medium text-sm">{lang === 'zh' ? '📷 新功能：AI识别报价单，成交自动建工单' : '📷 AI Scan quotes · Auto-create jobs when won'}</p>
             </div>
             <div className="flex items-center gap-3">
               <a href="/quotes/new" className="bg-white text-green-600 text-xs font-semibold px-3 py-1.5 rounded-xl">{lang === 'zh' ? '立即试用 →' : 'Try it →'}</a>
