@@ -45,7 +45,6 @@ export default function NewQuote() {
   const areaOptions = ['Bath', 'Ensuite', 'PWC', 'Kitchen', 'Laundry', 'Alfresco', 'Living', 'General']
   const typeOptions = ['Tile', 'Floor', 'Wall', 'Floor&Wall', 'Waterproofing', 'General Items', 'Labour']
 
-  // Handle file select
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -59,7 +58,6 @@ export default function NewQuote() {
     }
   }
 
-  // Call Claude API to recognize quote
   async function handleRecognize() {
     if (!importFile) return
     setImportLoading(true)
@@ -71,47 +69,15 @@ export default function NewQuote() {
         reader.readAsDataURL(importFile)
       })
 
-      const isImage = importFile.type.startsWith('image/')
-      const isPdf = importFile.type === 'application/pdf'
-
-      const contentBlock = isImage
-        ? { type: 'image', source: { type: 'base64', media_type: importFile.type, data: base64 } }
-        : { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } }
-
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/api/ai-scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          messages: [{
-            role: 'user',
-            content: [
-              contentBlock,
-              {
-                type: 'text',
-                text: `Extract all quote line items from this document. Return ONLY a JSON array, no markdown, no explanation.
-Each item must have these fields:
-- description (string): item name/description
-- area (string): one of Bath/Ensuite/PWC/Kitchen/Laundry/Alfresco/Living/General or empty
-- item_type (string): one of Tile/Floor/Wall/Floor&Wall/Waterproofing/General Items/Labour or empty
-- item_group (string): group name like "Floors & Walls", "Waterproofing", "General Items", "Labour" or empty
-- quantity (string): number as string, default "1"
-- unit (string): m2/Lm/Each/etc or empty
-- unit_price (string): sell price as string, empty if not found
-- cost_price (string): always empty ""
-
-Example: [{"description":"600x300 TILES BATH","area":"Bath","item_type":"Floor&Wall","item_group":"Floors & Walls","quantity":"1","unit":"m2","unit_price":"3500","cost_price":""}]`
-              }
-            ]
-          }]
-        })
+        body: JSON.stringify({ base64, mediaType: importFile.type })
       })
-
       const data = await response.json()
-      const text = data.content?.find((c: any) => c.type === 'text')?.text || '[]'
-      const clean = text.replace(/```json|```/g, '').trim()
-      const parsed: Item[] = JSON.parse(clean)
+      const parsed: Item[] = data.items
+
+      if (!parsed || parsed.length === 0) throw new Error('No items found')
       setImportedItems(parsed)
       setImportStep('preview')
     } catch (err) {
@@ -122,7 +88,6 @@ Example: [{"description":"600x300 TILES BATH","area":"Bath","item_type":"Floor&W
   }
 
   function handleImportConfirm() {
-    // Remove empty default item if it's blank
     const currentItems = items.filter(i => i.description || i.unit_price)
     setItems([...currentItems, ...importedItems])
     setShowImport(false)
@@ -173,7 +138,6 @@ Example: [{"description":"600x300 TILES BATH","area":"Bath","item_type":"Floor&W
             <span className="text-gray-300 dark:text-[#3A3A3C]">/</span>
             <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '新建报价单' : 'New Quote'}</h1>
           </div>
-          {/* AI Import button */}
           <button
             onClick={() => setShowImport(true)}
             className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 px-3 py-2 rounded-xl text-sm font-medium hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
@@ -187,7 +151,6 @@ Example: [{"description":"600x300 TILES BATH","area":"Bath","item_type":"Floor&W
       <main className="max-w-3xl mx-auto px-4 py-8">
         <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-5">
 
-          {/* Client + Job */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '客户名称' : 'Client Name'}</label>
@@ -208,7 +171,6 @@ Example: [{"description":"600x300 TILES BATH","area":"Bath","item_type":"Floor&W
             </div>
           </div>
 
-          {/* Items */}
           <div>
             <div className="mb-3">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">{lang === 'zh' ? '报价条目' : 'Quote Items'}</label>
@@ -271,7 +233,6 @@ Example: [{"description":"600x300 TILES BATH","area":"Bath","item_type":"Floor&W
             })}
           </div>
 
-          {/* Totals */}
           <div className="bg-gray-50 dark:bg-[#1C1C1E] rounded-2xl p-4 space-y-2">
             <div className="flex justify-between">
               <span className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '报价总额' : 'Quote Total'}</span>
@@ -291,13 +252,11 @@ Example: [{"description":"600x300 TILES BATH","area":"Bath","item_type":"Floor&W
             )}
           </div>
 
-          {/* Scope */}
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '工程范围' : 'General Scope of Work'}</label>
             <textarea className="w-full border border-gray-200 dark:border-gray-700 rounded-xl p-3 mt-1 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none text-sm focus:ring-2 focus:ring-blue-500/40 transition resize-none" rows={4} value={scopeOfWork} onChange={e => setScopeOfWork(e.target.value)} />
           </div>
 
-          {/* Notes */}
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '备注' : 'Notes'}</label>
             <textarea className="w-full border border-gray-200 dark:border-gray-700 rounded-xl p-3 mt-1 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none resize-none focus:ring-2 focus:ring-blue-500/40 transition" rows={2} value={notes} onChange={e => setNotes(e.target.value)} />
@@ -309,27 +268,19 @@ Example: [{"description":"600x300 TILES BATH","area":"Bath","item_type":"Floor&W
         </div>
       </main>
 
-      {/* ── AI Import Sheet (Apple style bottom sheet) ── */}
+      {/* AI Import Sheet */}
       {showImport && (
         <div className="fixed inset-0 z-50 flex flex-col justify-end">
-          {/* Backdrop */}
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={closeImport} />
-
-          {/* Sheet */}
           <div className="relative bg-white dark:bg-[#1C1C1E] rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto">
-            {/* Handle */}
             <div className="flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 bg-gray-300 dark:bg-[#3A3A3C] rounded-full" />
             </div>
-
             <div className="px-6 pb-10 pt-2 space-y-5">
-              {/* Header */}
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="font-semibold text-gray-900 dark:text-white text-lg">
-                    {importStep === 'upload'
-                      ? (lang === 'zh' ? '📷 AI 识别报价单' : '📷 AI Quote Scan')
-                      : (lang === 'zh' ? '✅ 识别结果' : '✅ Recognition Result')}
+                    {importStep === 'upload' ? (lang === 'zh' ? '📷 AI 识别报价单' : '📷 AI Quote Scan') : (lang === 'zh' ? '✅ 识别结果' : '✅ Recognition Result')}
                   </h2>
                   <p className="text-[#8E8E93] text-sm mt-0.5">
                     {importStep === 'upload'
@@ -337,14 +288,11 @@ Example: [{"description":"600x300 TILES BATH","area":"Bath","item_type":"Floor&W
                       : (lang === 'zh' ? `识别到 ${importedItems.length} 个条目，确认后导入` : `Found ${importedItems.length} items — confirm to import`)}
                   </p>
                 </div>
-                <button onClick={closeImport} className="w-8 h-8 bg-gray-100 dark:bg-[#3A3A3C] rounded-full flex items-center justify-center text-[#8E8E93] hover:bg-gray-200 dark:hover:bg-[#48484A] transition-colors">
-                  ✕
-                </button>
+                <button onClick={closeImport} className="w-8 h-8 bg-gray-100 dark:bg-[#3A3A3C] rounded-full flex items-center justify-center text-[#8E8E93] hover:bg-gray-200 dark:hover:bg-[#48484A] transition-colors">✕</button>
               </div>
 
               {importStep === 'upload' && (
                 <>
-                  {/* Upload zone */}
                   <div
                     onClick={() => fileRef.current?.click()}
                     className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors ${importFile ? 'border-purple-400 dark:border-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-[#3A3A3C] hover:border-purple-400 dark:hover:border-purple-500'}`}
@@ -362,11 +310,7 @@ Example: [{"description":"600x300 TILES BATH","area":"Bath","item_type":"Floor&W
                   </div>
 
                   {importFile && (
-                    <button
-                      onClick={handleRecognize}
-                      disabled={importLoading}
-                      className="w-full bg-purple-600 hover:bg-purple-500 text-white py-3.5 rounded-2xl font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
-                    >
+                    <button onClick={handleRecognize} disabled={importLoading} className="w-full bg-purple-600 hover:bg-purple-500 text-white py-3.5 rounded-2xl font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
                       {importLoading ? (
                         <>
                           <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
@@ -375,9 +319,7 @@ Example: [{"description":"600x300 TILES BATH","area":"Bath","item_type":"Floor&W
                           </svg>
                           {lang === 'zh' ? 'AI 识别中...' : 'Recognizing...'}
                         </>
-                      ) : (
-                        <>{lang === 'zh' ? '✨ 开始识别' : '✨ Recognize'}</>
-                      )}
+                      ) : (lang === 'zh' ? '✨ 开始识别' : '✨ Recognize')}
                     </button>
                   )}
                 </>
@@ -385,7 +327,6 @@ Example: [{"description":"600x300 TILES BATH","area":"Bath","item_type":"Floor&W
 
               {importStep === 'preview' && (
                 <>
-                  {/* Preview items */}
                   <div className="space-y-2 max-h-64 overflow-y-auto">
                     {importedItems.map((item, i) => (
                       <div key={i} className="bg-gray-50 dark:bg-[#2C2C2E] rounded-2xl p-4">
@@ -405,18 +346,11 @@ Example: [{"description":"600x300 TILES BATH","area":"Bath","item_type":"Floor&W
                       </div>
                     ))}
                   </div>
-
                   <div className="flex gap-3">
-                    <button
-                      onClick={() => { setImportStep('upload'); setImportedItems([]) }}
-                      className="flex-1 bg-gray-100 dark:bg-[#3A3A3C] text-gray-700 dark:text-[#8E8E93] py-3 rounded-2xl font-medium transition-colors"
-                    >
+                    <button onClick={() => { setImportStep('upload'); setImportedItems([]) }} className="flex-1 bg-gray-100 dark:bg-[#3A3A3C] text-gray-700 dark:text-[#8E8E93] py-3 rounded-2xl font-medium transition-colors">
                       {lang === 'zh' ? '重新上传' : 'Re-upload'}
                     </button>
-                    <button
-                      onClick={handleImportConfirm}
-                      className="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-2xl font-semibold transition-colors"
-                    >
+                    <button onClick={handleImportConfirm} className="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-2xl font-semibold transition-colors">
                       {lang === 'zh' ? `导入 ${importedItems.length} 条` : `Import ${importedItems.length} items`}
                     </button>
                   </div>
