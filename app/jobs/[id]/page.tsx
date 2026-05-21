@@ -204,9 +204,9 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
               <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '成本明细' : 'Cost Breakdown'}</h2>
             </div>
             <div className="divide-y divide-gray-100 dark:divide-[#3A3A3C]">
-              <div className="px-6 py-3 flex justify-between"><span className="text-gray-600 dark:text-[#8E8E93]">{lang === 'zh' ? '人工' : 'Labor'}</span><span className="text-[#FF453A]">${labor.toLocaleString()}</span></div>
-              <div className="px-6 py-3 flex justify-between"><span className="text-gray-600 dark:text-[#8E8E93]">{lang === 'zh' ? '材料' : 'Materials'}</span><span className="text-[#FF453A]">${material.toLocaleString()}</span></div>
-              <div className="px-6 py-3 flex justify-between"><span className="text-gray-600 dark:text-[#8E8E93]">{lang === 'zh' ? '分包' : 'Subcontract'}</span><span className="text-[#FF453A]">${subcontract.toLocaleString()}</span></div>
+              <div className="px-6 py-3 flex justify-between"><span className="text-gray-600 dark:text-[#8E8E93]">{lang === 'zh' ? '人工' : 'Labor'}</span><span className={labor > 0 ? "text-[#FF453A]" : "text-[#8E8E93]"}>${labor.toLocaleString()}</span></div>
+              <div className="px-6 py-3 flex justify-between"><span className="text-gray-600 dark:text-[#8E8E93]">{lang === 'zh' ? '材料' : 'Materials'}</span><span className={material > 0 ? "text-[#FF453A]" : "text-[#8E8E93]"}>${material.toLocaleString()}</span></div>
+              <div className="px-6 py-3 flex justify-between"><span className="text-gray-600 dark:text-[#8E8E93]">{lang === 'zh' ? '分包' : 'Subcontract'}</span><span className={subcontract > 0 ? "text-[#FF453A]" : "text-[#8E8E93]"}>${subcontract.toLocaleString()}</span></div>
               {fuel > 0 && <div className="px-6 py-3 flex justify-between"><span className="text-gray-600 dark:text-[#8E8E93]">{lang === 'zh' ? '车辆/油费' : 'Vehicle/Fuel'}</span><span className="text-[#FF453A]">${fuel.toLocaleString()}</span></div>}
             </div>
           </div>
