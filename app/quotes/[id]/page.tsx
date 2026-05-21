@@ -13,6 +13,7 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
   const [items, setItems] = useState<any[]>([])
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [successBanner, setSuccessBanner] = useState<{ jobId: string; deposit: number; msg: string } | null>(null)
 
   useEffect(() => {
     supabase.from('quotes').select('*, jobs(name), clients(name, address, phone, email)').eq('id', id).single().then(({ data }) => setQuote(data))
@@ -27,30 +28,85 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
     setQuote((q: any) => ({ ...q, status }))
   }
 
-  async function convertToInvoice() {
-    if (!quote?.job_id) { alert(lang === 'zh' ? '请先关联工单' : 'Please link a job first.'); return }
+  async function handleWon() {
     setLoading(true)
-    const invoiceItems = items.map(item => ({
-      job_id: quote.job_id,
-      owner_id: quote.owner_id,
-      type: 'invoice',
-      description: item.description + (item.area ? ' - ' + item.area : ''),
-      quantity: Number(item.quantity),
-      unit: item.item_unit,
-      unit_price: Number(item.unit_price),
-      amount: Number(item.quantity) * Number(item.unit_price),
-      gst_status: 'exclusive',
-      tax_category: 'other_income'
-    }))
-    const { error } = await supabase.from('job_entries').insert(invoiceItems)
-    if (error) { alert('Error: ' + error.message) } else {
+    const { data: { user } } = await supabase.auth.getUser()
+
+    try {
+      let jobId = quote.job_id
+
+      // 如果没有关联工单 → 自动创建 Client + Job
+      if (!jobId) {
+        // 1. 创建或找到 Client
+        let clientId = quote.client_id
+        if (!clientId && quote.client_name) {
+          const { data: existingClient } = await supabase
+            .from('clients')
+            .select('id')
+            .eq('owner_id', user?.id)
+            .ilike('name', quote.client_name.trim())
+            .single()
+
+          if (existingClient) {
+            clientId = existingClient.id
+          } else {
+            const { data: newClient } = await supabase
+              .from('clients')
+              .insert({ name: quote.client_name.trim(), owner_id: user?.id, address: quote.site_address || null })
+              .select('id')
+              .single()
+            clientId = newClient?.id
+          }
+        }
+
+        // 2. 创建 Job
+        const jobName = quote.job_name || quote.client_name || (lang === 'zh' ? '新工单' : 'New Job')
+        const { data: newJob, error: jobError } = await supabase
+          .from('jobs')
+          .insert({
+            name: jobName,
+            client_id: clientId || null,
+            client_name: quote.client_name || null,
+            site_address: quote.site_address || null,
+            owner_id: user?.id,
+            status: 'active'
+          })
+          .select('id')
+          .single()
+
+        if (jobError) throw new Error(jobError.message)
+        jobId = newJob.id
+
+        // 3. 把工单关联到报价单
+        await supabase.from('quotes').update({ job_id: jobId, client_id: clientId || null }).eq('id', id)
+      }
+
+      // 4. 插入 invoice 条目（每个报价条目 → 一张发票）
+      const subTotal = items.reduce((sum, item) => sum + Number(item.quantity) * Number(item.unit_price), 0)
+      const invoiceItems = items.map(item => ({
+        job_id: jobId,
+        owner_id: user?.id,
+        type: 'invoice',
+        description: item.description + (item.area ? ' - ' + item.area : ''),
+        quantity: Number(item.quantity),
+        unit: item.item_unit || item.unit || null,
+        unit_price: Number(item.unit_price),
+        amount: Number(item.quantity) * Number(item.unit_price),
+        gst_status: 'exclusive',
+        tax_category: 'other_income',
+        payment_status: 'unpaid'
+      }))
+      const { error: invoiceError } = await supabase.from('job_entries').insert(invoiceItems)
+      if (invoiceError) throw new Error(invoiceError.message)
+
+      // 5. 插入材料估算条目
       const materialItems = items.filter(i => Number(i.cost_price) > 0).map(item => ({
-        job_id: quote.job_id,
-        owner_id: quote.owner_id,
+        job_id: jobId,
+        owner_id: user?.id,
         type: 'material',
         description: item.description + (item.area ? ' - ' + item.area : ''),
         quantity: Number(item.quantity),
-        unit: item.item_unit,
+        unit: item.item_unit || item.unit || null,
         unit_price: Number(item.cost_price),
         amount: Number(item.quantity) * Number(item.cost_price),
         gst_status: 'inclusive',
@@ -58,13 +114,23 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
         notes: 'QUOTE_ESTIMATE'
       }))
       if (materialItems.length > 0) await supabase.from('job_entries').insert(materialItems)
-      await supabase.from('quotes').update({ status: 'accepted' }).eq('id', id)
+
+      // 6. 更新报价单状态为 accepted
+      await supabase.from('quotes').update({ status: 'accepted', deposit_status: 'pending' }).eq('id', id)
+
+      // 7. 显示成功 banner（含 20% 预付款提示）
+      const deposit = subTotal * 0.2
       const msg = materialItems.length > 0
-        ? (lang === 'zh' ? `报价单已转为发票！已自动导入 ${materialItems.length} 条材料估算条目。实际购买后请更新材料价格。` : `Quote converted! ${materialItems.length} material estimate(s) added. Update prices after actual purchase.`)
-        : (lang === 'zh' ? '报价单已转为发票条目！' : 'Quote converted to invoice entries!')
-      alert(msg)
-      window.location.href = '/jobs/' + quote.job_id
+        ? (lang === 'zh' ? `已自动创建工单并导入 ${invoiceItems.length} 张发票 + ${materialItems.length} 条材料估算` : `Job created! ${invoiceItems.length} invoice(s) + ${materialItems.length} material estimate(s) added`)
+        : (lang === 'zh' ? `已自动创建工单并导入 ${invoiceItems.length} 张发票` : `Job created! ${invoiceItems.length} invoice(s) added`)
+
+      setSuccessBanner({ jobId, deposit, msg })
+      setQuote((q: any) => ({ ...q, status: 'accepted', job_id: jobId }))
+
+    } catch (err: any) {
+      alert('Error: ' + err.message)
     }
+
     setLoading(false)
   }
 
@@ -81,14 +147,14 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
   const statusConfig: Record<string, { label: string; labelZh: string; color: string }> = {
     draft:    { label: 'Draft',    labelZh: '草稿',  color: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' },
     sent:     { label: 'Sent',     labelZh: '已发送', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' },
-    accepted: { label: 'Accepted', labelZh: '已接受', color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' },
+    accepted: { label: 'Accepted', labelZh: '已成交', color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' },
     declined: { label: 'Declined', labelZh: '已拒绝', color: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300' },
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
 
-      {/* ── Top control bar (screen only) ── */}
+      {/* ── Top control bar ── */}
       <div className="max-w-4xl mx-auto px-4 pt-5 pb-4 print:hidden">
 
         {/* Back + title */}
@@ -101,6 +167,28 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
             {lang === 'zh' ? '报价单详情' : 'Quote Detail'}
           </h1>
         </div>
+
+        {/* Success banner */}
+        {successBanner && (
+          <div className="mb-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/40 rounded-2xl p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-semibold text-green-800 dark:text-green-300 text-sm">🎉 {lang === 'zh' ? '成交！' : 'Won!'}</p>
+                <p className="text-green-700 dark:text-green-400 text-xs mt-0.5">{successBanner.msg}</p>
+                <div className="mt-2 bg-white dark:bg-[#2C2C2E] rounded-xl px-3 py-2 inline-block">
+                  <p className="text-xs text-[#8E8E93]">{lang === 'zh' ? '建议收取 20% 预付款' : 'Suggested 20% deposit'}</p>
+                  <p className="font-bold text-[#FF9F0A] text-base">${successBanner.deposit.toFixed(2)}</p>
+                </div>
+              </div>
+              <a
+                href={'/jobs/' + successBanner.jobId}
+                className="shrink-0 bg-green-600 hover:bg-green-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors"
+              >
+                {lang === 'zh' ? '查看工单 →' : 'View Job →'}
+              </a>
+            </div>
+          </div>
+        )}
 
         {/* Action bar */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700/60 shadow-sm px-4 py-3 flex flex-wrap items-center gap-2">
@@ -145,17 +233,27 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
             🖨️ {lang === 'zh' ? '打印/PDF' : 'Print / PDF'}
           </button>
 
-          {/* Convert to invoice */}
-          {quote.job_id && (
+          {/* 成交按钮 — 无论是否有 job_id 都显示 */}
+          {quote.status !== 'accepted' && (
             <button
-              onClick={convertToInvoice}
+              onClick={handleWon}
               disabled={loading}
-              className="px-4 py-1.5 rounded-full text-xs font-semibold bg-green-500 hover:bg-green-600 text-white disabled:opacity-50 transition-colors"
+              className="px-4 py-1.5 rounded-full text-xs font-semibold bg-[#30D158] hover:bg-green-400 text-white disabled:opacity-50 transition-colors"
             >
               {loading
-                ? (lang === 'zh' ? '转换中…' : 'Converting…')
-                : (lang === 'zh' ? '✅ 转为发票' : '✅ Convert to Invoice')}
+                ? (lang === 'zh' ? '处理中…' : 'Processing…')
+                : (lang === 'zh' ? '🎉 成交！' : '🎉 Won!')}
             </button>
+          )}
+
+          {/* 已成交 — 跳转工单 */}
+          {quote.status === 'accepted' && quote.job_id && (
+            <a
+              href={'/jobs/' + quote.job_id}
+              className="px-4 py-1.5 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-green-600 dark:text-[#30D158] transition-colors"
+            >
+              ✅ {lang === 'zh' ? '查看工单' : 'View Job'}
+            </a>
           )}
         </div>
       </div>
@@ -195,12 +293,12 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
                 <span className="text-gray-700 dark:text-gray-200">{quote.quote_date || new Date().toLocaleDateString('en-AU')}</span>
               </div>
               <div className="flex gap-3">
-                <span className="w-20 text-gray-400 dark:text-gray-500 shrink-0">{lang === 'zh' ? '类型' : 'Type'}</span>
-                <span className="text-gray-700 dark:text-gray-200">{quote.quote_type || 'Residential'}</span>
+                <span className="w-20 text-gray-400 dark:text-gray-500 shrink-0">{lang === 'zh' ? '客户' : 'Client'}</span>
+                <span className="text-gray-700 dark:text-gray-200">{quote.client_name || quote.clients?.name || '—'}</span>
               </div>
               <div className="flex gap-3">
-                <span className="w-20 text-gray-400 dark:text-gray-500 shrink-0">{lang === 'zh' ? '建筑商' : 'Builder'}</span>
-                <span className="text-gray-700 dark:text-gray-200">{quote.builder_name || '—'}</span>
+                <span className="w-20 text-gray-400 dark:text-gray-500 shrink-0">{lang === 'zh' ? '类型' : 'Type'}</span>
+                <span className="text-gray-700 dark:text-gray-200">{quote.quote_type || 'Residential'}</span>
               </div>
               <div className="flex gap-3 col-span-2">
                 <span className="w-20 text-gray-400 dark:text-gray-500 shrink-0">{lang === 'zh' ? '地址' : 'Address'}</span>
@@ -276,6 +374,11 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
               <div className="flex justify-between py-2.5 font-semibold text-base text-gray-900 dark:text-white">
                 <span>{lang === 'zh' ? '含GST总计' : 'Total Inc. GST'}</span>
                 <span className="text-blue-600 dark:text-blue-400">${totalIncGst.toFixed(2)}</span>
+              </div>
+              {/* 20% deposit hint */}
+              <div className="flex justify-between py-1.5 text-[#FF9F0A] text-xs border-t border-gray-100 dark:border-gray-800 mt-1 pt-2">
+                <span>{lang === 'zh' ? '建议预付款 (20%)' : 'Suggested Deposit (20%)'}</span>
+                <span className="font-semibold">${(subTotal * 0.2).toFixed(2)}</span>
               </div>
             </div>
           </div>
