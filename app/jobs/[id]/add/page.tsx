@@ -117,7 +117,6 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
       if (!amount || amount === '/') newErrors.amount = req
     }
 
-    // GST not required for invoice
     if (type !== 'invoice' && (!gstStatus || gstStatus === '')) newErrors.gstStatus = req
 
     setErrors(newErrors)
@@ -176,13 +175,14 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
         </div>
       </nav>
 
-      <main className="max-w-2xl mx-auto px-4 py-6">
-        <div className="md:hidden flex items-center gap-3 mb-5">
+      {/* 第10项：增加 py-8 和 mb-6 */}
+      <main className="max-w-2xl mx-auto px-4 py-8">
+        <div className="md:hidden flex items-center gap-3 mb-6">
           <button onClick={() => window.location.href = "/jobs/" + id} className="text-[#8E8E93] text-sm">← {t.back}</button>
           <h1 className="font-semibold text-gray-900 dark:text-white">{t.addEntry}</h1>
         </div>
 
-        <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-5">
+        <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-6">
 
           {/* Income / Expense */}
           <div className="flex gap-3">
@@ -217,43 +217,34 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
 
           {/* ── INVOICE (income) ── */}
           {type === 'invoice' && (
-            <div className="space-y-4">
-              {/* Description */}
+            <div className="space-y-5">
               <div>
                 <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label>
                 <input className={inputCls} placeholder={lang === 'zh' ? '例如：进度款' : 'e.g. Progress payment'} value={description} onChange={e => setDescription(e.target.value)} />
                 {errors.description && <p className={errCls}>{errors.description}</p>}
               </div>
-
-              {/* Amount */}
               <div>
                 <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.amount}</label>
                 <input type="text" className={inputCls} placeholder="e.g. 5000" value={amount} onChange={e => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />
                 {errors.amount && <p className={errCls}>{errors.amount}</p>}
               </div>
-
-              {/* Collection status */}
               <div>
                 <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.paymentStatusLabel}</label>
-                <div className="flex gap-3 mt-1">
+                <div className="flex gap-3 mt-2">
                   <button onClick={() => setPaymentStatus('unpaid')}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition ${paymentStatus === 'unpaid' ? 'bg-[#FF9F0A] text-white' : 'bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93]'}`}>
+                    className={`flex-1 py-3 rounded-xl text-sm font-medium transition ${paymentStatus === 'unpaid' ? 'bg-[#FF9F0A] text-white' : 'bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93]'}`}>
                     ⏳ {t.uncollected}
                   </button>
                   <button onClick={() => setPaymentStatus('paid')}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition ${paymentStatus === 'paid' ? 'bg-[#30D158] text-white' : 'bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93]'}`}>
+                    className={`flex-1 py-3 rounded-xl text-sm font-medium transition ${paymentStatus === 'paid' ? 'bg-[#30D158] text-white' : 'bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93]'}`}>
                     ✅ {t.collected}
                   </button>
                 </div>
               </div>
-
-              {/* Due / received date */}
               <div>
                 <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.paymentDueDate}</label>
                 <input type="date" className={inputCls} value={paymentDueDate} onChange={e => setPaymentDueDate(e.target.value)} />
               </div>
-
-              {/* ATO category */}
               <div>
                 <div className="flex items-center gap-2">
                   <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.atoCategory}</label>
@@ -278,7 +269,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
 
           {/* ── LABOR ── */}
           {type === 'labor' && (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-xl p-3 space-y-1">
                 <p className="text-blue-800 dark:text-blue-300 text-xs font-medium">💡 {lang === 'zh' ? '人工记录说明' : 'Labor Note'}</p>
                 <p className="text-blue-600 dark:text-blue-400 text-xs">{lang === 'zh' ? '• 仅用于记录支付给直接雇用工人/员工的工资' : '• Only for wages paid to directly employed workers/staff'}</p>
@@ -293,7 +284,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
 
           {/* ── MATERIAL ── */}
           {type === 'material' && (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder="e.g. Timber" value={description} onChange={e => setDescription(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}</div>
               <div className="flex gap-3">
                 <div className="flex-1"><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.quantity}</label><input type="text" className={inputCls} placeholder="e.g. 10" value={quantity} onChange={e => { setQuantity(e.target.value); validatePositive(e.target.value, 'quantity') }} />{errors.quantity && <p className={errCls}>{errors.quantity}</p>}</div>
@@ -307,7 +298,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
 
           {/* ── FUEL ── */}
           {type === 'fuel' && (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/40 rounded-xl p-3">
                 <p className="text-green-800 dark:text-green-300 text-sm font-medium">🚗 {t.fuelTitle}</p>
                 <p className="text-green-600 dark:text-green-400 text-xs mt-1">{t.fuelHint}</p>
@@ -330,7 +321,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
 
           {/* ── SUBCONTRACT ── */}
           {type === 'subcontract' && (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700/40 rounded-xl p-3 space-y-1">
                 <p className="text-orange-800 dark:text-orange-300 text-xs font-medium">💡 {lang === 'zh' ? '分包说明' : 'Subcontract Note'}</p>
                 <p className="text-orange-600 dark:text-orange-400 text-xs">{lang === 'zh' ? '• 用于支付有ABN的分包商（非直接雇员）' : '• For payments to subcontractors with their own ABN'}</p>
@@ -343,7 +334,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
 
           {/* GST + ATO (expense types only) */}
           {type !== 'invoice' && (
-            <div className="border-t border-gray-100 dark:border-[#3A3A3C] pt-4 space-y-4">
+            <div className="border-t border-gray-100 dark:border-[#3A3A3C] pt-5 space-y-5">
               <div>
                 <div className="flex items-center gap-2">
                   <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.gstStatus}</label>
@@ -401,7 +392,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
             </div>
           )}
 
-          <button onClick={handleSubmit} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-2xl font-semibold disabled:opacity-50 transition-colors">
+          <button onClick={handleSubmit} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-semibold disabled:opacity-50 transition-colors">
             {loading ? t.saving : t.save}
           </button>
         </div>

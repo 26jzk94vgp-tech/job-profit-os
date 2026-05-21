@@ -119,9 +119,10 @@ export default function NewQuote() {
         </div>
       </nav>
 
-      <main className="max-w-3xl mx-auto px-4 py-6">
+      {/* 第11项：py-8 增加呼吸感 */}
+      <main className="max-w-3xl mx-auto px-4 py-8">
         {showPreview && importedItems.length > 0 && (
-          <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/40 rounded-2xl p-4 mb-5">
+          <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/40 rounded-2xl p-4 mb-6">
             <div className="flex items-center justify-between mb-3">
               <div>
                 <p className="font-semibold text-purple-800 dark:text-purple-300">✅ {lang === 'zh' ? `识别到 ${importedItems.length} 个条目` : `Found ${importedItems.length} items`}</p>
@@ -144,14 +145,14 @@ export default function NewQuote() {
           </div>
         )}
 
-        <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-5">
+        <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-6">
 
           {/* 客户名称 */}
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '客户名称' : 'Client Name'}</label>
-            <input className={inputCls + ' mt-1'} placeholder={lang === 'zh' ? '例如：张先生' : 'e.g. John Smith'} value={clientName} onChange={e => setClientName(e.target.value)} />
+            <input className={inputCls + ' mt-1.5'} placeholder={lang === 'zh' ? '例如：张先生' : 'e.g. John Smith'} value={clientName} onChange={e => setClientName(e.target.value)} />
             {clients.length > 0 && (
-              <select className={selectCls + ' w-full mt-1'} value={clientId} onChange={e => {
+              <select className={selectCls + ' w-full mt-1.5'} value={clientId} onChange={e => {
                 setClientId(e.target.value)
                 const found = clients.find(c => c.id === e.target.value)
                 if (found) {
@@ -165,12 +166,12 @@ export default function NewQuote() {
             )}
           </div>
 
-          {/* 工单 — 可选可填 */}
+          {/* 工单 */}
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '工单名称' : 'Job Name'}</label>
-            <input className={inputCls + ' mt-1'} placeholder={lang === 'zh' ? '例如：厨房翻新' : 'e.g. Kitchen Renovation'} value={jobName} onChange={e => { setJobName(e.target.value); setJobId('') }} />
+            <input className={inputCls + ' mt-1.5'} placeholder={lang === 'zh' ? '例如：厨房翻新' : 'e.g. Kitchen Renovation'} value={jobName} onChange={e => { setJobName(e.target.value); setJobId('') }} />
             {jobs.length > 0 && (
-              <select className={selectCls + ' w-full mt-1'} value={jobId} onChange={e => {
+              <select className={selectCls + ' w-full mt-1.5'} value={jobId} onChange={e => {
                 setJobId(e.target.value)
                 const found = jobs.find(j => j.id === e.target.value)
                 if (found) setJobName(found.name)
@@ -181,12 +182,12 @@ export default function NewQuote() {
             )}
           </div>
 
-          {/* 工地地址 — 可选可填 */}
+          {/* 工地地址 */}
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '工地地址' : 'Site Address'}</label>
-            <input className={inputCls + ' mt-1'} placeholder={lang === 'zh' ? '例如：123 Smith St, Perth WA' : 'e.g. 123 Smith St, Perth WA'} value={siteAddress} onChange={e => setSiteAddress(e.target.value)} />
+            <input className={inputCls + ' mt-1.5'} placeholder={lang === 'zh' ? '例如：123 Smith St, Perth WA' : 'e.g. 123 Smith St, Perth WA'} value={siteAddress} onChange={e => setSiteAddress(e.target.value)} />
             {clients.filter(c => c.address).length > 0 && (
-              <select className={selectCls + ' w-full mt-1'} value="" onChange={e => { if (e.target.value) setSiteAddress(e.target.value) }}>
+              <select className={selectCls + ' w-full mt-1.5'} value="" onChange={e => { if (e.target.value) setSiteAddress(e.target.value) }}>
                 <option value="">{lang === 'zh' ? '或从客户地址选择...' : 'Or select from client addresses...'}</option>
                 {clients.filter(c => c.address).map(c => <option key={c.id} value={c.address}>{c.name}: {c.address}</option>)}
               </select>
@@ -195,29 +196,29 @@ export default function NewQuote() {
 
           {/* 报价条目 */}
           <div>
-            <div className="mb-3">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">{lang === 'zh' ? '报价条目' : 'Quote Items'}</label>
+            <div className="mb-4">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2.5 block">{lang === 'zh' ? '报价条目' : 'Quote Items'}</label>
               <div className="flex flex-wrap gap-2">
-                {defaultGroups.map(g => <button key={g} onClick={() => addItem(g)} className="text-xs bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93] px-2 py-1 rounded-lg hover:bg-gray-200 dark:hover:bg-[#48484A] transition-colors">+ {g}</button>)}
-                <button onClick={() => addItem()} className="text-xs bg-blue-100 dark:bg-[#0A84FF]/20 text-blue-600 dark:text-[#0A84FF] px-2 py-1 rounded-lg">+ {lang === 'zh' ? '条目' : 'Item'}</button>
+                {defaultGroups.map(g => <button key={g} onClick={() => addItem(g)} className="text-xs bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93] px-2.5 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-[#48484A] transition-colors">+ {g}</button>)}
+                <button onClick={() => addItem()} className="text-xs bg-blue-100 dark:bg-[#0A84FF]/20 text-blue-600 dark:text-[#0A84FF] px-2.5 py-1.5 rounded-lg">+ {lang === 'zh' ? '条目' : 'Item'}</button>
               </div>
             </div>
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/40 rounded-xl p-3 mb-3">
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/40 rounded-xl p-3 mb-4">
               <p className="text-yellow-800 dark:text-yellow-300 text-xs">💡 {lang === 'zh' ? '成本价仅自己可见，不会出现在报价单中' : 'Cost price is private — not shown on the quote'}</p>
             </div>
             {[...new Set(['', ...items.map(i => i.item_group || '')])].map(group => {
               const groupItems = items.filter(i => (i.item_group || '') === group)
               if (groupItems.length === 0) return null
               return (
-                <div key={group} className="mb-4">
-                  {group && <div className="bg-gray-100 dark:bg-[#3A3A3C] px-3 py-1 rounded-xl mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">📁 {group}</div>}
-                  <div className="space-y-2">
+                <div key={group} className="mb-5">
+                  {group && <div className="bg-gray-100 dark:bg-[#3A3A3C] px-3 py-1.5 rounded-xl mb-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200">📁 {group}</div>}
+                  <div className="space-y-3">
                     {groupItems.map(item => {
                       const index = items.indexOf(item)
                       const sell = Number(item.quantity) * Number(item.unit_price) || 0
                       const cost = Number(item.quantity) * Number(item.cost_price) || 0
                       return (
-                        <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-2xl p-3 space-y-2 bg-white dark:bg-gray-800">
+                        <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-2xl p-4 space-y-3 bg-white dark:bg-gray-800">
                           <div className="flex justify-between items-center">
                             <span className="text-[#8E8E93] text-xs">#{index + 1} {item.item_group && <span className="bg-blue-100 dark:bg-[#0A84FF]/20 text-blue-600 dark:text-[#0A84FF] px-1 rounded text-xs">{item.item_group}</span>}</span>
                             {items.length > 1 && <button onClick={() => removeItem(index)} className="text-[#FF453A] text-xs">{lang === 'zh' ? '删除' : 'Remove'}</button>}
@@ -252,7 +253,7 @@ export default function NewQuote() {
           </div>
 
           {/* 汇总 */}
-          <div className="bg-gray-50 dark:bg-[#1C1C1E] rounded-2xl p-4 space-y-2">
+          <div className="bg-gray-50 dark:bg-[#1C1C1E] rounded-2xl p-5 space-y-2">
             <div className="flex justify-between">
               <span className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '报价总额' : 'Quote Total'}</span>
               <span className="font-semibold text-[#30D158]">${totalSell.toLocaleString()}</span>
@@ -271,15 +272,15 @@ export default function NewQuote() {
 
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '工程范围' : 'Scope of Work'}</label>
-            <textarea className="w-full border border-gray-200 dark:border-gray-700 rounded-xl p-3 mt-1 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none text-sm focus:ring-2 focus:ring-blue-500/40 transition resize-none" rows={4} value={scopeOfWork} onChange={e => setScopeOfWork(e.target.value)} />
+            <textarea className="w-full border border-gray-200 dark:border-gray-700 rounded-xl p-3 mt-1.5 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none text-sm focus:ring-2 focus:ring-blue-500/40 transition resize-none" rows={4} value={scopeOfWork} onChange={e => setScopeOfWork(e.target.value)} />
           </div>
 
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '备注' : 'Notes'}</label>
-            <textarea className="w-full border border-gray-200 dark:border-gray-700 rounded-xl p-3 mt-1 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none resize-none focus:ring-2 focus:ring-blue-500/40 transition" rows={2} value={notes} onChange={e => setNotes(e.target.value)} />
+            <textarea className="w-full border border-gray-200 dark:border-gray-700 rounded-xl p-3 mt-1.5 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none resize-none focus:ring-2 focus:ring-blue-500/40 transition" rows={2} value={notes} onChange={e => setNotes(e.target.value)} />
           </div>
 
-          <button onClick={handleSubmit} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-2xl font-semibold disabled:opacity-50 transition-colors">
+          <button onClick={handleSubmit} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-semibold disabled:opacity-50 transition-colors">
             {loading ? (lang === 'zh' ? '保存中...' : 'Saving...') : (lang === 'zh' ? '创建报价单' : 'Create Quote')}
           </button>
         </div>
