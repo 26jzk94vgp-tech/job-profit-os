@@ -35,30 +35,30 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
     back: lang === 'zh' ? '返回' : 'Back',
     addEntry: lang === 'zh' ? '添加条目' : 'Add Entry',
     tip: lang === 'zh' ? '提示：未知数值填 /' : 'Tip: Use / for unknown values',
-    workerName: lang === 'zh' ? '工人姓名' : 'Worker Name',
-    hours: lang === 'zh' ? '工时' : 'Hours',
-    hourlyRate: lang === 'zh' ? '时薪 ($)' : 'Hourly Rate ($)',
+    workerName: lang === 'zh' ? '工人姓名 *' : 'Worker Name *',
+    hours: lang === 'zh' ? '工时 *' : 'Hours *',
+    hourlyRate: lang === 'zh' ? '时薪 ($) *' : 'Hourly Rate ($) *',
     total: lang === 'zh' ? '合计' : 'Total',
-    description: lang === 'zh' ? '描述' : 'Description',
-    quantity: lang === 'zh' ? '数量' : 'Quantity',
+    description: lang === 'zh' ? '描述 *' : 'Description *',
+    quantity: lang === 'zh' ? '数量 *' : 'Quantity *',
     unit: lang === 'zh' ? '单位' : 'Unit',
-    unitPrice: lang === 'zh' ? '单价 ($)' : 'Unit Price ($)',
-    orTotal: lang === 'zh' ? '或直接输入总金额' : 'Or enter total directly',
-    amount: lang === 'zh' ? '金额 ($)' : 'Amount ($)',
+    unitPrice: lang === 'zh' ? '单价 ($) *' : 'Unit Price ($) *',
+    orTotal: lang === 'zh' ? '或直接输入总金额 *' : 'Or enter total directly *',
+    amount: lang === 'zh' ? '金额 ($) *' : 'Amount ($) *',
     paymentDueDate: lang === 'zh' ? '付款到期日' : 'Payment Due Date',
     atoMethod: lang === 'zh' ? 'ATO计算方式' : 'ATO Calculation Method',
-    from: lang === 'zh' ? '出发地' : 'From',
-    to: lang === 'zh' ? '目的地' : 'To',
-    distance: lang === 'zh' ? '距离 (公里)' : 'Distance (km)',
+    from: lang === 'zh' ? '出发地 *' : 'From *',
+    to: lang === 'zh' ? '目的地 *' : 'To *',
+    distance: lang === 'zh' ? '距离 (公里) *' : 'Distance (km) *',
     deduction: lang === 'zh' ? '可抵扣金额' : 'Deduction',
-    actualCost: lang === 'zh' ? '实际油费 ($)' : 'Actual Fuel Cost ($)',
+    actualCost: lang === 'zh' ? '实际油费 ($) *' : 'Actual Fuel Cost ($) *',
     keepReceipt: lang === 'zh' ? '请保留油费收据' : 'Keep your fuel receipt for records',
-    gstStatus: lang === 'zh' ? 'GST 状态' : 'GST (Goods and Services Tax) Status',
-    atoCategory: lang === 'zh' ? 'ATO 税务分类' : 'Tax Category',
+    gstStatus: lang === 'zh' ? 'GST 状态 *' : 'GST (Goods and Services Tax) Status *',
+    atoCategory: lang === 'zh' ? 'ATO 税务分类 *' : 'Tax Category *',
     selectCategory: lang === 'zh' ? '选择分类...' : 'Select category...',
     usedForBas: lang === 'zh'
       ? '用于季度 BAS（商业税务申报表）和年度所得税申报'
-      : 'Used for your quarterly BAS (Business Activity Statement — a form lodged with the ATO to report GST) and annual income tax return',
+      : 'Used for your quarterly BAS (Business Activity Statement) and annual income tax return',
     saving: lang === 'zh' ? '保存中...' : 'Saving...',
     save: lang === 'zh' ? '保存条目' : 'Save Entry',
     labor: lang === 'zh' ? '人工' : 'Labor',
@@ -81,12 +81,49 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
 
   function validatePositive(value: string, field: string) {
     if (value === '' || value === '/') { setErrors(e => { const n = {...e}; delete n[field]; return n }); return true }
-    if (!/^\d+(\.\d{0,2})?$/.test(value)) { setErrors(e => ({ ...e, [field]: lang === 'zh' ? '只能输入数字或 /' : 'Numbers or / only.' })); return false }
-    if (Number(value) < 0) { setErrors(e => ({ ...e, [field]: lang === 'zh' ? '不能为负数' : 'Cannot be negative.' })); return false }
+    if (!/^\d+(\.\d{0,2})?$/.test(value)) {
+      setErrors(e => ({ ...e, [field]: lang === 'zh' ? '请输入正数（不能为负数）' : 'Must be a positive number (no negatives)' }))
+      return false
+    }
+    if (Number(value) < 0) {
+      setErrors(e => ({ ...e, [field]: lang === 'zh' ? '不能为负数' : 'Cannot be negative.' }))
+      return false
+    }
     setErrors(e => { const n = {...e}; delete n[field]; return n }); return true
   }
 
+  function validateForm(): boolean {
+    const newErrors: Record<string, string> = {}
+    const req = lang === 'zh' ? '此项为必填' : 'This field is required'
+
+    if (!taxCategory) newErrors.taxCategory = req
+    if (!gstStatus || gstStatus === '') newErrors.gstStatus = req
+
+    if (type === 'labor') {
+      if (!workerName) newErrors.workerName = req
+      if (!hours || hours === '/') newErrors.hours = req
+      if (!hourlyRate || hourlyRate === '/') newErrors.hourlyRate = req
+    } else if (type === 'material') {
+      if (!description) newErrors.description = req
+      const hasQtyPrice = quantity && quantity !== '/' && unitPrice && unitPrice !== '/'
+      const hasAmount = amount && amount !== '/'
+      if (!hasQtyPrice && !hasAmount) newErrors.amount = lang === 'zh' ? '请填写数量+单价，或直接填写总金额' : 'Enter quantity + unit price, or a total amount'
+    } else if (type === 'fuel') {
+      if (!tripFrom) newErrors.tripFrom = req
+      if (!tripTo) newErrors.tripTo = req
+      if (atoMethod === 'cents_per_km' && (!kilometers || kilometers === '/')) newErrors.kilometers = req
+      if (atoMethod === 'actual_cost' && (!amount || amount === '/')) newErrors.amount = req
+    } else if (type === 'invoice' || type === 'subcontract') {
+      if (!description) newErrors.description = req
+      if (!amount || amount === '/') newErrors.amount = req
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   async function handleSubmit() {
+    if (!validateForm()) return
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     const entry: Record<string, unknown> = { job_id: id, owner_id: user?.id, type, description, gst_status: gstStatus, tax_category: taxCategory || null }
@@ -95,7 +132,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
       entry.amount = (hours === '/' || hourlyRate === '/') ? 0 : Number(hours) * Number(hourlyRate)
     } else if (type === 'material') {
       entry.quantity = quantity === '/' ? null : Number(quantity); entry.unit = unit || null; entry.unit_price = unitPrice === '/' ? null : Number(unitPrice)
-      entry.amount = (quantity === '/' || unitPrice === '/') ? (amount === '/' ? 0 : Number(amount)) : Number(quantity) * Number(unitPrice)
+      entry.amount = (quantity && unitPrice && quantity !== '/' && unitPrice !== '/') ? Number(quantity) * Number(unitPrice) : (amount === '/' ? 0 : Number(amount))
     } else if (type === 'fuel') {
       entry.trip_from = tripFrom; entry.trip_to = tripTo; entry.kilometers = kilometers === '/' ? null : Number(kilometers); entry.ato_method = atoMethod
       entry.amount = atoMethod === 'cents_per_km' && kilometers && kilometers !== '/' ? Number(kilometers) * 0.88 : (amount === '/' ? 0 : Number(amount))
@@ -112,13 +149,14 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
     ? [{ key: 'invoice', label: t.invoice }]
     : [{ key: 'labor', label: t.labor }, { key: 'material', label: t.material }, { key: 'subcontract', label: t.subcontract }, { key: 'fuel', label: t.fuel }]
 
-  const inputCls = "w-full border border-gray-200 dark:border-[#3A3A3C] rounded-xl p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none focus:ring-2 focus:ring-blue-500/40 transition"
+  const inputCls = "w-full border border-gray-200 dark:border-gray-700 rounded-xl p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none focus:ring-2 focus:ring-blue-500/40 transition"
+  const errCls = "text-[#FF453A] text-xs mt-1"
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#1C1C1E] pt-12 md:pt-0">
       <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700/60 px-6 py-4 hidden md:block">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
-          <button onClick={() => window.location.href = "/jobs/" + id} className="text-gray-400 dark:text-[#8E8E93] hover:text-gray-700 dark:hover:text-white text-sm">← {t.back}</button>
+          <button onClick={() => window.location.href = "/jobs/" + id} className="text-gray-400 dark:text-[#8E8E93] text-sm">← {t.back}</button>
           <h1 className="font-semibold text-gray-900 dark:text-white">{t.addEntry}</h1>
         </div>
       </nav>
@@ -131,24 +169,24 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
 
         <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-5">
 
-          {/* Income / Expense toggle */}
+          {/* Income / Expense */}
           <div className="flex gap-3">
-            <button onClick={() => { setCategory('expense'); setType('material'); setAmount(''); setQuantity(''); setUnitPrice(''); setHours(''); setHourlyRate(''); setTaxCategory('cogs_material') }}
+            <button onClick={() => { setCategory('expense'); setType('material'); setAmount(''); setQuantity(''); setUnitPrice(''); setHours(''); setHourlyRate(''); setTaxCategory('cogs_material'); setErrors({}) }}
               className={`flex-1 py-3 rounded-xl text-sm font-semibold transition ${category === 'expense' ? 'bg-[#FF453A] text-white' : 'bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93]'}`}>
               📤 {lang === 'zh' ? '支出' : 'Expense'}
             </button>
-            <button onClick={() => { setCategory('income'); setType('invoice'); setAmount(''); setQuantity(''); setUnitPrice(''); setTaxCategory('other_income') }}
+            <button onClick={() => { setCategory('income'); setType('invoice'); setAmount(''); setQuantity(''); setUnitPrice(''); setTaxCategory('other_income'); setErrors({}) }}
               className={`flex-1 py-3 rounded-xl text-sm font-semibold transition ${category === 'income' ? 'bg-[#30D158] text-white' : 'bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93]'}`}>
               📥 {lang === 'zh' ? '收入' : 'Income'}
             </button>
           </div>
 
-          {/* Type tabs (expense only) */}
+          {/* Type tabs */}
           {category === 'expense' && (
             <div className="flex flex-wrap gap-2">
-              {tabs.map((tab) => (
+              {tabs.map(tab => (
                 <button key={tab.key} onClick={() => {
-                  setType(tab.key); setAmount(''); setQuantity(''); setUnitPrice(''); setHours(''); setHourlyRate('')
+                  setType(tab.key); setAmount(''); setQuantity(''); setUnitPrice(''); setHours(''); setHourlyRate(''); setErrors({})
                   const defaults: Record<string, string> = { labor: 'cogs_labour', material: 'cogs_material', subcontract: 'subcontractor', fuel: 'vehicle' }
                   const gstDefaults: Record<string, string> = { labor: 'free', material: 'inclusive', subcontract: 'inclusive', fuel: 'free' }
                   setGstStatus(gstDefaults[tab.key] || 'inclusive')
@@ -160,38 +198,38 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
             </div>
           )}
 
-          <p className="text-[#8E8E93] text-xs">{t.tip}</p>
+          <p className="text-[#8E8E93] text-xs">{t.tip} &nbsp;· &nbsp;* {lang === 'zh' ? '为必填项' : 'required'}</p>
 
-          {/* Form fields */}
+          {/* Labor */}
           {type === 'labor' && (
             <div className="space-y-4">
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-xl p-3 space-y-1">
                 <p className="text-blue-800 dark:text-blue-300 text-xs font-medium">💡 {lang === 'zh' ? '人工记录说明' : 'Labor Note'}</p>
                 <p className="text-blue-600 dark:text-blue-400 text-xs">{lang === 'zh' ? '• 仅用于记录支付给直接雇用工人/员工的工资' : '• Only for wages paid to directly employed workers/staff'}</p>
-                <p className="text-blue-600 dark:text-blue-400 text-xs">{lang === 'zh' ? '• 作为雇主，你需要代扣PAYG税款并缴纳Super养老金' : '• As employer, you must withhold PAYG tax and pay Superannuation'}</p>
-                <p className="text-blue-600 dark:text-blue-400 text-xs">{lang === 'zh' ? '• 如果是你自己做工，无需填写' : '• If you do the work yourself, skip this'}</p>
                 <p className="text-blue-600 dark:text-blue-400 text-xs">{lang === 'zh' ? '• 如果对方有ABN，请使用「分包」类型' : '• If the worker has an ABN, use Subcontract instead'}</p>
               </div>
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.workerName}</label><input className={inputCls} placeholder="e.g. Tom" value={workerName} onChange={e => setWorkerName(e.target.value)} /></div>
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.hours}</label><input type="text" className={inputCls} placeholder="e.g. 8 (or /)" value={hours} onChange={e => { setHours(e.target.value); validatePositive(e.target.value, 'hours') }} />{errors.hours && <p className="text-red-500 text-xs mt-1">{errors.hours}</p>}</div>
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.hourlyRate}</label><input type="text" className={inputCls} placeholder="e.g. 65 (or /)" value={hourlyRate} onChange={e => { setHourlyRate(e.target.value); validatePositive(e.target.value, 'hourlyRate') }} />{errors.hourlyRate && <p className="text-red-500 text-xs mt-1">{errors.hourlyRate}</p>}</div>
+              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.workerName}</label><input className={inputCls} placeholder="e.g. Tom" value={workerName} onChange={e => setWorkerName(e.target.value)} />{errors.workerName && <p className={errCls}>{errors.workerName}</p>}</div>
+              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.hours}</label><input type="text" className={inputCls} placeholder="e.g. 8" value={hours} onChange={e => { setHours(e.target.value); validatePositive(e.target.value, 'hours') }} />{errors.hours && <p className={errCls}>{errors.hours}</p>}</div>
+              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.hourlyRate}</label><input type="text" className={inputCls} placeholder="e.g. 65" value={hourlyRate} onChange={e => { setHourlyRate(e.target.value); validatePositive(e.target.value, 'hourlyRate') }} />{errors.hourlyRate && <p className={errCls}>{errors.hourlyRate}</p>}</div>
               {hours && hourlyRate && hours !== '/' && hourlyRate !== '/' && <p className="text-[#30D158] text-sm font-medium">{t.total}: ${(Number(hours) * Number(hourlyRate)).toLocaleString()}</p>}
             </div>
           )}
 
+          {/* Material */}
           {type === 'material' && (
             <div className="space-y-4">
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder="e.g. Timber" value={description} onChange={e => setDescription(e.target.value)} /></div>
+              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder="e.g. Timber" value={description} onChange={e => setDescription(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}</div>
               <div className="flex gap-3">
-                <div className="flex-1"><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.quantity}</label><input type="text" className={inputCls} placeholder="e.g. 10" value={quantity} onChange={e => { setQuantity(e.target.value); validatePositive(e.target.value, 'quantity') }} />{errors.quantity && <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>}</div>
+                <div className="flex-1"><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.quantity}</label><input type="text" className={inputCls} placeholder="e.g. 10" value={quantity} onChange={e => { setQuantity(e.target.value); validatePositive(e.target.value, 'quantity') }} />{errors.quantity && <p className={errCls}>{errors.quantity}</p>}</div>
                 <div className="w-24"><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.unit}</label><input className={inputCls} placeholder="m/kg" value={unit} onChange={e => setUnit(e.target.value)} /></div>
               </div>
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.unitPrice}</label><input type="text" className={inputCls} placeholder="e.g. 12.50" value={unitPrice} onChange={e => { setUnitPrice(e.target.value); validatePositive(e.target.value, 'unitPrice') }} />{errors.unitPrice && <p className="text-red-500 text-xs mt-1">{errors.unitPrice}</p>}</div>
+              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.unitPrice}</label><input type="text" className={inputCls} placeholder="e.g. 12.50" value={unitPrice} onChange={e => { setUnitPrice(e.target.value); validatePositive(e.target.value, 'unitPrice') }} />{errors.unitPrice && <p className={errCls}>{errors.unitPrice}</p>}</div>
               {quantity && unitPrice && quantity !== '/' && unitPrice !== '/' && <p className="text-[#30D158] text-sm font-medium">{t.total}: ${(Number(quantity) * Number(unitPrice)).toLocaleString()}</p>}
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.orTotal}</label><input type="text" className={inputCls} placeholder="e.g. 1200 (or /)" value={amount} onChange={e => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}</div>
+              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.orTotal}</label><input type="text" className={inputCls} placeholder="e.g. 1200" value={amount} onChange={e => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className={errCls}>{errors.amount}</p>}</div>
             </div>
           )}
 
+          {/* Fuel */}
           {type === 'fuel' && (
             <div className="space-y-4">
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/40 rounded-xl p-3">
@@ -204,38 +242,34 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                   <option value="actual_cost">{t.actualCostMethod}</option>
                 </select>
               </div>
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.from}</label><input className={inputCls} value={tripFrom} onChange={e => setTripFrom(e.target.value)} /></div>
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.to}</label><input className={inputCls} value={tripTo} onChange={e => setTripTo(e.target.value)} /></div>
+              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.from}</label><input className={inputCls} value={tripFrom} onChange={e => setTripFrom(e.target.value)} />{errors.tripFrom && <p className={errCls}>{errors.tripFrom}</p>}</div>
+              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.to}</label><input className={inputCls} value={tripTo} onChange={e => setTripTo(e.target.value)} />{errors.tripTo && <p className={errCls}>{errors.tripTo}</p>}</div>
               {atoMethod === 'cents_per_km' ? (
-                <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.distance}</label><input type="text" className={inputCls} placeholder="e.g. 25" value={kilometers} onChange={e => { setKilometers(e.target.value); validatePositive(e.target.value, 'kilometers') }} />{errors.kilometers && <p className="text-red-500 text-xs mt-1">{errors.kilometers}</p>}{kilometers && kilometers !== '/' && <p className="text-[#30D158] text-sm font-medium mt-1">{t.deduction}: ${(Number(kilometers) * 0.88).toFixed(2)}</p>}</div>
+                <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.distance}</label><input type="text" className={inputCls} placeholder="e.g. 25" value={kilometers} onChange={e => { setKilometers(e.target.value); validatePositive(e.target.value, 'kilometers') }} />{errors.kilometers && <p className={errCls}>{errors.kilometers}</p>}{kilometers && kilometers !== '/' && <p className="text-[#30D158] text-sm font-medium mt-1">{t.deduction}: ${(Number(kilometers) * 0.88).toFixed(2)}</p>}</div>
               ) : (
-                <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.actualCost}</label><input type="text" className={inputCls} placeholder="e.g. 80" value={amount} onChange={e => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}<p className="text-[#8E8E93] text-xs mt-1">{t.keepReceipt}</p></div>
+                <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.actualCost}</label><input type="text" className={inputCls} placeholder="e.g. 80" value={amount} onChange={e => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className={errCls}>{errors.amount}</p>}<p className="text-[#8E8E93] text-xs mt-1">{t.keepReceipt}</p></div>
               )}
             </div>
           )}
 
+          {/* Invoice / Subcontract */}
           {(type === 'invoice' || type === 'subcontract') && (
             <div className="space-y-4">
               {type === 'subcontract' && (
                 <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700/40 rounded-xl p-3 space-y-1">
                   <p className="text-orange-800 dark:text-orange-300 text-xs font-medium">💡 {lang === 'zh' ? '分包说明' : 'Subcontract Note'}</p>
-                  <p className="text-orange-600 dark:text-orange-400 text-xs">{lang === 'zh' ? '• 用于支付有ABN的分包商/承包商（非直接雇员）' : '• For payments to subcontractors who have their own ABN (Australian Business Number)'}</p>
-                  <p className="text-orange-600 dark:text-orange-400 text-xs">{lang === 'zh' ? '• 分包商自己负责处理税务和Super，你无需代扣' : '• Subcontractors handle their own tax and Superannuation — no withholding required from you'}</p>
-                  <p className="text-orange-600 dark:text-orange-400 text-xs">{lang === 'zh' ? '• 重要：建筑行业每年必须向ATO提交TPAR（应税付款年度报告）' : '• Important: Building businesses must lodge a TPAR (Taxable Payments Annual Report) with the ATO each year'}</p>
+                  <p className="text-orange-600 dark:text-orange-400 text-xs">{lang === 'zh' ? '• 用于支付有ABN的分包商（非直接雇员）' : '• For payments to subcontractors with their own ABN'}</p>
+                  <p className="text-orange-600 dark:text-orange-400 text-xs">{lang === 'zh' ? '• 建筑行业每年需向ATO提交TPAR（应税付款年度报告）' : '• Building businesses must lodge a TPAR (Taxable Payments Annual Report) with the ATO each year'}</p>
                 </div>
               )}
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder={type === 'invoice' ? (lang === 'zh' ? '例如：进度款' : 'e.g. Progress payment') : (lang === 'zh' ? '例如：分包商姓名' : 'e.g. Subcontractor name')} value={description} onChange={e => setDescription(e.target.value)} /></div>
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.amount}</label><input type="text" className={inputCls} placeholder="e.g. 1200 (or /)" value={amount} onChange={e => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}</div>
-              {type === 'invoice' && (
-                <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.paymentDueDate}</label><input type="date" className={inputCls} value={paymentDueDate} onChange={e => setPaymentDueDate(e.target.value)} /></div>
-              )}
+              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder={type === 'invoice' ? (lang === 'zh' ? '例如：进度款' : 'e.g. Progress payment') : (lang === 'zh' ? '例如：分包商姓名' : 'e.g. Subcontractor name')} value={description} onChange={e => setDescription(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}</div>
+              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.amount}</label><input type="text" className={inputCls} placeholder="e.g. 1200" value={amount} onChange={e => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className={errCls}>{errors.amount}</p>}</div>
+              {type === 'invoice' && <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.paymentDueDate}</label><input type="date" className={inputCls} value={paymentDueDate} onChange={e => setPaymentDueDate(e.target.value)} /></div>}
             </div>
           )}
 
           {/* GST + ATO */}
           <div className="border-t border-gray-100 dark:border-[#3A3A3C] pt-4 space-y-4">
-
-            {/* GST */}
             <div>
               <div className="flex items-center gap-2">
                 <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.gstStatus}</label>
@@ -244,13 +278,10 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
               {showGstInfo && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-xl p-3 text-xs text-blue-800 dark:text-blue-300 space-y-2 mt-2">
                   <p className="font-semibold">{lang === 'zh' ? 'GST（商品及服务税）是什么？' : 'What is GST (Goods and Services Tax)?'}</p>
-                  <p>{lang === 'zh'
-                    ? 'GST 是澳洲的消费税，税率10%。大多数商品和服务的价格已包含GST。你可以在收据或发票底部找到GST金额——例如 Bunnings 和 Woolworths 的收据都会单独列出 GST 小计。'
-                    : "GST is Australia's 10% consumption tax added to most goods and services. You can find the GST amount at the bottom of most receipts and invoices — for example, Bunnings and Woolworths receipts list the GST amount separately near the total."}</p>
-                  <p className="font-semibold">{lang === 'zh' ? '如何选择：' : 'How to choose:'}</p>
-                  <p>• <strong>{lang === 'zh' ? '含GST (最常见)' : 'Inclusive (most common)'}</strong>: {lang === 'zh' ? '收据上的价格已包含GST。例如：收据显示 $110，其中 $10 是 GST。' : 'The price on the receipt already includes GST. e.g. receipt shows $110, of which $10 is GST.'}</p>
-                  <p>• <strong>{lang === 'zh' ? '不含GST' : 'Exclusive'}</strong>: {lang === 'zh' ? '价格未含GST，GST 另加在上面。例如：报价 $100 + GST = 实付 $110。' : 'Price excludes GST, which is added on top. e.g. quote is $100 + GST = you pay $110.'}</p>
-                  <p>• <strong>{lang === 'zh' ? '免GST' : 'GST Free'}</strong>: {lang === 'zh' ? '无需缴纳GST，例如工资、某些新鲜食品。' : 'No GST applies — e.g. wages, some fresh food.'}</p>
+                  <p>{lang === 'zh' ? 'GST 是澳洲的消费税，税率10%。你可以在收据或发票底部找到GST金额——例如 Bunnings 和 Woolworths 的收据都会单独列出 GST 小计。' : "GST is Australia's 10% consumption tax. You can find the GST amount at the bottom of most receipts — Bunnings and Woolworths receipts list the GST amount separately near the total."}</p>
+                  <p>• <strong>{lang === 'zh' ? '含GST（最常见）' : 'Inclusive (most common)'}</strong>: {lang === 'zh' ? '收据价格已含GST，例如 $110 中有 $10 是GST' : 'Price includes GST — e.g. $110 receipt includes $10 GST'}</p>
+                  <p>• <strong>{lang === 'zh' ? '不含GST' : 'Exclusive'}</strong>: {lang === 'zh' ? '价格未含GST，另加10%，例如报价 $100 + GST = $110' : 'Price excludes GST — e.g. $100 + GST = $110'}</p>
+                  <p>• <strong>{lang === 'zh' ? '免GST' : 'GST Free'}</strong>: {lang === 'zh' ? '无需缴纳GST，例如工资' : 'No GST — e.g. wages'}</p>
                 </div>
               )}
               <select className={inputCls} value={gstStatus} onChange={e => setGstStatus(e.target.value)}>
@@ -264,7 +295,6 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
               {gstStatus === 'free' && <p className="text-[#8E8E93] text-xs mt-1">{t.gstFreeHint}</p>}
             </div>
 
-            {/* ATO Category */}
             <div>
               <div className="flex items-center gap-2">
                 <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.atoCategory}</label>
@@ -273,9 +303,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
               {showAtoInfo && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-xl p-3 text-xs text-blue-800 dark:text-blue-300 space-y-2 mt-2">
                   <p className="font-semibold">{lang === 'zh' ? '为什么要设置税务分类？' : 'Why set a tax category?'}</p>
-                  <p>{lang === 'zh'
-                    ? '澳洲税务局（ATO，Australian Taxation Office）要求你在季度 BAS（Business Activity Statement，商业税务申报表）和年度所得税申报中，将收支按正确类别申报。系统已根据条目类型自动设置，一般无需修改。'
-                    : 'The ATO (Australian Taxation Office) requires you to report income and expenses in the correct categories for your quarterly BAS (Business Activity Statement — the form you lodge to report GST collected and paid) and your annual income tax return. The system sets this automatically based on the entry type — you usually don\'t need to change it.'}</p>
+                  <p>{lang === 'zh' ? '澳洲税务局（ATO）要求你在季度 BAS（商业税务申报表）和年度所得税申报中按正确类别申报收支。系统已根据条目类型自动设置，一般无需修改。' : 'The ATO (Australian Taxation Office) requires correct categorisation for your quarterly BAS (Business Activity Statement) and annual income tax return. The system sets this automatically — you usually don\'t need to change it.'}</p>
                 </div>
               )}
               <select className={inputCls} value={taxCategory} onChange={e => setTaxCategory(e.target.value)}>
@@ -302,11 +330,12 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                   </>
                 )}
               </select>
+              {errors.taxCategory && <p className={errCls}>{errors.taxCategory}</p>}
               <p className="text-[#8E8E93] text-xs mt-1">{t.usedForBas}</p>
             </div>
           </div>
 
-          <button onClick={handleSubmit} disabled={loading || Object.keys(errors).length > 0} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-2xl font-semibold disabled:opacity-50 transition-colors">
+          <button onClick={handleSubmit} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-2xl font-semibold disabled:opacity-50 transition-colors">
             {loading ? t.saving : t.save}
           </button>
         </div>
