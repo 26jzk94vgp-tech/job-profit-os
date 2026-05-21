@@ -136,7 +136,7 @@ export default function NewQuote() {
           </div>
           <button
             onClick={() => setShowImport(true)}
-            className="flex items-center gap-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 px-3 py-2 rounded-xl text-sm font-medium hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
+            className="flex items-center gap-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 px-3 py-2 rounded-xl text-sm font-medium hover:bg-purple-100 transition-colors"
           >
             <span>📷</span>
             <span>{lang === 'zh' ? 'AI 识别' : 'AI Scan'}</span>
@@ -289,18 +289,34 @@ export default function NewQuote() {
 
               {importStep === 'upload' && (
                 <>
-                  {/* 用 label 包裹 input，iOS Safari 兼容 */}
-                  <div className={`border-2 border-dashed rounded-2xl p-6 text-center transition-colors ${importFile ? 'border-purple-400 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-[#3A3A3C]'}`}>
-                    {importPreview && <img src={importPreview} alt="preview" className="max-h-40 mx-auto rounded-xl object-contain mb-3" />}
-                    <div className="text-4xl mb-2">{importFile ? '📄' : '📁'}</div>
-                    <p className="font-medium text-gray-900 dark:text-white text-sm mb-3">
-                      {importFile ? importFile.name : (lang === 'zh' ? '选择图片或PDF' : 'Select image or PDF')}
+                  {/* 预览区 */}
+                  {importPreview && (
+                    <img src={importPreview} alt="preview" className="max-h-40 mx-auto rounded-xl object-contain" />
+                  )}
+                  {importFile && !importPreview && (
+                    <div className="bg-gray-50 dark:bg-[#2C2C2E] rounded-2xl p-4 text-center">
+                      <div className="text-3xl mb-1">📄</div>
+                      <p className="text-sm text-gray-600 dark:text-[#8E8E93] truncate">{importFile.name}</p>
+                    </div>
+                  )}
+
+                  {/* 原生 file input — 直接显示，iOS Safari 兼容 */}
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {lang === 'zh' ? '选择文件' : 'Select file'}
                     </p>
                     <input
                       type="file"
                       accept="image/*,application/pdf"
-                      className="w-full text-sm text-[#8E8E93] file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-purple-100 file:text-purple-700 dark:file:bg-purple-900/40 dark:file:text-purple-300"
+                      capture="environment"
                       onChange={handleFileSelect}
+                      className="block w-full text-sm text-gray-500 dark:text-[#8E8E93]
+                        file:mr-3 file:py-3 file:px-6
+                        file:rounded-xl file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-purple-600 file:text-white
+                        hover:file:bg-purple-500
+                        file:cursor-pointer cursor-pointer"
                     />
                   </div>
 
