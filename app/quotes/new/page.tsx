@@ -101,7 +101,7 @@ export default function NewQuote() {
       <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700/60 px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => window.history.back()} className="text-gray-400 dark:text-[#8E8E93] hover:text-gray-600 dark:hover:text-white text-sm transition-colors">
+            <button onClick={() => window.location.href = "/quotes"} className="text-gray-400 dark:text-[#8E8E93] hover:text-gray-600 dark:hover:text-white text-sm transition-colors">
               ← {lang === 'zh' ? '返回' : 'Back'}
             </button>
             <span className="text-gray-300 dark:text-[#3A3A3C]">/</span>
