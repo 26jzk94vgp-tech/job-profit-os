@@ -26,8 +26,8 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
     supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }: { data: any }) => {
       setJob(data)
       if (data?.client_name) setToName(data.client_name)
-      if (data?.client_id) {
-        supabase.from('clients').select('address, email').eq('id', data.client_id).single().then(({ data: c }) => {
+      if (data?.client_name) {
+        supabase.from('clients').select('address, email').eq('name', data.client_name).single().then(({ data: c }) => {
           if (c?.address) setToAddress(c.address)
           if (c?.email) setToEmail(c.email)
         })
