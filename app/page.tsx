@@ -87,7 +87,7 @@ export default function Home() {
   async function bulkUpdateStatus(status: string) { if (!selected.size) return; setBulkLoading(true); await Promise.all([...selected].map(id => supabase.from('jobs').update({ status }).eq('id', id))); await loadData(); exitEditMode(); setBulkLoading(false) }
   async function bulkDelete() { if (!selected.size) return; setBulkLoading(true); await Promise.all([...selected].map(id => supabase.from('jobs').delete().eq('id', id))); await loadData(); exitEditMode(); setBulkLoading(false) }
 
-  const statusLabel = (status: string) => { if (lang === 'zh') return status === 'active' ? '进行中' : status === 'completed' ? '已完成' : '暂停'; return status }
+  const statusLabel = (status: string) => { if (lang === 'zh') return status === 'active' ? '进行中' : status === 'completed' ? '已完成' : '暂停'; return status === 'active' ? 'Active' : status === 'completed' ? 'Completed' : status === 'cancelled' ? 'Cancelled' : status === 'paused' ? 'Paused' : status }
   const allSelected = visibleJobs.length > 0 && selected.size === visibleJobs.length
 
   // Stat card — 手机横条，桌面竖排
@@ -171,7 +171,7 @@ export default function Home() {
           <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📊</span>
-              <p className="text-white font-medium text-sm">{lang === 'zh' ? '📷 新功能：AI识别报价单，成交自动建工单' : '📷 AI Scan quotes · Auto-create jobs when won'}</p>
+              <p className="text-white font-medium text-sm">{lang === 'zh' ? '📷 AI识别报价单，成交建工单' : '📷 AI Scan · Auto-create jobs when won'}</p>
             </div>
             <div className="flex items-center gap-3">
               <a href="/quotes/new" className="bg-white text-green-600 text-xs font-semibold px-3 py-1.5 rounded-xl">{lang === 'zh' ? '立即试用 →' : 'Try it →'}</a>
