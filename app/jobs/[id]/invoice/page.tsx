@@ -59,6 +59,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* Controls - hidden on print */}
       <div className="max-w-4xl mx-auto p-6 print:hidden">
         <div className="flex items-center gap-3 mb-6">
           <Link href={"/jobs/" + id} className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
@@ -66,15 +67,22 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4 mb-6">
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '发票编号' : 'Invoice Number'}</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} /></div>
-            <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '到期日' : 'Due Date'}</label><input type="date" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></div>
+            <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '发票编号' : 'Invoice Number'}</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} /></div>
+            <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '到期日' : 'Due Date'}</label><input type="date" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={dueDate} onChange={e => setDueDate(e.target.value)} /></div>
           </div>
-          <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '客户名称' : 'Bill To (Client Name)'}</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={toName} onChange={(e) => setToName(e.target.value)} /></div>
-          <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '工单地址' : 'Job Address / TO:'}</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" placeholder="e.g. Unit 6C Lot 188 Coastal Rise" value={toAddress} onChange={(e) => setToAddress(e.target.value)} /></div>
+          <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '客户名称 (Bill To)' : 'Bill To (Client Name)'}</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={toName} onChange={e => setToName(e.target.value)} /></div>
+          <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '工地地址' : 'Site Address'}</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" placeholder="e.g. 123 Smith St, Perth WA" value={toAddress} onChange={e => setToAddress(e.target.value)} /></div>
           <hr />
-          <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '发送到客户邮箱' : 'Send to Client Email'}</label><input type="email" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" placeholder="client@email.com" value={toEmail} onChange={(e) => setToEmail(e.target.value)} /></div>
+          <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '发送到客户邮箱' : 'Send to Client Email'}</label><input type="email" className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" placeholder="client@email.com" value={toEmail} onChange={e => setToEmail(e.target.value)} /></div>
           {sent && <p className="text-green-600 text-sm">✅ {lang === 'zh' ? '发票已发送！' : 'Invoice sent!'}</p>}
-          <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '备注 / 付款条款' : 'Note / Payment Terms'}</label><textarea className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" rows={2} value={note} onChange={(e) => setNote(e.target.value)} /></div>
+          <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '备注 / 付款条款' : 'Note / Payment Terms'}</label><textarea className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" rows={2} value={note} onChange={e => setNote(e.target.value)} /></div>
+          {!profile?.company_name && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <p className="text-yellow-800 text-xs">⚠️ {lang === 'zh' ? '还没有填写公司信息，' : 'Company info not set up yet. '}
+                <Link href="/settings" className="text-blue-600 underline">{lang === 'zh' ? '前往设置' : 'Go to Settings'}</Link>
+              </p>
+            </div>
+          )}
           <div className="flex gap-3">
             <button onClick={handleSendEmail} disabled={sending} className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50">{sending ? (lang === 'zh' ? '发送中...' : 'Sending...') : '📧 ' + (lang === 'zh' ? '发送发票' : 'Send Invoice')}</button>
             <button onClick={() => window.print()} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium">🖨️ {lang === 'zh' ? '打印/PDF' : 'Print / PDF'}</button>
@@ -82,70 +90,87 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
         </div>
       </div>
 
+      {/* Invoice document */}
       <div className="max-w-4xl mx-auto bg-white p-10 print:p-8 shadow-sm">
+
+        {/* Header: Company info (left) + INVOICE title (right) */}
         <div className="flex justify-between items-start mb-8">
-          <div><p className="text-sm text-gray-600">{toAddress || job.name}</p></div>
-          <div className="text-right">
-            <p className="font-bold text-lg">{profile?.company_name || 'Your Company'}</p>
-            {profile?.account_name && (
-              <div className="text-sm text-gray-600 mt-2">
-                <p>Account Name: <span className="font-medium">{profile.account_name}</span></p>
-                {profile.bsb && <p>BSB: <span className="font-medium">{profile.bsb}</span></p>}
-                {profile.account_number && <p>Account No: <span className="font-medium">{profile.account_number}</span></p>}
-                {profile.abn && <p>ABN: <span className="font-medium">{profile.abn}</span></p>}
-              </div>
-            )}
+          <div>
+            <p className="font-bold text-xl text-gray-900">{profile?.company_name || 'Your Company Name'}</p>
+            {profile?.company_email && <p className="text-sm text-gray-600 mt-1">{profile.company_email}</p>}
+            {profile?.company_phone && <p className="text-sm text-gray-600">{profile.company_phone}</p>}
+            {profile?.company_address && <p className="text-sm text-gray-600">{profile.company_address}</p>}
+            {profile?.abn && <p className="text-sm text-gray-600 mt-1">ABN: {profile.abn}</p>}
           </div>
-        </div>
-
-        {toAddress && <p className="text-sm mb-4"><span className="font-bold">TO: </span>{toAddress}</p>}
-
-        <div className="flex justify-end mb-6">
           <div className="text-right">
-            <p className="text-sm text-gray-600">{lang === 'zh' ? '发票编号' : 'Invoice Number'}: <span className="font-bold">{invoiceNumber}</span></p>
+            <p className="text-3xl font-bold text-gray-800 tracking-wide">INVOICE</p>
+            <p className="text-sm text-gray-600 mt-2">{lang === 'zh' ? '发票编号' : 'Invoice #'}: <span className="font-bold">{invoiceNumber}</span></p>
+            <p className="text-sm text-gray-600">{lang === 'zh' ? '日期' : 'Date'}: <span className="font-medium">{new Date().toLocaleDateString('en-AU')}</span></p>
             {dueDate && <p className="text-sm text-gray-600">{lang === 'zh' ? '到期日' : 'Due Date'}: <span className="font-medium">{dueDate}</span></p>}
           </div>
         </div>
 
-        <div className="overflow-x-auto mb-6"><table className="w-full border-collapse" style={{minWidth: "400px"}}>
-          <thead>
-            <tr className="border border-gray-400 bg-gray-100">
-              <th className="border border-gray-400 px-2 py-2 text-left text-sm font-bold">{lang === 'zh' ? '描述' : 'DESCRIPTION'}</th>
-              <th className="border border-gray-400 px-2 py-2 text-center text-sm font-bold w-10">{lang === 'zh' ? '数量' : 'QTY'}</th>
-              <th className="border border-gray-400 px-2 py-2 text-right text-sm font-bold w-20">{lang === 'zh' ? '单价' : 'UNIT PRICE'}</th>
-              <th className="border border-gray-400 px-2 py-2 text-right text-sm font-bold w-20">{lang === 'zh' ? '金额' : 'PRICE'}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoiceEntries.length > 0 ? invoiceEntries.map((e) => {
-              const qty = e.type === 'labor' ? Number(e.hours) : Number(e.quantity || 1)
-              const unitPrice = e.type === 'labor' ? Number(e.hourly_rate) : (e.unit_price ? Number(e.unit_price) : Number(e.amount))
-              const price = e.type === 'labor' ? qty * unitPrice : Number(e.amount)
-              return (
-                <tr key={e.id} className="border border-gray-300">
-                  <td className="border border-gray-300 px-3 py-2 text-sm">
-                    <div className="flex items-center justify-between gap-2">
-                      <span>{e.description || e.worker_name || e.type}</span>
-                      <a href={'/jobs/' + id + '/entry/' + e.id + '/edit'} className="print:hidden text-blue-400 hover:text-blue-600 text-xs shrink-0">✏️</a>
-                    </div>
-                  </td>
-                  <td className="border border-gray-300 px-3 py-2 text-sm text-center">{qty}</td>
-                  <td className="border border-gray-300 px-3 py-2 text-sm text-right">\${unitPrice.toFixed(2)}</td>
-                  <td className="border border-gray-300 px-3 py-2 text-sm text-right">\${price.toFixed(2)}</td>
-                </tr>
-              )
-            }) : (
-              <tr className="border border-gray-300">
-                <td className="border border-gray-300 px-3 py-2 text-sm">{job.name} - {lang === 'zh' ? '专业服务' : 'Professional Services'}</td>
-                <td className="border border-gray-300 px-3 py-2 text-sm text-center">1</td>
-                <td className="border border-gray-300 px-3 py-2 text-sm text-right">${subTotal.toFixed(2)}</td>
-                <td className="border border-gray-300 px-3 py-2 text-sm text-right">${subTotal.toFixed(2)}</td>
-              </tr>
-            )}
-          </tbody>
-        </table></div>
+        {/* Bill To */}
+        <div className="mb-6 bg-gray-50 rounded-lg p-4">
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{lang === 'zh' ? '账单送达' : 'Bill To'}</p>
+          {toName && <p className="font-semibold text-gray-900">{toName}</p>}
+          {toAddress && <p className="text-sm text-gray-600 mt-1">{toAddress}</p>}
+          {!toName && !toAddress && <p className="text-sm text-gray-400 italic">{lang === 'zh' ? '请在上方填写客户名称和地址' : 'Please fill in client name and address above'}</p>}
+        </div>
 
-        <div className="flex justify-end">
+        {/* Bank details */}
+        {profile?.account_name && (
+          <div className="mb-6 bg-blue-50 rounded-lg p-4">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{lang === 'zh' ? '付款信息' : 'Payment Details'}</p>
+            <p className="text-sm text-gray-700">{lang === 'zh' ? '账户名' : 'Account Name'}: <span className="font-medium">{profile.account_name}</span></p>
+            {profile.bsb && <p className="text-sm text-gray-700">BSB: <span className="font-medium">{profile.bsb}</span></p>}
+            {profile.account_number && <p className="text-sm text-gray-700">{lang === 'zh' ? '账号' : 'Account No'}: <span className="font-medium">{profile.account_number}</span></p>}
+          </div>
+        )}
+
+        {/* Items table */}
+        <div className="overflow-x-auto mb-6">
+          <table className="w-full border-collapse" style={{minWidth: '400px'}}>
+            <thead>
+              <tr className="border border-gray-400 bg-gray-100">
+                <th className="border border-gray-400 px-3 py-2 text-left text-sm font-bold">{lang === 'zh' ? '描述' : 'DESCRIPTION'}</th>
+                <th className="border border-gray-400 px-3 py-2 text-center text-sm font-bold w-16">{lang === 'zh' ? '数量' : 'QTY'}</th>
+                <th className="border border-gray-400 px-3 py-2 text-right text-sm font-bold w-24">{lang === 'zh' ? '单价' : 'UNIT PRICE'}</th>
+                <th className="border border-gray-400 px-3 py-2 text-right text-sm font-bold w-24">{lang === 'zh' ? '金额' : 'AMOUNT'}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {invoiceEntries.length > 0 ? invoiceEntries.map(e => {
+                const qty = e.type === 'labor' ? Number(e.hours) : Number(e.quantity || 1)
+                const unitPrice = e.type === 'labor' ? Number(e.hourly_rate) : (e.unit_price ? Number(e.unit_price) : Number(e.amount))
+                const price = e.type === 'labor' ? qty * unitPrice : Number(e.amount)
+                return (
+                  <tr key={e.id} className="border border-gray-300">
+                    <td className="border border-gray-300 px-3 py-2 text-sm">
+                      <div className="flex items-center justify-between gap-2">
+                        <span>{e.description || e.worker_name || e.type}</span>
+                        <a href={'/jobs/' + id + '/entry/' + e.id + '/edit'} className="print:hidden text-blue-400 hover:text-blue-600 text-xs shrink-0">✏️</a>
+                      </div>
+                    </td>
+                    <td className="border border-gray-300 px-3 py-2 text-sm text-center">{qty}</td>
+                    <td className="border border-gray-300 px-3 py-2 text-sm text-right">${unitPrice.toFixed(2)}</td>
+                    <td className="border border-gray-300 px-3 py-2 text-sm text-right">${price.toFixed(2)}</td>
+                  </tr>
+                )
+              }) : (
+                <tr className="border border-gray-300">
+                  <td className="border border-gray-300 px-3 py-2 text-sm">{job.name} - {lang === 'zh' ? '专业服务' : 'Professional Services'}</td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm text-center">1</td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm text-right">${subTotal.toFixed(2)}</td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm text-right">${subTotal.toFixed(2)}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Totals */}
+        <div className="flex justify-end mb-6">
           <table className="border-collapse">
             <tbody>
               <tr className="border border-gray-300">
@@ -157,15 +182,16 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
                 <td className="border border-gray-300 px-6 py-2 text-sm text-right">${gst.toFixed(2)}</td>
               </tr>
               <tr className="border border-gray-300 bg-gray-50">
-                <td className="border border-gray-300 px-6 py-2 text-sm font-bold">{lang === 'zh' ? '含GST总计' : 'Total Inc GST'}:</td>
+                <td className="border border-gray-300 px-6 py-2 text-sm font-bold">{lang === 'zh' ? '含GST总计' : 'Total Inc. GST'}:</td>
                 <td className="border border-gray-300 px-6 py-2 text-sm font-bold text-right">${total.toFixed(2)}</td>
               </tr>
             </tbody>
           </table>
         </div>
 
+        {/* Note */}
         {note && (
-          <div className="mt-6 pt-4 border-t border-gray-300">
+          <div className="mt-4 pt-4 border-t border-gray-300">
             <p className="text-xs font-medium text-gray-600 mb-1">{lang === 'zh' ? '备注' : 'Note'}:</p>
             <p className="text-sm text-gray-700">{note}</p>
           </div>
