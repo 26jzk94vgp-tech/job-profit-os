@@ -95,7 +95,7 @@ export default function Settings() {
         </div>
       </nav>
 
-      <main className="max-w-2xl mx-auto px-4 pt-24 pb-8 md:pt-8 space-y-5">
+      <main className="max-w-2xl mx-auto px-4 pt-10 pb-8 md:pt-8 space-y-5">
         <div className="md:hidden flex items-center justify-between mb-2">
           <Link href="/" className="text-[#8E8E93] text-sm">← {lang === 'zh' ? '返回首页' : 'Home'}</Link>
           <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '设置' : 'Settings'}</h1>
