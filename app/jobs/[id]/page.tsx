@@ -145,7 +145,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
 
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-gray-500 dark:text-[#8E8E93]">{job.client_name}</p>
+            <p className="text-gray-600 dark:text-[#8E8E93] font-medium">{job.client_name}</p>
             {(jobDates.start || jobDates.end) && (
               <p className="text-[#8E8E93] text-xs mt-0.5">
                 📅 {jobDates.start || ''}{jobDates.end && jobDates.end !== jobDates.start ? ` → ${jobDates.end}` : ''}
@@ -175,7 +175,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent p-5">
               <p className="text-gray-500 dark:text-[#8E8E93] text-sm">{lang === 'zh' ? '收入' : 'Revenue'}</p>
-              <p className="text-2xl font-bold text-[#30D158] mt-1">${revenue.toLocaleString()}</p>
+              <p className={`text-2xl font-bold mt-1 ${revenue > 0 ? "text-[#30D158]" : "text-[#8E8E93]"}`}>${revenue.toLocaleString()}</p>
             </div>
             <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent p-5">
               <p className="text-gray-500 dark:text-[#8E8E93] text-sm">{lang === 'zh' ? '利润' : 'Profit'}</p>
