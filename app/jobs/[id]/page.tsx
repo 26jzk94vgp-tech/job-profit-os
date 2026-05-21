@@ -18,6 +18,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   const [activeTab, setActiveTab] = useState('overview')
   const [notes, setNotes] = useState('')
   const [editingNotes, setEditingNotes] = useState(false)
+  const [showMore, setShowMore] = useState(false)
   const [jobDates, setJobDates] = useState<{ start: string | null, end: string | null }>({ start: null, end: null })
 
   useEffect(() => {
