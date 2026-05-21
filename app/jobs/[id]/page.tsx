@@ -18,10 +18,13 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   const [activeTab, setActiveTab] = useState('overview')
   const [notes, setNotes] = useState('')
   const [editingNotes, setEditingNotes] = useState(false)
+  const [jobDates, setJobDates] = useState<{ start: string | null, end: string | null }>({ start: null, end: null })
 
   useEffect(() => {
     supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }) => setJob(data))
-    supabase.from('jobs').select('notes').eq('id', id).single().then(({ data }: { data: any }) => { if (data) setNotes(data.notes || '') })
+    supabase.from('jobs').select('notes, start_date, end_date').eq('id', id).single().then(({ data }: { data: any }) => {
+      if (data) { setNotes(data.notes || ''); setJobDates({ start: data.start_date, end: data.end_date }) }
+    })
     supabase.from('job_entries').select('*').eq('job_id', id).order('created_at', { ascending: false }).then(({ data }) => setEntries(data || []))
   }, [id])
 
@@ -40,6 +43,49 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
     if (received !== undefined) update.payment_received = received
     await supabase.from('job_entries').update(update).eq('id', entryId)
     setEntries((prev: any[]) => prev.map((e: any) => e.id === entryId ? { ...e, payment_status: status, payment_received: received ?? e.payment_received } : e))
+  }
+
+  function addToCalendar() {
+    const start = jobDates.start || new Date().toISOString().split('T')[0]
+    const end = jobDates.end || start
+
+    // Format dates for ICS (YYYYMMDD)
+    const icsStart = start.replace(/-/g, '')
+    const icsEnd = (() => {
+      // ICS all-day end date is exclusive, so add 1 day
+      const d = new Date(end + 'T00:00:00')
+      d.setDate(d.getDate() + 1)
+      return d.toISOString().split('T')[0].replace(/-/g, '')
+    })()
+
+    const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
+    const clientInfo = job.client_name ? `Client: ${job.client_name}` : ''
+    const profitInfo = `Profit: $${profit.toLocaleString()} (${margin}%)`
+
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Job Profit OS//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      `DTSTART;VALUE=DATE:${icsStart}`,
+      `DTEND;VALUE=DATE:${icsEnd}`,
+      `DTSTAMP:${now}`,
+      `UID:job-${id}@jobprofitos`,
+      `SUMMARY:${job.name}`,
+      `DESCRIPTION:${[clientInfo, profitInfo, notes].filter(Boolean).join('\\n')}`,
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n')
+
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${job.name.replace(/[^a-z0-9]/gi, '-')}.ics`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   const unpaidInvoices = entries.filter((e: any) => e.type === 'invoice' && e.payment_status !== 'paid')
@@ -61,18 +107,18 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4 hidden md:block">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700/60 px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>
-            <h1 className="font-semibold text-gray-900">{job.name}</h1>
+            <Link href="/" className="text-gray-500 dark:text-[#8E8E93] hover:text-gray-700 text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>
+            <h1 className="font-semibold text-gray-900 dark:text-white">{job.name}</h1>
           </div>
           <div className="flex gap-2">
-            <Link href={'/jobs/' + id + '/invoice'} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium">🧾 {lang === 'zh' ? '发票' : 'Invoice'}</Link>
-            <Link href={'/jobs/' + id + '/edit'} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium">✏️ {lang === 'zh' ? '编辑' : 'Edit'}</Link>
-
-            <Link href={'/jobs/' + id + '/add'} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium">+ {lang === 'zh' ? '添加条目' : 'Add Entry'}</Link>
+            <button onClick={addToCalendar} className="bg-gray-100 dark:bg-[#3A3A3C] hover:bg-gray-200 text-gray-700 dark:text-[#F2F2F7] px-3 py-2 rounded-lg text-sm font-medium">📅 {lang === 'zh' ? '加入日历' : 'Add to Calendar'}</button>
+            <Link href={'/jobs/' + id + '/invoice'} className="bg-gray-100 dark:bg-[#3A3A3C] hover:bg-gray-200 text-gray-700 dark:text-[#F2F2F7] px-3 py-2 rounded-lg text-sm font-medium">🧾 {lang === 'zh' ? '发票' : 'Invoice'}</Link>
+            <Link href={'/jobs/' + id + '/edit'} className="bg-gray-100 dark:bg-[#3A3A3C] hover:bg-gray-200 text-gray-700 dark:text-[#F2F2F7] px-3 py-2 rounded-lg text-sm font-medium">✏️ {lang === 'zh' ? '编辑' : 'Edit'}</Link>
+            <Link href={'/jobs/' + id + '/add'} className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg text-sm font-medium">+ {lang === 'zh' ? '添加条目' : 'Add Entry'}</Link>
           </div>
         </div>
       </nav>
@@ -80,190 +126,191 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
       <main className="max-w-4xl mx-auto px-6 pt-16 pb-8 md:pt-8">
         <div className="md:hidden flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Link href="/" className="text-gray-500 text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>
-            <h1 className="font-semibold text-gray-900">{job.name}</h1>
+            <Link href="/" className="text-gray-500 dark:text-[#8E8E93] text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>
+            <h1 className="font-semibold text-gray-900 dark:text-white">{job.name}</h1>
           </div>
           <div className="flex gap-2">
-            <Link href={'/jobs/' + id + '/invoice'} className="bg-gray-100 text-gray-700 px-2 py-1.5 rounded-lg text-xs">🧾</Link>
-            <Link href={'/jobs/' + id + '/edit'} className="bg-gray-100 text-gray-700 px-2 py-1.5 rounded-lg text-xs">✏️</Link>
-
+            <button onClick={addToCalendar} className="bg-gray-100 dark:bg-[#3A3A3C] text-gray-700 dark:text-[#F2F2F7] px-2 py-1.5 rounded-lg text-xs">📅</button>
+            <Link href={'/jobs/' + id + '/invoice'} className="bg-gray-100 dark:bg-[#3A3A3C] text-gray-700 dark:text-[#F2F2F7] px-2 py-1.5 rounded-lg text-xs">🧾</Link>
+            <Link href={'/jobs/' + id + '/edit'} className="bg-gray-100 dark:bg-[#3A3A3C] text-gray-700 dark:text-[#F2F2F7] px-2 py-1.5 rounded-lg text-xs">✏️</Link>
             <Link href={'/jobs/' + id + '/add'} className="bg-blue-600 text-white px-2 py-1.5 rounded-lg text-xs">+</Link>
           </div>
         </div>
 
         <div className="flex items-center justify-between mb-4">
-          <p className="text-gray-500">{job.client_name}</p>
+          <div>
+            <p className="text-gray-500 dark:text-[#8E8E93]">{job.client_name}</p>
+            {(jobDates.start || jobDates.end) && (
+              <p className="text-[#8E8E93] text-xs mt-0.5">
+                📅 {jobDates.start || ''}{jobDates.end && jobDates.end !== jobDates.start ? ` → ${jobDates.end}` : ''}
+              </p>
+            )}
+          </div>
           <JobStatusToggle jobId={id} currentStatus={job.status} />
         </div>
 
-        <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl">
-          <button onClick={() => setActiveTab('overview')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'overview' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>{lang === 'zh' ? '概览' : 'Overview'}</button>
-          <button onClick={() => setActiveTab('entries')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'entries' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>{lang === 'zh' ? '条目' : 'Entries'}</button>
-          <button onClick={() => setActiveTab('invoice')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'invoice' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>{lang === 'zh' ? '发票' : 'Invoice'}</button>
+        <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-[#2C2C2E] p-1 rounded-xl">
+          <button onClick={() => setActiveTab('overview')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'overview' ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-[#8E8E93]'}`}>{lang === 'zh' ? '概览' : 'Overview'}</button>
+          <button onClick={() => setActiveTab('entries')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'entries' ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-[#8E8E93]'}`}>{lang === 'zh' ? '条目' : 'Entries'}</button>
+          <button onClick={() => setActiveTab('invoice')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'invoice' ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-[#8E8E93]'}`}>{lang === 'zh' ? '发票' : 'Invoice'}</button>
         </div>
 
         {activeTab === 'overview' && (<>
-        {unpaidTotal > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 flex justify-between items-center">
-            <div>
-              <p className="font-medium text-yellow-800">💰 {lang === 'zh' ? '未收款项' : 'Outstanding Payments'}</p>
-              <p className="text-yellow-600 text-sm">{unpaidInvoices.length} {lang === 'zh' ? '张未付发票' : 'unpaid invoice(s)'}</p>
-            </div>
-            <span className="font-bold text-yellow-800">${unpaidTotal.toLocaleString()}</span>
-          </div>
-        )}
-
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-gray-500 text-sm">{lang === 'zh' ? '收入' : 'Revenue'}</p>
-            <p className="text-2xl font-bold text-green-600 mt-1">${revenue.toLocaleString()}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-gray-500 text-sm">{lang === 'zh' ? '利润' : 'Profit'}</p>
-            <p className={profit >= 0 ? 'text-2xl font-bold text-green-600 mt-1' : 'text-2xl font-bold text-red-600 mt-1'}>${profit.toLocaleString()} ({margin}%)</p>
-          </div>
-        </div>
-
-        {revenue > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
-            <div className="flex justify-between items-center mb-2">
-              <p className="text-gray-500 text-sm">{lang === 'zh' ? '收款进度' : 'Payment Progress'}</p>
-              <p className="text-sm font-medium text-gray-700">
-                ${(revenue - unpaidTotal).toLocaleString()} / ${revenue.toLocaleString()}
-              </p>
-            </div>
-            <div className="w-full bg-gray-100 rounded-full h-3">
-              <div
-                className="bg-green-500 h-3 rounded-full transition-all"
-                style={{ width: `${Math.min(100, ((revenue - unpaidTotal) / revenue) * 100).toFixed(0)}%` }}
-              />
-            </div>
-            <div className="flex justify-between mt-1">
-              <p className="text-xs text-green-600">{lang === 'zh' ? '已收' : 'Received'}: ${(revenue - unpaidTotal).toLocaleString()}</p>
-              {unpaidTotal > 0 && <p className="text-xs text-red-500">{lang === 'zh' ? '未收' : 'Unpaid'}: ${unpaidTotal.toLocaleString()}</p>}
-            </div>
-          </div>
-        )}
-
-        <div className="bg-white rounded-xl border border-gray-200 mb-6">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '成本明细' : 'Cost Breakdown'}</h2>
-          </div>
-          <div className="divide-y divide-gray-100">
-            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '人工' : 'Labor'}</span><span className="text-red-500">${labor.toLocaleString()}</span></div>
-            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '材料' : 'Materials'}</span><span className="text-red-500">${material.toLocaleString()}</span></div>
-            <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '分包' : 'Subcontract'}</span><span className="text-red-500">${subcontract.toLocaleString()}</span></div>
-            {fuel > 0 && <div className="px-6 py-3 flex justify-between"><span className="text-gray-600">{lang === 'zh' ? '车辆/油费' : 'Vehicle/Fuel'}</span><span className="text-red-500">${fuel.toLocaleString()}</span></div>}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 mt-4">
-          <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '备注' : 'Notes'}</h2>
-            <button onClick={() => setEditingNotes(!editingNotes)} className="text-blue-500 text-xs">{editingNotes ? (lang === 'zh' ? '取消' : 'Cancel') : (lang === 'zh' ? '编辑' : 'Edit')}</button>
-          </div>
-          <div className="px-6 py-4">
-            {editingNotes ? (
-              <div className="space-y-2">
-                <textarea className="w-full border border-gray-200 rounded-lg p-3 text-gray-900 outline-none text-sm" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={lang === 'zh' ? '添加备注...' : 'Add notes...'} />
-                <button onClick={async () => { await supabase.from('jobs').update({ notes }).eq('id', id); setEditingNotes(false) }} className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm">{lang === 'zh' ? '保存' : 'Save'}</button>
+          {unpaidTotal > 0 && (
+            <div className="bg-yellow-50 dark:bg-[#2C2100] border border-yellow-200 dark:border-[#FF9F0A]/20 rounded-xl p-4 mb-6 flex justify-between items-center">
+              <div>
+                <p className="font-medium text-yellow-800 dark:text-[#FF9F0A]">💰 {lang === 'zh' ? '未收款项' : 'Outstanding Payments'}</p>
+                <p className="text-yellow-600 dark:text-[#FF9F0A]/70 text-sm">{unpaidInvoices.length} {lang === 'zh' ? '张未付发票' : 'unpaid invoice(s)'}</p>
               </div>
-            ) : (
-              <p className="text-gray-600 text-sm">{notes || <span className="text-gray-400">{lang === 'zh' ? '暂无备注，点击编辑添加' : 'No notes yet. Click Edit to add.'}</span>}</p>
-            )}
-          </div>
-        </div>
+              <span className="font-bold text-yellow-800 dark:text-[#FF9F0A]">${unpaidTotal.toLocaleString()}</span>
+            </div>
+          )}
 
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent p-5">
+              <p className="text-gray-500 dark:text-[#8E8E93] text-sm">{lang === 'zh' ? '收入' : 'Revenue'}</p>
+              <p className="text-2xl font-bold text-[#30D158] mt-1">${revenue.toLocaleString()}</p>
+            </div>
+            <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent p-5">
+              <p className="text-gray-500 dark:text-[#8E8E93] text-sm">{lang === 'zh' ? '利润' : 'Profit'}</p>
+              <p className={`text-2xl font-bold mt-1 ${profit >= 0 ? 'text-[#30D158]' : 'text-[#FF453A]'}`}>${profit.toLocaleString()} ({margin}%)</p>
+            </div>
+          </div>
+
+          {revenue > 0 && (
+            <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent p-5 mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-gray-500 dark:text-[#8E8E93] text-sm">{lang === 'zh' ? '收款进度' : 'Payment Progress'}</p>
+                <p className="text-sm font-medium text-gray-700 dark:text-[#F2F2F7]">${(revenue - unpaidTotal).toLocaleString()} / ${revenue.toLocaleString()}</p>
+              </div>
+              <div className="w-full bg-gray-100 dark:bg-[#3A3A3C] rounded-full h-3">
+                <div className="bg-[#30D158] h-3 rounded-full transition-all" style={{ width: `${Math.min(100, ((revenue - unpaidTotal) / revenue) * 100).toFixed(0)}%` }} />
+              </div>
+              <div className="flex justify-between mt-1">
+                <p className="text-xs text-[#30D158]">{lang === 'zh' ? '已收' : 'Received'}: ${(revenue - unpaidTotal).toLocaleString()}</p>
+                {unpaidTotal > 0 && <p className="text-xs text-[#FF453A]">{lang === 'zh' ? '未收' : 'Unpaid'}: ${unpaidTotal.toLocaleString()}</p>}
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent mb-4">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C]">
+              <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '成本明细' : 'Cost Breakdown'}</h2>
+            </div>
+            <div className="divide-y divide-gray-100 dark:divide-[#3A3A3C]">
+              <div className="px-6 py-3 flex justify-between"><span className="text-gray-600 dark:text-[#8E8E93]">{lang === 'zh' ? '人工' : 'Labor'}</span><span className="text-[#FF453A]">${labor.toLocaleString()}</span></div>
+              <div className="px-6 py-3 flex justify-between"><span className="text-gray-600 dark:text-[#8E8E93]">{lang === 'zh' ? '材料' : 'Materials'}</span><span className="text-[#FF453A]">${material.toLocaleString()}</span></div>
+              <div className="px-6 py-3 flex justify-between"><span className="text-gray-600 dark:text-[#8E8E93]">{lang === 'zh' ? '分包' : 'Subcontract'}</span><span className="text-[#FF453A]">${subcontract.toLocaleString()}</span></div>
+              {fuel > 0 && <div className="px-6 py-3 flex justify-between"><span className="text-gray-600 dark:text-[#8E8E93]">{lang === 'zh' ? '车辆/油费' : 'Vehicle/Fuel'}</span><span className="text-[#FF453A]">${fuel.toLocaleString()}</span></div>}
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C] flex justify-between items-center">
+              <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '备注' : 'Notes'}</h2>
+              <button onClick={() => setEditingNotes(!editingNotes)} className="text-[#0A84FF] text-xs">{editingNotes ? (lang === 'zh' ? '取消' : 'Cancel') : (lang === 'zh' ? '编辑' : 'Edit')}</button>
+            </div>
+            <div className="px-6 py-4">
+              {editingNotes ? (
+                <div className="space-y-2">
+                  <textarea className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-xl p-3 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none text-sm" rows={3} value={notes} onChange={e => setNotes(e.target.value)} placeholder={lang === 'zh' ? '添加备注...' : 'Add notes...'} />
+                  <button onClick={async () => { await supabase.from('jobs').update({ notes }).eq('id', id); setEditingNotes(false) }} className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm">{lang === 'zh' ? '保存' : 'Save'}</button>
+                </div>
+              ) : (
+                <p className="text-gray-600 dark:text-[#8E8E93] text-sm">{notes || <span className="text-gray-400">{lang === 'zh' ? '暂无备注，点击编辑添加' : 'No notes yet. Click Edit to add.'}</span>}</p>
+              )}
+            </div>
+          </div>
         </>)}
 
         {activeTab === 'entries' && (
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '条目' : 'Entries'}</h2>
-          </div>
-          {!entries.length && <div className="px-6 py-8 text-center text-gray-400">{lang === 'zh' ? '还没有条目。' : 'No entries yet.'}</div>}
-          <div className="divide-y divide-gray-100">
-            {entries.map((entry: any) => (
-              <div key={entry.id} className="px-6 py-4 flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full uppercase">{typeLabel(entry.type)}</span>
-                    {entry.type === 'invoice' && (
-                      <span className={
-                        entry.payment_status === 'paid' ? 'text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full' :
-                        entry.payment_status === 'overdue' ? 'text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full' :
-                        entry.payment_status === 'partial' ? 'text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full' :
-                        'text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full'
-                      }>{statusLabel(entry.payment_status || 'unpaid')}</span>
-                    )}
-                  </div>
-                  <p className="text-gray-900 mt-1">{entry.description || entry.worker_name || entry.type}</p>
-                  {entry.type === 'fuel' && entry.trip_from && <p className="text-gray-400 text-xs">{entry.trip_from} → {entry.trip_to} {entry.kilometers && entry.kilometers + 'km'}</p>}
-                  {entry.type === 'invoice' && entry.payment_due_date && <p className="text-gray-400 text-xs">{lang === 'zh' ? '到期' : 'Due'}: {formatDate(entry.payment_due_date)}</p>}
-                  {entry.type === 'invoice' && entry.payment_status !== 'paid' && (
-                    <div className="flex gap-2 mt-1">
-                      <button onClick={() => updatePaymentStatus(entry.id, 'paid')} className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full hover:bg-green-200">✓ {lang === 'zh' ? '标记已付' : 'Mark Paid'}</button>
-                      <button onClick={() => { const amt = prompt(lang === 'zh' ? '输入已收金额：' : 'Enter amount received:'); if (amt) updatePaymentStatus(entry.id, 'partial', Number(amt)) }} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full hover:bg-blue-200">{lang === 'zh' ? '部分付款' : 'Partial'}</button>
+          <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C]">
+              <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '条目' : 'Entries'}</h2>
+            </div>
+            {!entries.length && <div className="px-6 py-8 text-center text-gray-400">{lang === 'zh' ? '还没有条目。' : 'No entries yet.'}</div>}
+            <div className="divide-y divide-gray-100 dark:divide-[#3A3A3C]">
+              {entries.map((entry: any) => (
+                <div key={entry.id} className="px-6 py-4 flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93] px-2 py-0.5 rounded-full uppercase">{typeLabel(entry.type)}</span>
+                      {entry.type === 'invoice' && (
+                        <span className={
+                          entry.payment_status === 'paid' ? 'text-xs bg-green-100 dark:bg-[#30D158]/20 text-green-700 dark:text-[#30D158] px-2 py-0.5 rounded-full' :
+                          entry.payment_status === 'overdue' ? 'text-xs bg-red-100 dark:bg-[#FF453A]/20 text-red-700 dark:text-[#FF453A] px-2 py-0.5 rounded-full' :
+                          entry.payment_status === 'partial' ? 'text-xs bg-blue-100 dark:bg-[#0A84FF]/20 text-blue-700 dark:text-[#0A84FF] px-2 py-0.5 rounded-full' :
+                          'text-xs bg-yellow-100 dark:bg-[#FF9F0A]/20 text-yellow-700 dark:text-[#FF9F0A] px-2 py-0.5 rounded-full'
+                        }>{statusLabel(entry.payment_status || 'unpaid')}</span>
+                      )}
                     </div>
-                  )}
-                  {entry.type === 'invoice' && entry.payment_status === 'partial' && entry.payment_received > 0 && (
-                    <p className="text-blue-500 text-xs">{lang === 'zh' ? '已收' : 'Received'}: ${Number(entry.payment_received).toLocaleString()} · {lang === 'zh' ? '未收' : 'Outstanding'}: ${(Number(entry.amount) - Number(entry.payment_received)).toLocaleString()}</p>
-                  )}
-                  {entry.notes === 'QUOTE_ESTIMATE' && <p className="text-yellow-600 text-xs mt-1">⚠️ {lang === 'zh' ? '报价估算，请确认实际采购价格' : 'Quote estimate — update with actual purchase price'}</p>}
-                  <p className="text-gray-400 text-sm">{formatDate(entry.entry_date)}</p>
+                    <p className="text-gray-900 dark:text-[#F2F2F7] mt-1">{entry.description || entry.worker_name || entry.type}</p>
+                    {entry.type === 'fuel' && entry.trip_from && <p className="text-gray-400 text-xs">{entry.trip_from} → {entry.trip_to} {entry.kilometers && entry.kilometers + 'km'}</p>}
+                    {entry.type === 'invoice' && entry.payment_due_date && <p className="text-gray-400 text-xs">{lang === 'zh' ? '到期' : 'Due'}: {formatDate(entry.payment_due_date)}</p>}
+                    {entry.type === 'invoice' && entry.payment_status !== 'paid' && (
+                      <div className="flex gap-2 mt-1">
+                        <button onClick={() => updatePaymentStatus(entry.id, 'paid')} className="text-xs bg-green-100 dark:bg-[#30D158]/20 text-green-700 dark:text-[#30D158] px-2 py-0.5 rounded-full hover:bg-green-200">✓ {lang === 'zh' ? '标记已付' : 'Mark Paid'}</button>
+                        <button onClick={() => { const amt = prompt(lang === 'zh' ? '输入已收金额：' : 'Enter amount received:'); if (amt) updatePaymentStatus(entry.id, 'partial', Number(amt)) }} className="text-xs bg-blue-100 dark:bg-[#0A84FF]/20 text-blue-700 dark:text-[#0A84FF] px-2 py-0.5 rounded-full hover:bg-blue-200">{lang === 'zh' ? '部分付款' : 'Partial'}</button>
+                      </div>
+                    )}
+                    {entry.type === 'invoice' && entry.payment_status === 'partial' && entry.payment_received > 0 && (
+                      <p className="text-[#0A84FF] text-xs">{lang === 'zh' ? '已收' : 'Received'}: ${Number(entry.payment_received).toLocaleString()} · {lang === 'zh' ? '未收' : 'Outstanding'}: ${(Number(entry.amount) - Number(entry.payment_received)).toLocaleString()}</p>
+                    )}
+                    {entry.notes === 'QUOTE_ESTIMATE' && <p className="text-yellow-600 text-xs mt-1">⚠️ {lang === 'zh' ? '报价估算，请确认实际采购价格' : 'Quote estimate — update with actual purchase price'}</p>}
+                    <p className="text-gray-400 text-sm">{formatDate(entry.entry_date)}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={entry.type === 'invoice' ? 'text-[#30D158] font-medium' : 'text-[#FF453A] font-medium'}>
+                      {entry.type === 'invoice' ? '+' : ''}${entry.type === 'labor' ? (Number(entry.hours) * Number(entry.hourly_rate)).toLocaleString() : Number(entry.amount).toLocaleString()}
+                    </span>
+                    <Link href={'/jobs/' + id + '/entry/' + entry.id + '/edit'} className="text-[#0A84FF] text-sm">{lang === 'zh' ? '编辑' : 'Edit'}</Link>
+                    <DeleteEntry entryId={entry.id} jobId={id} />
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className={entry.type === 'invoice' ? 'text-green-600 font-medium' : 'text-red-500 font-medium'}>
-                    {entry.type === 'invoice' ? '+' : ''}\${entry.type === 'labor' ? (Number(entry.hours) * Number(entry.hourly_rate)).toLocaleString() : Number(entry.amount).toLocaleString()}
-                  </span>
-                  <Link href={'/jobs/' + id + '/entry/' + entry.id + '/edit'} className="text-blue-500 text-sm hover:text-blue-700">{lang === 'zh' ? '编辑' : 'Edit'}</Link>
-                  <DeleteEntry entryId={entry.id} jobId={id} />
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
         )}
 
         {activeTab === 'invoice' && (
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">{lang === 'zh' ? '发票条目' : 'Invoice Entries'}</h2>
-          </div>
-          {entries.filter((e: any) => e.type === 'invoice').length === 0 && (
-            <div className="px-6 py-8 text-center text-gray-400">
-              <p>{lang === 'zh' ? '还没有发票条目' : 'No invoice entries yet.'}</p>
-              <Link href={'/jobs/' + id + '/add'} className="mt-3 inline-block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">+ {lang === 'zh' ? '添加发票' : 'Add Invoice'}</Link>
+          <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C]">
+              <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '发票条目' : 'Invoice Entries'}</h2>
             </div>
-          )}
-          <div className="divide-y divide-gray-100">
-            {entries.filter((e: any) => e.type === 'invoice').map((entry: any) => (
-              <div key={entry.id} className="px-6 py-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-medium text-gray-900">{entry.description || (lang === 'zh' ? '发票' : 'Invoice')}</p>
-                    {entry.payment_due_date && <p className="text-gray-400 text-xs">{lang === 'zh' ? '到期' : 'Due'}: {formatDate(entry.payment_due_date)}</p>}
-                    <span className={
-                      entry.payment_status === 'paid' ? 'text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full' :
-                      entry.payment_status === 'partial' ? 'text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full' :
-                      'text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full'
-                    }>{statusLabel(entry.payment_status || 'unpaid')}</span>
-                  </div>
-                  <span className="text-green-600 font-bold">\${Number(entry.amount).toLocaleString()}</span>
-                </div>
-                {entry.payment_status !== 'paid' && (
-                  <div className="flex gap-2 mt-2">
-                    <button onClick={() => updatePaymentStatus(entry.id, 'paid')} className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full hover:bg-green-200">✓ {lang === 'zh' ? '标记已付' : 'Mark Paid'}</button>
-                    <button onClick={() => { const amt = prompt(lang === 'zh' ? '输入已收金额：' : 'Enter amount received:'); if (amt) updatePaymentStatus(entry.id, 'partial', Number(amt)) }} className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full hover:bg-blue-200">{lang === 'zh' ? '部分付款' : 'Partial'}</button>
-                  </div>
-                )}
-                {entry.payment_status === 'partial' && entry.payment_received > 0 && (
-                  <p className="text-blue-500 text-xs mt-1">{lang === 'zh' ? '已收' : 'Received'}: \${Number(entry.payment_received).toLocaleString()} · {lang === 'zh' ? '未收' : 'Outstanding'}: \${(Number(entry.amount) - Number(entry.payment_received)).toLocaleString()}</p>
-                )}
+            {entries.filter((e: any) => e.type === 'invoice').length === 0 && (
+              <div className="px-6 py-8 text-center text-gray-400">
+                <p>{lang === 'zh' ? '还没有发票条目' : 'No invoice entries yet.'}</p>
+                <Link href={'/jobs/' + id + '/add'} className="mt-3 inline-block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">+ {lang === 'zh' ? '添加发票' : 'Add Invoice'}</Link>
               </div>
-            ))}
+            )}
+            <div className="divide-y divide-gray-100 dark:divide-[#3A3A3C]">
+              {entries.filter((e: any) => e.type === 'invoice').map((entry: any) => (
+                <div key={entry.id} className="px-6 py-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-[#F2F2F7]">{entry.description || (lang === 'zh' ? '发票' : 'Invoice')}</p>
+                      {entry.payment_due_date && <p className="text-gray-400 text-xs">{lang === 'zh' ? '到期' : 'Due'}: {formatDate(entry.payment_due_date)}</p>}
+                      <span className={
+                        entry.payment_status === 'paid' ? 'text-xs bg-green-100 dark:bg-[#30D158]/20 text-green-700 dark:text-[#30D158] px-2 py-0.5 rounded-full' :
+                        entry.payment_status === 'partial' ? 'text-xs bg-blue-100 dark:bg-[#0A84FF]/20 text-blue-700 dark:text-[#0A84FF] px-2 py-0.5 rounded-full' :
+                        'text-xs bg-yellow-100 dark:bg-[#FF9F0A]/20 text-yellow-700 dark:text-[#FF9F0A] px-2 py-0.5 rounded-full'
+                      }>{statusLabel(entry.payment_status || 'unpaid')}</span>
+                    </div>
+                    <span className="text-[#30D158] font-bold">${Number(entry.amount).toLocaleString()}</span>
+                  </div>
+                  {entry.payment_status !== 'paid' && (
+                    <div className="flex gap-2 mt-2">
+                      <button onClick={() => updatePaymentStatus(entry.id, 'paid')} className="text-xs bg-green-100 dark:bg-[#30D158]/20 text-green-700 dark:text-[#30D158] px-3 py-1 rounded-full hover:bg-green-200">✓ {lang === 'zh' ? '标记已付' : 'Mark Paid'}</button>
+                      <button onClick={() => { const amt = prompt(lang === 'zh' ? '输入已收金额：' : 'Enter amount received:'); if (amt) updatePaymentStatus(entry.id, 'partial', Number(amt)) }} className="text-xs bg-blue-100 dark:bg-[#0A84FF]/20 text-blue-700 dark:text-[#0A84FF] px-3 py-1 rounded-full hover:bg-blue-200">{lang === 'zh' ? '部分付款' : 'Partial'}</button>
+                    </div>
+                  )}
+                  {entry.payment_status === 'partial' && entry.payment_received > 0 && (
+                    <p className="text-[#0A84FF] text-xs mt-1">{lang === 'zh' ? '已收' : 'Received'}: ${Number(entry.payment_received).toLocaleString()} · {lang === 'zh' ? '未收' : 'Outstanding'}: ${(Number(entry.amount) - Number(entry.payment_received)).toLocaleString()}</p>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
         )}
       </main>
     </div>
