@@ -15,19 +15,30 @@ export default function JobStatusToggle({ jobId, currentStatus }: { jobId: strin
   }
 
   const statuses = [
-    { value: 'active', label: lang === 'zh' ? '进行中' : 'Active', color: 'bg-blue-100 text-blue-700' },
-    { value: 'completed', label: lang === 'zh' ? '已完成' : 'Completed', color: 'bg-green-100 text-green-700' },
-    { value: 'paused', label: lang === 'zh' ? '暂停' : 'Paused', color: 'bg-gray-100 text-gray-600' },
-    { value: 'archived', label: lang === 'zh' ? '归档' : 'Archived', color: 'bg-yellow-100 text-yellow-700' },
+    { value: 'active', label: lang === 'zh' ? '进行中' : 'Active' },
+    { value: 'completed', label: lang === 'zh' ? '已完成' : 'Done' },
+    { value: 'paused', label: lang === 'zh' ? '暂停' : 'Paused' },
+    { value: 'archived', label: lang === 'zh' ? '归档' : 'Archived' },
   ]
 
+  const activeColors: Record<string, string> = {
+    active: 'bg-[#0A84FF] text-white',
+    completed: 'bg-[#30D158] text-white',
+    paused: 'bg-[#FF9F0A] text-white',
+    archived: 'bg-[#8E8E93] text-white',
+  }
+
   return (
-    <div className="flex flex-wrap gap-2">
-      {statuses.map((s) => (
+    <div className="flex bg-gray-100 dark:bg-[#2C2C2E] rounded-xl p-0.5 gap-0.5">
+      {statuses.map(s => (
         <button
           key={s.value}
           onClick={() => handleChange(s.value)}
-          className={s.value === status ? s.color + ' px-3 py-1 rounded-full text-xs font-medium ring-2 ring-offset-1 ring-blue-400' : 'px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-400 hover:bg-gray-200'}
+          className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            s.value === status
+              ? activeColors[s.value]
+              : 'text-[#8E8E93] hover:text-gray-700 dark:hover:text-gray-200'
+          }`}
         >
           {s.label}
         </button>
