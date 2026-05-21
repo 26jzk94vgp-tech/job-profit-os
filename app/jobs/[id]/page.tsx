@@ -130,13 +130,18 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
             <Link href="/" className="text-gray-500 dark:text-[#8E8E93] text-sm">← {lang === 'zh' ? '首页' : 'Home'}</Link>
             <h1 className="font-semibold text-gray-900 dark:text-white">{job.name}</h1>
           </div>
-          <div className="flex gap-2">
-            <button onClick={addToCalendar} className="bg-gray-100 dark:bg-[#3A3A3C] text-gray-700 dark:text-[#F2F2F7] px-2 py-1.5 rounded-lg text-xs">📅</button>
-            <Link href={'/jobs/' + id + '/invoice'} className="bg-gray-100 dark:bg-[#3A3A3C] text-gray-700 dark:text-[#F2F2F7] px-2 py-1.5 rounded-lg text-xs">🧾</Link>
-            <Link href={'/jobs/' + id + '/edit'} className="bg-gray-100 dark:bg-[#3A3A3C] text-gray-700 dark:text-[#F2F2F7] px-2 py-1.5 rounded-lg text-xs">✏️</Link>
-            <Link href={'/jobs/' + id + '/add'} className="bg-blue-600 text-white px-2 py-1.5 rounded-lg text-xs">+</Link>
+          <div className="flex gap-2 items-center">
+            <button onClick={() => setShowMore(!showMore)} className="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-[#3A3A3C] rounded-full text-gray-600 dark:text-[#8E8E93] font-bold text-sm">•••</button>
+            <Link href={'/jobs/' + id + '/add'} className="bg-blue-600 text-white px-3 py-1.5 rounded-xl text-sm font-semibold">+ {lang === 'zh' ? '添加' : 'Add'}</Link>
           </div>
         </div>
+        {showMore && (
+          <div className="md:hidden bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-[#3A3A3C] shadow-lg mb-4 overflow-hidden">
+            <button onClick={() => { addToCalendar(); setShowMore(false) }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] text-sm text-gray-700 dark:text-[#F2F2F7]">📅 <span>{lang === 'zh' ? '加入日历' : 'Add to Calendar'}</span></button>
+            <div className="border-t border-gray-100 dark:border-[#3A3A3C]"><Link href={'/jobs/' + id + '/invoice'} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] text-sm text-gray-700 dark:text-[#F2F2F7]">🧾 <span>{lang === 'zh' ? '查看发票' : 'Invoice'}</span></Link></div>
+            <div className="border-t border-gray-100 dark:border-[#3A3A3C]"><Link href={'/jobs/' + id + '/edit'} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] text-sm text-gray-700 dark:text-[#F2F2F7]">✏️ <span>{lang === 'zh' ? '编辑工单' : 'Edit Job'}</span></Link></div>
+          </div>
+        )}
 
         <div className="flex items-center justify-between mb-4">
           <div>
