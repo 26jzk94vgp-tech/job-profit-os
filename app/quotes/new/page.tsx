@@ -148,7 +148,7 @@ export default function NewQuote() {
         </div>
       </nav>
 
-      <main className="max-w-3xl mx-auto px-4 py-8">
+      <main className="max-w-3xl mx-auto px-4 pt-12 pb-8 md:pt-8">
         <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-5">
 
           <div className="grid grid-cols-2 gap-4">
