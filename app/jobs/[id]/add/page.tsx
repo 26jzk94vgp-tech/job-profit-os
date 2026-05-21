@@ -29,6 +29,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   const [showGstInfo, setShowGstInfo] = useState(false)
   const [showAtoInfo, setShowAtoInfo] = useState(false)
   const [paymentDueDate, setPaymentDueDate] = useState('')
+  const [paymentStatus, setPaymentStatus] = useState('unpaid')
   const [taxCategory, setTaxCategory] = useState('')
 
   const t = {
@@ -45,7 +46,10 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
     unitPrice: lang === 'zh' ? '单价 ($) *' : 'Unit Price ($) *',
     orTotal: lang === 'zh' ? '或直接输入总金额 *' : 'Or enter total directly *',
     amount: lang === 'zh' ? '金额 ($) *' : 'Amount ($) *',
-    paymentDueDate: lang === 'zh' ? '付款到期日' : 'Payment Due Date',
+    paymentDueDate: lang === 'zh' ? '收款日 / 收款到期日' : 'Payment Received / Due Date',
+    paymentStatusLabel: lang === 'zh' ? '收款状态 *' : 'Collection Status *',
+    collected: lang === 'zh' ? '已收款' : 'Collected',
+    uncollected: lang === 'zh' ? '未收款' : 'Not Yet Collected',
     atoMethod: lang === 'zh' ? 'ATO计算方式' : 'ATO Calculation Method',
     from: lang === 'zh' ? '出发地 *' : 'From *',
     to: lang === 'zh' ? '目的地 *' : 'To *',
@@ -64,7 +68,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
     labor: lang === 'zh' ? '人工' : 'Labor',
     material: lang === 'zh' ? '材料' : 'Material',
     subcontract: lang === 'zh' ? '分包' : 'Subcontract',
-    invoice: lang === 'zh' ? '发票' : 'Invoice',
+    invoice: lang === 'zh' ? '发票/收入' : 'Invoice / Income',
     fuel: lang === 'zh' ? '油费' : 'Fuel',
     fuelTitle: lang === 'zh' ? '流动工作车辆费用' : 'Vehicle Expense (Itinerant Work)',
     fuelHint: lang === 'zh' ? '工地间行驶100%可抵税。ATO 2024-25：88分/公里' : 'Travel between job sites is 100% deductible. ATO 2024-25 rate: 88c/km',
@@ -85,10 +89,6 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
       setErrors(e => ({ ...e, [field]: lang === 'zh' ? '请输入正数（不能为负数）' : 'Must be a positive number (no negatives)' }))
       return false
     }
-    if (Number(value) < 0) {
-      setErrors(e => ({ ...e, [field]: lang === 'zh' ? '不能为负数' : 'Cannot be negative.' }))
-      return false
-    }
     setErrors(e => { const n = {...e}; delete n[field]; return n }); return true
   }
 
@@ -97,7 +97,6 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
     const req = lang === 'zh' ? '此项为必填' : 'This field is required'
 
     if (!taxCategory) newErrors.taxCategory = req
-    if (!gstStatus || gstStatus === '') newErrors.gstStatus = req
 
     if (type === 'labor') {
       if (!workerName) newErrors.workerName = req
@@ -118,6 +117,9 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
       if (!amount || amount === '/') newErrors.amount = req
     }
 
+    // GST not required for invoice
+    if (type !== 'invoice' && (!gstStatus || gstStatus === '')) newErrors.gstStatus = req
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -126,19 +128,32 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
     if (!validateForm()) return
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
-    const entry: Record<string, unknown> = { job_id: id, owner_id: user?.id, type, description, gst_status: gstStatus, tax_category: taxCategory || null }
+    const entry: Record<string, unknown> = {
+      job_id: id, owner_id: user?.id, type, description,
+      gst_status: type === 'invoice' ? 'inclusive' : gstStatus,
+      tax_category: taxCategory || null
+    }
     if (type === 'labor') {
-      entry.worker_name = workerName; entry.hours = hours === '/' ? null : Number(hours); entry.hourly_rate = hourlyRate === '/' ? null : Number(hourlyRate)
+      entry.worker_name = workerName
+      entry.hours = hours === '/' ? null : Number(hours)
+      entry.hourly_rate = hourlyRate === '/' ? null : Number(hourlyRate)
       entry.amount = (hours === '/' || hourlyRate === '/') ? 0 : Number(hours) * Number(hourlyRate)
     } else if (type === 'material') {
-      entry.quantity = quantity === '/' ? null : Number(quantity); entry.unit = unit || null; entry.unit_price = unitPrice === '/' ? null : Number(unitPrice)
+      entry.quantity = quantity === '/' ? null : Number(quantity)
+      entry.unit = unit || null
+      entry.unit_price = unitPrice === '/' ? null : Number(unitPrice)
       entry.amount = (quantity && unitPrice && quantity !== '/' && unitPrice !== '/') ? Number(quantity) * Number(unitPrice) : (amount === '/' ? 0 : Number(amount))
     } else if (type === 'fuel') {
-      entry.trip_from = tripFrom; entry.trip_to = tripTo; entry.kilometers = kilometers === '/' ? null : Number(kilometers); entry.ato_method = atoMethod
+      entry.trip_from = tripFrom; entry.trip_to = tripTo
+      entry.kilometers = kilometers === '/' ? null : Number(kilometers)
+      entry.ato_method = atoMethod
       entry.amount = atoMethod === 'cents_per_km' && kilometers && kilometers !== '/' ? Number(kilometers) * 0.88 : (amount === '/' ? 0 : Number(amount))
     } else {
       entry.amount = amount === '/' ? 0 : Number(amount)
-      if (type === 'invoice') { entry.payment_status = 'unpaid'; entry.payment_due_date = paymentDueDate || null }
+      if (type === 'invoice') {
+        entry.payment_status = paymentStatus
+        entry.payment_due_date = paymentDueDate || null
+      }
     }
     const { error } = await supabase.from('job_entries').insert(entry)
     if (error) { alert('Error: ' + error.message) } else { window.location.href = '/jobs/' + id }
@@ -175,13 +190,13 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
               className={`flex-1 py-3 rounded-xl text-sm font-semibold transition ${category === 'expense' ? 'bg-[#FF453A] text-white' : 'bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93]'}`}>
               📤 {lang === 'zh' ? '支出' : 'Expense'}
             </button>
-            <button onClick={() => { setCategory('income'); setType('invoice'); setAmount(''); setQuantity(''); setUnitPrice(''); setTaxCategory('other_income'); setErrors({}) }}
+            <button onClick={() => { setCategory('income'); setType('invoice'); setAmount(''); setQuantity(''); setUnitPrice(''); setTaxCategory('other_income'); setPaymentStatus('unpaid'); setErrors({}) }}
               className={`flex-1 py-3 rounded-xl text-sm font-semibold transition ${category === 'income' ? 'bg-[#30D158] text-white' : 'bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93]'}`}>
               📥 {lang === 'zh' ? '收入' : 'Income'}
             </button>
           </div>
 
-          {/* Type tabs */}
+          {/* Type tabs (expense only) */}
           {category === 'expense' && (
             <div className="flex flex-wrap gap-2">
               {tabs.map(tab => (
@@ -198,9 +213,70 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
             </div>
           )}
 
-          <p className="text-[#8E8E93] text-xs">{t.tip} &nbsp;· &nbsp;* {lang === 'zh' ? '为必填项' : 'required'}</p>
+          <p className="text-[#8E8E93] text-xs">* {lang === 'zh' ? '为必填项' : 'required fields'}</p>
 
-          {/* Labor */}
+          {/* ── INVOICE (income) ── */}
+          {type === 'invoice' && (
+            <div className="space-y-4">
+              {/* Description */}
+              <div>
+                <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label>
+                <input className={inputCls} placeholder={lang === 'zh' ? '例如：进度款' : 'e.g. Progress payment'} value={description} onChange={e => setDescription(e.target.value)} />
+                {errors.description && <p className={errCls}>{errors.description}</p>}
+              </div>
+
+              {/* Amount */}
+              <div>
+                <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.amount}</label>
+                <input type="text" className={inputCls} placeholder="e.g. 5000" value={amount} onChange={e => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />
+                {errors.amount && <p className={errCls}>{errors.amount}</p>}
+              </div>
+
+              {/* Collection status */}
+              <div>
+                <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.paymentStatusLabel}</label>
+                <div className="flex gap-3 mt-1">
+                  <button onClick={() => setPaymentStatus('unpaid')}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition ${paymentStatus === 'unpaid' ? 'bg-[#FF9F0A] text-white' : 'bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93]'}`}>
+                    ⏳ {t.uncollected}
+                  </button>
+                  <button onClick={() => setPaymentStatus('paid')}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition ${paymentStatus === 'paid' ? 'bg-[#30D158] text-white' : 'bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93]'}`}>
+                    ✅ {t.collected}
+                  </button>
+                </div>
+              </div>
+
+              {/* Due / received date */}
+              <div>
+                <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.paymentDueDate}</label>
+                <input type="date" className={inputCls} value={paymentDueDate} onChange={e => setPaymentDueDate(e.target.value)} />
+              </div>
+
+              {/* ATO category */}
+              <div>
+                <div className="flex items-center gap-2">
+                  <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.atoCategory}</label>
+                  <button type="button" onClick={() => setShowAtoInfo(!showAtoInfo)} className="text-[#0A84FF] text-xs border border-[#0A84FF]/40 rounded-full w-5 h-5 flex items-center justify-center shrink-0">?</button>
+                </div>
+                {showAtoInfo && (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-xl p-3 text-xs text-blue-800 dark:text-blue-300 space-y-1 mt-2">
+                    <p>{lang === 'zh' ? '澳洲税务局（ATO）要求按正确类别申报收入，用于季度 BAS 和年度所得税申报。系统已自动设置，一般无需修改。' : 'The ATO (Australian Taxation Office) requires correct categorisation for your quarterly BAS and annual tax return. Auto-set — usually no need to change.'}</p>
+                  </div>
+                )}
+                <select className={inputCls} value={taxCategory} onChange={e => setTaxCategory(e.target.value)}>
+                  <option value="">{t.selectCategory}</option>
+                  <optgroup label={lang === 'zh' ? '收入' : 'Income'}>
+                    <option value="other_income">{lang === 'zh' ? '工单收入' : 'Job Revenue / Income'}</option>
+                  </optgroup>
+                </select>
+                {errors.taxCategory && <p className={errCls}>{errors.taxCategory}</p>}
+                <p className="text-[#8E8E93] text-xs mt-1">{t.usedForBas}</p>
+              </div>
+            </div>
+          )}
+
+          {/* ── LABOR ── */}
           {type === 'labor' && (
             <div className="space-y-4">
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-xl p-3 space-y-1">
@@ -215,7 +291,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
             </div>
           )}
 
-          {/* Material */}
+          {/* ── MATERIAL ── */}
           {type === 'material' && (
             <div className="space-y-4">
               <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder="e.g. Timber" value={description} onChange={e => setDescription(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}</div>
@@ -229,7 +305,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
             </div>
           )}
 
-          {/* Fuel */}
+          {/* ── FUEL ── */}
           {type === 'fuel' && (
             <div className="space-y-4">
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/40 rounded-xl p-3">
@@ -252,88 +328,78 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
             </div>
           )}
 
-          {/* Invoice / Subcontract */}
-          {(type === 'invoice' || type === 'subcontract') && (
+          {/* ── SUBCONTRACT ── */}
+          {type === 'subcontract' && (
             <div className="space-y-4">
-              {type === 'subcontract' && (
-                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700/40 rounded-xl p-3 space-y-1">
-                  <p className="text-orange-800 dark:text-orange-300 text-xs font-medium">💡 {lang === 'zh' ? '分包说明' : 'Subcontract Note'}</p>
-                  <p className="text-orange-600 dark:text-orange-400 text-xs">{lang === 'zh' ? '• 用于支付有ABN的分包商（非直接雇员）' : '• For payments to subcontractors with their own ABN'}</p>
-                  <p className="text-orange-600 dark:text-orange-400 text-xs">{lang === 'zh' ? '• 建筑行业每年需向ATO提交TPAR（应税付款年度报告）' : '• Building businesses must lodge a TPAR (Taxable Payments Annual Report) with the ATO each year'}</p>
-                </div>
-              )}
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder={type === 'invoice' ? (lang === 'zh' ? '例如：进度款' : 'e.g. Progress payment') : (lang === 'zh' ? '例如：分包商姓名' : 'e.g. Subcontractor name')} value={description} onChange={e => setDescription(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}</div>
+              <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700/40 rounded-xl p-3 space-y-1">
+                <p className="text-orange-800 dark:text-orange-300 text-xs font-medium">💡 {lang === 'zh' ? '分包说明' : 'Subcontract Note'}</p>
+                <p className="text-orange-600 dark:text-orange-400 text-xs">{lang === 'zh' ? '• 用于支付有ABN的分包商（非直接雇员）' : '• For payments to subcontractors with their own ABN'}</p>
+                <p className="text-orange-600 dark:text-orange-400 text-xs">{lang === 'zh' ? '• 建筑行业每年需向ATO提交TPAR（应税付款年度报告）' : '• Building businesses must lodge a TPAR (Taxable Payments Annual Report) with the ATO each year'}</p>
+              </div>
+              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder={lang === 'zh' ? '例如：分包商姓名' : 'e.g. Subcontractor name'} value={description} onChange={e => setDescription(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}</div>
               <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.amount}</label><input type="text" className={inputCls} placeholder="e.g. 1200" value={amount} onChange={e => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className={errCls}>{errors.amount}</p>}</div>
-              {type === 'invoice' && <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.paymentDueDate}</label><input type="date" className={inputCls} value={paymentDueDate} onChange={e => setPaymentDueDate(e.target.value)} /></div>}
             </div>
           )}
 
-          {/* GST + ATO */}
-          <div className="border-t border-gray-100 dark:border-[#3A3A3C] pt-4 space-y-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.gstStatus}</label>
-                <button type="button" onClick={() => setShowGstInfo(!showGstInfo)} className="text-[#0A84FF] text-xs border border-[#0A84FF]/40 rounded-full w-5 h-5 flex items-center justify-center shrink-0">?</button>
-              </div>
-              {showGstInfo && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-xl p-3 text-xs text-blue-800 dark:text-blue-300 space-y-2 mt-2">
-                  <p className="font-semibold">{lang === 'zh' ? 'GST（商品及服务税）是什么？' : 'What is GST (Goods and Services Tax)?'}</p>
-                  <p>{lang === 'zh' ? 'GST 是澳洲的消费税，税率10%。你可以在收据或发票底部找到GST金额——例如 Bunnings 和 Woolworths 的收据都会单独列出 GST 小计。' : "GST is Australia's 10% consumption tax. You can find the GST amount at the bottom of most receipts — Bunnings and Woolworths receipts list the GST amount separately near the total."}</p>
-                  <p>• <strong>{lang === 'zh' ? '含GST（最常见）' : 'Inclusive (most common)'}</strong>: {lang === 'zh' ? '收据价格已含GST，例如 $110 中有 $10 是GST' : 'Price includes GST — e.g. $110 receipt includes $10 GST'}</p>
-                  <p>• <strong>{lang === 'zh' ? '不含GST' : 'Exclusive'}</strong>: {lang === 'zh' ? '价格未含GST，另加10%，例如报价 $100 + GST = $110' : 'Price excludes GST — e.g. $100 + GST = $110'}</p>
-                  <p>• <strong>{lang === 'zh' ? '免GST' : 'GST Free'}</strong>: {lang === 'zh' ? '无需缴纳GST，例如工资' : 'No GST — e.g. wages'}</p>
+          {/* GST + ATO (expense types only) */}
+          {type !== 'invoice' && (
+            <div className="border-t border-gray-100 dark:border-[#3A3A3C] pt-4 space-y-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.gstStatus}</label>
+                  <button type="button" onClick={() => setShowGstInfo(!showGstInfo)} className="text-[#0A84FF] text-xs border border-[#0A84FF]/40 rounded-full w-5 h-5 flex items-center justify-center shrink-0">?</button>
                 </div>
-              )}
-              <select className={inputCls} value={gstStatus} onChange={e => setGstStatus(e.target.value)}>
-                <option value="inclusive">{t.gstInclusive}</option>
-                <option value="exclusive">{t.gstExclusive}</option>
-                <option value="free">{t.gstFree}</option>
-                <option value="unknown">{t.gstUnknown}</option>
-              </select>
-              {gstStatus === 'inclusive' && <p className="text-[#8E8E93] text-xs mt-1">{t.gstInclusiveHint}</p>}
-              {gstStatus === 'exclusive' && <p className="text-[#0A84FF] text-xs mt-1">{t.gstExclusiveHint}</p>}
-              {gstStatus === 'free' && <p className="text-[#8E8E93] text-xs mt-1">{t.gstFreeHint}</p>}
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.atoCategory}</label>
-                <button type="button" onClick={() => setShowAtoInfo(!showAtoInfo)} className="text-[#0A84FF] text-xs border border-[#0A84FF]/40 rounded-full w-5 h-5 flex items-center justify-center shrink-0">?</button>
-              </div>
-              {showAtoInfo && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-xl p-3 text-xs text-blue-800 dark:text-blue-300 space-y-2 mt-2">
-                  <p className="font-semibold">{lang === 'zh' ? '为什么要设置税务分类？' : 'Why set a tax category?'}</p>
-                  <p>{lang === 'zh' ? '澳洲税务局（ATO）要求你在季度 BAS（商业税务申报表）和年度所得税申报中按正确类别申报收支。系统已根据条目类型自动设置，一般无需修改。' : 'The ATO (Australian Taxation Office) requires correct categorisation for your quarterly BAS (Business Activity Statement) and annual income tax return. The system sets this automatically — you usually don\'t need to change it.'}</p>
-                </div>
-              )}
-              <select className={inputCls} value={taxCategory} onChange={e => setTaxCategory(e.target.value)}>
-                <option value="">{t.selectCategory}</option>
-                {category === 'income' ? (
-                  <optgroup label={lang === 'zh' ? '收入' : 'Income'}>
-                    <option value="other_income">{lang === 'zh' ? '工单收入' : 'Job Revenue / Income'}</option>
-                  </optgroup>
-                ) : (
-                  <>
-                    <optgroup label={lang === 'zh' ? '销售成本' : 'Cost of Goods Sold'}>
-                      <option value="cogs_material">{lang === 'zh' ? '材料成本' : 'Materials (Cost of Goods Sold)'}</option>
-                      <option value="cogs_labour">{lang === 'zh' ? '直接人工' : 'Direct Labour (Cost of Goods Sold)'}</option>
-                      <option value="subcontractor">{lang === 'zh' ? '分包费用' : 'Subcontractor Costs'}</option>
-                    </optgroup>
-                    <optgroup label={lang === 'zh' ? '业务支出' : 'Business Expenses'}>
-                      <option value="vehicle">{lang === 'zh' ? '车辆交通' : 'Vehicle & Travel'}</option>
-                      <option value="tools_equipment">{lang === 'zh' ? '工具设备' : 'Tools & Equipment'}</option>
-                      <option value="insurance">{lang === 'zh' ? '保险' : 'Insurance'}</option>
-                      <option value="wages">{lang === 'zh' ? '工资薪酬' : 'Wages & Salary'}</option>
-                      <option value="super">{lang === 'zh' ? '养老金' : 'Superannuation'}</option>
-                      <option value="other_expense">{lang === 'zh' ? '其他支出' : 'Other Expense'}</option>
-                    </optgroup>
-                  </>
+                {showGstInfo && (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-xl p-3 text-xs text-blue-800 dark:text-blue-300 space-y-2 mt-2">
+                    <p className="font-semibold">{lang === 'zh' ? 'GST（商品及服务税）是什么？' : 'What is GST (Goods and Services Tax)?'}</p>
+                    <p>{lang === 'zh' ? 'GST 是澳洲的消费税，税率10%。你可以在收据底部找到GST金额——Bunnings 和 Woolworths 的收据都会单独列出 GST 小计。' : "GST is Australia's 10% consumption tax. Find the GST amount at the bottom of receipts — Bunnings and Woolworths list it separately near the total."}</p>
+                    <p>• <strong>{lang === 'zh' ? '含GST（最常见）' : 'Inclusive (most common)'}</strong>: {lang === 'zh' ? '收据价格已含GST，例如 $110 中有 $10 是GST' : 'Price includes GST — e.g. $110 receipt includes $10 GST'}</p>
+                    <p>• <strong>{lang === 'zh' ? '不含GST' : 'Exclusive'}</strong>: {lang === 'zh' ? '价格未含GST，另加10%' : 'Price excludes GST, add 10% on top'}</p>
+                    <p>• <strong>{lang === 'zh' ? '免GST' : 'GST Free'}</strong>: {lang === 'zh' ? '无需缴纳GST，例如工资' : 'No GST — e.g. wages'}</p>
+                  </div>
                 )}
-              </select>
-              {errors.taxCategory && <p className={errCls}>{errors.taxCategory}</p>}
-              <p className="text-[#8E8E93] text-xs mt-1">{t.usedForBas}</p>
+                <select className={inputCls} value={gstStatus} onChange={e => setGstStatus(e.target.value)}>
+                  <option value="inclusive">{t.gstInclusive}</option>
+                  <option value="exclusive">{t.gstExclusive}</option>
+                  <option value="free">{t.gstFree}</option>
+                  <option value="unknown">{t.gstUnknown}</option>
+                </select>
+                {gstStatus === 'inclusive' && <p className="text-[#8E8E93] text-xs mt-1">{t.gstInclusiveHint}</p>}
+                {gstStatus === 'exclusive' && <p className="text-[#0A84FF] text-xs mt-1">{t.gstExclusiveHint}</p>}
+                {gstStatus === 'free' && <p className="text-[#8E8E93] text-xs mt-1">{t.gstFreeHint}</p>}
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2">
+                  <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.atoCategory}</label>
+                  <button type="button" onClick={() => setShowAtoInfo(!showAtoInfo)} className="text-[#0A84FF] text-xs border border-[#0A84FF]/40 rounded-full w-5 h-5 flex items-center justify-center shrink-0">?</button>
+                </div>
+                {showAtoInfo && (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-xl p-3 text-xs text-blue-800 dark:text-blue-300 space-y-1 mt-2">
+                    <p>{lang === 'zh' ? '澳洲税务局（ATO）要求按正确类别申报支出，用于季度 BAS 和年度所得税申报。系统已自动设置，一般无需修改。' : 'The ATO (Australian Taxation Office) requires correct categorisation for your quarterly BAS and annual tax return. Auto-set — usually no need to change.'}</p>
+                  </div>
+                )}
+                <select className={inputCls} value={taxCategory} onChange={e => setTaxCategory(e.target.value)}>
+                  <option value="">{t.selectCategory}</option>
+                  <optgroup label={lang === 'zh' ? '销售成本' : 'Cost of Goods Sold'}>
+                    <option value="cogs_material">{lang === 'zh' ? '材料成本' : 'Materials (Cost of Goods Sold)'}</option>
+                    <option value="cogs_labour">{lang === 'zh' ? '直接人工' : 'Direct Labour (Cost of Goods Sold)'}</option>
+                    <option value="subcontractor">{lang === 'zh' ? '分包费用' : 'Subcontractor Costs'}</option>
+                  </optgroup>
+                  <optgroup label={lang === 'zh' ? '业务支出' : 'Business Expenses'}>
+                    <option value="vehicle">{lang === 'zh' ? '车辆交通' : 'Vehicle & Travel'}</option>
+                    <option value="tools_equipment">{lang === 'zh' ? '工具设备' : 'Tools & Equipment'}</option>
+                    <option value="insurance">{lang === 'zh' ? '保险' : 'Insurance'}</option>
+                    <option value="wages">{lang === 'zh' ? '工资薪酬' : 'Wages & Salary'}</option>
+                    <option value="super">{lang === 'zh' ? '养老金' : 'Superannuation'}</option>
+                    <option value="other_expense">{lang === 'zh' ? '其他支出' : 'Other Expense'}</option>
+                  </optgroup>
+                </select>
+                {errors.taxCategory && <p className={errCls}>{errors.taxCategory}</p>}
+                <p className="text-[#8E8E93] text-xs mt-1">{t.usedForBas}</p>
+              </div>
             </div>
-          </div>
+          )}
 
           <button onClick={handleSubmit} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-2xl font-semibold disabled:opacity-50 transition-colors">
             {loading ? t.saving : t.save}
