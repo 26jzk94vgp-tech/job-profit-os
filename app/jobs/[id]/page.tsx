@@ -20,11 +20,19 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   const [editingNotes, setEditingNotes] = useState(false)
   const [showMore, setShowMore] = useState(false)
   const [jobDates, setJobDates] = useState<{ start: string | null, end: string | null }>({ start: null, end: null })
+  const [editingDates, setEditingDates] = useState(false)
+  const [draftStart, setDraftStart] = useState('')
+  const [draftEnd, setDraftEnd] = useState('')
 
   useEffect(() => {
     supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }) => setJob(data))
     supabase.from('jobs').select('notes, start_date, end_date').eq('id', id).single().then(({ data }: { data: any }) => {
-      if (data) { setNotes(data.notes || ''); setJobDates({ start: data.start_date, end: data.end_date }) }
+      if (data) {
+        setNotes(data.notes || '')
+        setJobDates({ start: data.start_date, end: data.end_date })
+        setDraftStart(data.start_date || '')
+        setDraftEnd(data.end_date || '')
+      }
     })
     supabase.from('job_entries').select('*').eq('job_id', id).order('created_at', { ascending: false }).then(({ data }) => setEntries(data || []))
   }, [id])
@@ -46,40 +54,33 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
     setEntries((prev: any[]) => prev.map((e: any) => e.id === entryId ? { ...e, payment_status: status, payment_received: received ?? e.payment_received } : e))
   }
 
+  async function saveDates() {
+    await supabase.from('jobs').update({ start_date: draftStart || null, end_date: draftEnd || null }).eq('id', id)
+    setJobDates({ start: draftStart || null, end: draftEnd || null })
+    setEditingDates(false)
+  }
+
   function addToCalendar() {
     const start = jobDates.start || new Date().toISOString().split('T')[0]
     const end = jobDates.end || start
-
-    // Format dates for ICS (YYYYMMDD)
     const icsStart = start.replace(/-/g, '')
     const icsEnd = (() => {
-      // ICS all-day end date is exclusive, so add 1 day
       const d = new Date(end + 'T00:00:00')
       d.setDate(d.getDate() + 1)
       return d.toISOString().split('T')[0].replace(/-/g, '')
     })()
-
     const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
     const clientInfo = job.client_name ? `Client: ${job.client_name}` : ''
     const profitInfo = `Profit: $${profit.toLocaleString()} (${margin}%)`
-
     const ics = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//Job Profit OS//EN',
-      'CALSCALE:GREGORIAN',
-      'METHOD:PUBLISH',
-      'BEGIN:VEVENT',
-      `DTSTART;VALUE=DATE:${icsStart}`,
-      `DTEND;VALUE=DATE:${icsEnd}`,
-      `DTSTAMP:${now}`,
-      `UID:job-${id}@jobprofitos`,
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Job Profit OS//EN',
+      'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
+      `DTSTART;VALUE=DATE:${icsStart}`, `DTEND;VALUE=DATE:${icsEnd}`,
+      `DTSTAMP:${now}`, `UID:job-${id}@jobprofitos`,
       `SUMMARY:${job.name}`,
       `DESCRIPTION:${[clientInfo, profitInfo, notes].filter(Boolean).join('\\n')}`,
-      'END:VEVENT',
-      'END:VCALENDAR'
+      'END:VEVENT', 'END:VCALENDAR'
     ].join('\r\n')
-
     const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -106,6 +107,23 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
     const labels: Record<string, string> = { paid: '已付', unpaid: '未付', overdue: '逾期', partial: '部分付款' }
     return labels[status] || status
   }
+
+  // 工期进度计算
+  const timelineProgress = (() => {
+    if (!jobDates.start || !jobDates.end) return null
+    const start = new Date(jobDates.start)
+    const end = new Date(jobDates.end)
+    const today = new Date()
+    const total = end.getTime() - start.getTime()
+    const elapsed = today.getTime() - start.getTime()
+    const pct = total > 0 ? Math.max(0, Math.min(100, (elapsed / total) * 100)) : 0
+    const daysLeft = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+    const isOverdue = daysLeft < 0
+    const totalDays = Math.ceil(total / (1000 * 60 * 60 * 24))
+    return { pct, daysLeft, isOverdue, totalDays }
+  })()
+
+  const inputCls = "border border-gray-200 dark:border-gray-700 rounded-xl p-2.5 text-gray-900 dark:text-[#F2F2F7] bg-white dark:bg-[#3A3A3C] outline-none text-sm focus:ring-2 focus:ring-blue-500/40 transition"
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -198,6 +216,60 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
               </div>
             </div>
           )}
+
+          {/* 工期进度卡片 */}
+          <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent p-5 mb-4">
+            <div className="flex justify-between items-center mb-3">
+              <p className="text-gray-500 dark:text-[#8E8E93] text-sm">{lang === 'zh' ? '工期' : 'Timeline'}</p>
+              <button onClick={() => { setEditingDates(!editingDates); setDraftStart(jobDates.start || ''); setDraftEnd(jobDates.end || '') }} className="text-[#0A84FF] text-xs font-medium">
+                {editingDates ? (lang === 'zh' ? '取消' : 'Cancel') : (lang === 'zh' ? '编辑' : 'Edit')}
+              </button>
+            </div>
+
+            {editingDates ? (
+              <div className="space-y-3">
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="text-xs text-[#8E8E93] mb-1 block">{lang === 'zh' ? '开始日期' : 'Start Date'}</label>
+                    <input type="date" className={inputCls + ' w-full'} value={draftStart} onChange={e => setDraftStart(e.target.value)} />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-xs text-[#8E8E93] mb-1 block">{lang === 'zh' ? '结束日期' : 'End Date'}</label>
+                    <input type="date" className={inputCls + ' w-full'} value={draftEnd} onChange={e => setDraftEnd(e.target.value)} />
+                  </div>
+                </div>
+                <button onClick={saveDates} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
+                  {lang === 'zh' ? '保存日期' : 'Save Dates'}
+                </button>
+              </div>
+            ) : jobDates.start && jobDates.end && timelineProgress ? (
+              <div>
+                <div className="flex justify-between text-xs text-[#8E8E93] mb-2">
+                  <span>{jobDates.start}</span>
+                  <span className={timelineProgress.isOverdue ? 'text-[#FF453A] font-semibold' : timelineProgress.daysLeft <= 7 ? 'text-[#FF9F0A] font-semibold' : 'text-[#8E8E93]'}>
+                    {timelineProgress.isOverdue
+                      ? (lang === 'zh' ? `逾期 ${Math.abs(timelineProgress.daysLeft)} 天` : `${Math.abs(timelineProgress.daysLeft)}d overdue`)
+                      : timelineProgress.daysLeft === 0
+                      ? (lang === 'zh' ? '今天到期' : 'Due today')
+                      : (lang === 'zh' ? `剩余 ${timelineProgress.daysLeft} 天` : `${timelineProgress.daysLeft}d left`)}
+                  </span>
+                  <span>{jobDates.end}</span>
+                </div>
+                <div className="w-full bg-gray-100 dark:bg-[#3A3A3C] rounded-full h-2.5">
+                  <div
+                    className={`h-2.5 rounded-full transition-all ${timelineProgress.isOverdue ? 'bg-[#FF453A]' : timelineProgress.daysLeft <= 7 ? 'bg-[#FF9F0A]' : 'bg-[#0A84FF]'}`}
+                    style={{ width: `${timelineProgress.pct.toFixed(0)}%` }}
+                  />
+                </div>
+                <div className="flex justify-between mt-1.5">
+                  <p className="text-xs text-[#8E8E93]">{timelineProgress.pct.toFixed(0)}% {lang === 'zh' ? '已过' : 'elapsed'}</p>
+                  <p className="text-xs text-[#8E8E93]">{lang === 'zh' ? `共 ${timelineProgress.totalDays} 天` : `${timelineProgress.totalDays}d total`}</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-[#8E8E93] text-sm">{lang === 'zh' ? '点击编辑设置工期' : 'Tap Edit to set timeline'}</p>
+            )}
+          </div>
 
           <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent mb-4">
             <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C]">
@@ -316,6 +388,13 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
                 </div>
               ))}
             </div>
+            {entries.filter((e: any) => e.type === 'invoice').length > 0 && (
+              <div className="px-6 py-4 border-t border-gray-100 dark:border-[#3A3A3C]">
+                <Link href={'/jobs/' + id + '/invoice'} className="w-full block text-center bg-gray-100 dark:bg-[#3A3A3C] hover:bg-gray-200 text-gray-700 dark:text-[#F2F2F7] py-3 rounded-xl text-sm font-medium transition-colors">
+                  🧾 {lang === 'zh' ? '查看完整发票 / 打印 PDF' : 'View Full Invoice / Print PDF'}
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </main>
