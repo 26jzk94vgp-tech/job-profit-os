@@ -32,7 +32,7 @@ export default function Archive() {
             ← {lang === 'zh' ? '首页' : 'Home'}
           </Link>
           <span className="text-gray-300 dark:text-[#3A3A3C]">/</span>
-          <h1 className="font-semibold text-gray-900 dark:text-white">📦 {lang === 'zh' ? '归档中心' : 'Archive'}</h1>
+          <h1 className="font-semibold text-gray-900 dark:text-white">📦 {lang === 'zh' ? '工单历史' : 'Job History'}</h1>
         </div>
       </nav>
 
@@ -40,7 +40,7 @@ export default function Archive() {
         <div className="md:hidden flex items-center gap-2 mb-2">
           <Link href="/" className="text-[#8E8E93] text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
           <span className="text-[#3A3A3C]">/</span>
-          <h1 className="font-semibold text-gray-900 dark:text-white">📦 {lang === 'zh' ? '归档中心' : 'Archive'}</h1>
+          <h1 className="font-semibold text-gray-900 dark:text-white">📦 {lang === 'zh' ? '工单历史' : 'Job History'}</h1>
         </div>
 
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-2xl p-4">

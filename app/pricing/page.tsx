@@ -35,7 +35,7 @@ export default function Pricing() {
       name: lang === 'zh' ? '商业版' : 'Business',
       price: '$49', period: lang === 'zh' ? '/月' : '/mo',
       description: lang === 'zh' ? '适合建筑公司' : 'For building companies',
-      features: lang === 'zh' ? ['专业版所有功能', '多用户账号', 'Super 供款优化', 'Year-End 税务清单', '优先客户支持'] : ['Everything in Pro', 'Multi-user accounts', 'Super contribution optimizer', 'Year-End tax checklist', 'Priority support'],
+      features: lang === 'zh' ? ['专业版所有功能', '多用户账号', 'Super 供款优化', 'Year-End 税务清单', '优先客户支持'] : ['Everything in Pro', 'Multi-user accounts', 'Super contribution organizer', 'Year-End tax checklist', 'Priority support'],
       priceId: 'price_1TXOES3P1ANC7pnyJ5rPVfnf', cta: lang === 'zh' ? '开始商业版' : 'Start Business', highlight: false
     }
   ]
