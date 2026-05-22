@@ -23,6 +23,8 @@ export default function Settings() {
   const [accountNumber, setAccountNumber] = useState('')
   const [accountName, setAccountName] = useState('')
   const [userEmail, setUserEmail] = useState('')
+  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null)
+  const [planType, setPlanType] = useState<string>('trial')
 
   useEffect(() => {
     const saved = localStorage.getItem('darkMode') === 'true'
@@ -47,10 +49,17 @@ export default function Settings() {
         setBsb(data.bsb || '')
         setAccountNumber(data.account_number || '')
         setAccountName(data.account_name || '')
+        setTrialEndsAt(data.trial_ends_at || null)
+        setPlanType(data.plan_type || 'trial')
       }
     }
     loadProfile()
   }, [])
+
+  // 计算试用剩余天数
+  const trialDaysLeft = trialEndsAt
+    ? Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null
 
   function toggleDarkMode() {
     const next = !darkMode
@@ -100,6 +109,40 @@ export default function Settings() {
           <Link href="/" className="text-[#8E8E93] text-sm">← {lang === 'zh' ? '返回首页' : 'Home'}</Link>
           <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '设置' : 'Settings'}</h1>
         </div>
+
+        {/* 试用期 banner */}
+        {trialDaysLeft !== null && trialDaysLeft > 0 && planType === 'trial' && (
+          <div className="bg-[#30D158]/10 dark:bg-[#30D158]/10 border border-[#30D158]/30 rounded-2xl p-4 flex items-center justify-between">
+            <div>
+              <p className="font-semibold text-[#30D158] text-sm">
+                🎉 {lang === 'zh' ? `免费试用中 · 剩余 ${trialDaysLeft} 天` : `Free Trial · ${trialDaysLeft} days left`}
+              </p>
+              <p className="text-[#8E8E93] text-xs mt-0.5">
+                {lang === 'zh' ? '所有功能已解锁' : 'All features unlocked'}
+              </p>
+            </div>
+            <Link href="/pricing" className="bg-[#0A84FF] hover:bg-blue-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors">
+              {lang === 'zh' ? '查看计划' : 'View Plans'}
+            </Link>
+          </div>
+        )}
+
+        {/* 试用到期 banner */}
+        {trialDaysLeft !== null && trialDaysLeft <= 0 && planType === 'trial' && (
+          <div className="bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-2xl p-4 flex items-center justify-between">
+            <div>
+              <p className="font-semibold text-[#FF453A] text-sm">
+                ⚠️ {lang === 'zh' ? '试用已到期' : 'Trial Expired'}
+              </p>
+              <p className="text-[#8E8E93] text-xs mt-0.5">
+                {lang === 'zh' ? '请升级以继续使用' : 'Please upgrade to continue'}
+              </p>
+            </div>
+            <Link href="/pricing" className="bg-[#FF453A] hover:bg-red-400 text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors">
+              {lang === 'zh' ? '立即升级' : 'Upgrade Now'}
+            </Link>
+          </div>
+        )}
 
         {/* Language */}
         <div className={cardCls}>

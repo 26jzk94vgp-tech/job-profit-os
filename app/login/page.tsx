@@ -16,10 +16,29 @@ export default function Login() {
     setMessage('')
     if (isSignUp) {
       const { error } = await supabase.auth.signUp({ email, password })
-      if (error) { setMessage(error.message) } else { window.location.href = '/' }
+      if (error) {
+        setMessage(error.message)
+      } else {
+        // 新用户 → onboarding 填公司信息
+        window.location.href = '/onboarding'
+      }
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) { setMessage(error.message) } else { window.location.href = '/' }
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        setMessage(error.message)
+      } else {
+        // 老用户 → 检查是否填过公司信息
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('company_name')
+          .eq('id', data.user.id)
+          .single()
+        if (!profile?.company_name) {
+          window.location.href = '/onboarding'
+        } else {
+          window.location.href = '/'
+        }
+      }
     }
     setLoading(false)
   }
@@ -28,7 +47,15 @@ export default function Login() {
     <main className="min-h-screen bg-gray-950 text-white flex items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <h1 className="text-3xl font-bold mb-2 text-center tracking-tight">Job Profit OS</h1>
-        <p className="text-[#8E8E93] text-center mb-8 text-sm">For Australian tradies & builders</p>
+        <p className="text-[#8E8E93] text-center mb-2 text-sm">For Australian tradies & builders</p>
+        {isSignUp && (
+          <div className="mb-6 text-center">
+            <div className="inline-block bg-[#30D158]/20 border border-[#30D158]/40 rounded-full px-3 py-1">
+              <p className="text-[#30D158] text-xs font-semibold">🎉 60-day free trial — all features unlocked</p>
+            </div>
+          </div>
+        )}
+        {!isSignUp && <div className="mb-6" />}
 
         <div className="bg-[#1C1C1E] rounded-2xl p-6 space-y-4 border border-[#3A3A3C]">
           <h2 className="text-xl font-semibold text-white">{isSignUp ? 'Create Account' : 'Sign In'}</h2>
@@ -41,6 +68,7 @@ export default function Login() {
               placeholder="you@email.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSubmit()}
             />
           </div>
 
@@ -52,10 +80,11 @@ export default function Login() {
               placeholder="••••••••"
               value={password}
               onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSubmit()}
             />
           </div>
 
-          {message && <p className="text-sm text-[#0A84FF]">{message}</p>}
+          {message && <p className="text-sm text-[#FF453A]">{message}</p>}
 
           <button
             onClick={handleSubmit}
@@ -66,7 +95,7 @@ export default function Login() {
           </button>
 
           <button
-            onClick={() => setIsSignUp(!isSignUp)}
+            onClick={() => { setIsSignUp(!isSignUp); setMessage('') }}
             className="w-full text-[#0A84FF] text-sm py-2"
           >
             {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
