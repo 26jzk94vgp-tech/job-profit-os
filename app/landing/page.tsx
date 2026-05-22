@@ -45,12 +45,12 @@ export default function Landing() {
           <p className="text-gray-500 text-center mb-14">From quote to invoice – CIMO handles the numbers so you can focus on the work.</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { icon: '💨', title: 'Job Profit Tracking', desc: 'See revenue, costs, and profit on every job in real time. Know which jobs make money and which don\'t.' },
-              { icon: '🩞', title: 'Invoice & Quotes', desc: 'Create professional invoices and quotes in seconds. Send via email or share as PDF directly from your phone.' },
-              { icon: '🐋, title: 'BAS Reports', desc: 'Automatic quarterly GST summary ready to hand to your accountant. No more chasing receipts at tax time.' },
-              { icon: '💕', title: 'Job Timeline', desc: 'Set start and end dates for every job. Visual progress bar shows you what\'s on track and what\'s overdue.' },
-              { icon: '👕', title: 'Client Management', desc: 'Keep all your clients in one place with job history, outstanding invoices, and contact details.' },
-              { icon: '🏈', title: 'Cash Flow Forecast', desc: '3-month income and expense forecast so you\'re never caught short on cash between jobs.' },
+{ icon: '💰', title: 'Job Profit Tracking', desc: 'See revenue, costs, and profit on every job in real time. Know which jobs make money and which dont.' },
+{ icon: '🧾', title: 'Invoice & Quotes', desc: 'Create professional invoices and quotes in seconds. Send via email or share as PDF directly from your phone.' },
+{ icon: '📋', title: 'BAS Reports', desc: 'Automatic quarterly GST summary ready to hand to your accountant. No more chasing receipts at tax time.' },
+{ icon: '📅', title: 'Job Timeline', desc: 'Set start and end dates for every job. Visual progress bar shows whats on track and whats overdue.' },
+{ icon: '👥', title: 'Client Management', desc: 'Keep all your clients in one place with job history, outstanding invoices, and contact details.' },
+{ icon: '📈', title: 'Cash Flow Forecast', desc: '3-month income and expense forecast so youre never caught short on cash between jobs.' },
             ].map((f, i) => (
               <div key={i} className="bg-white rounded-2xl p-6 border border-gray-200">
                 <span className="text-3xl mb-3 block">{f.icon}</span>
@@ -100,7 +100,7 @@ export default function Landing() {
                 <ul className="space-y-2 mb-8">
                   {plan.features.map((f, j) => (
                     <li key={j} className="flex items-center gap-2 text-sm text-gray-700">
-                      <span className="text-green-500">�3</span> {f}
+                      <span className="text-green-500">�3</span> {f}
                     </li>
                   ))}
                 </ul>
