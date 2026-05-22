@@ -56,6 +56,21 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
     setSending(false)
   }
 
+  async function handleShareOrPrint() {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: (job?.name || 'Invoice') + ' - ' + invoiceNumber,
+          url: window.location.href
+        })
+      } catch (e) {
+        // user cancelled, do nothing
+      }
+    } else {
+      window.print()
+    }
+  }
+
   if (!job) return <div className="p-6">Loading...</div>
 
   const invoiceEntries = entries.filter(e => e.type === 'invoice')
@@ -90,8 +105,12 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
             </div>
           )}
           <div className="flex gap-3">
-            <button onClick={handleSendEmail} disabled={sending} className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50">{sending ? (lang === 'zh' ? '发送中...' : 'Sending...') : '📧 ' + (lang === 'zh' ? '发送发票' : 'Send Invoice')}</button>
-            <button onClick={() => window.print()} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium">🖨️ {lang === 'zh' ? '打印/PDF' : 'Print / PDF'}</button>
+            <button onClick={handleSendEmail} disabled={sending} className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50">
+              {sending ? (lang === 'zh' ? '发送中...' : 'Sending...') : '📧 ' + (lang === 'zh' ? '发送发票' : 'Send Invoice')}
+            </button>
+            <button onClick={handleShareOrPrint} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium">
+              📤 {lang === 'zh' ? '分享/存PDF' : 'Share / Save PDF'}
+            </button>
           </div>
         </div>
       </div>
@@ -99,7 +118,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
       {/* Invoice document */}
       <div className="max-w-4xl mx-auto bg-white p-10 print:p-8 shadow-sm">
 
-        {/* Header: Company info (left) + INVOICE title (right) */}
+        {/* Header */}
         <div className="flex justify-between items-start mb-8">
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{lang === 'zh' ? '服务提供方' : 'From'}</p>
