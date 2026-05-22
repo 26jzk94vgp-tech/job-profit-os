@@ -1,18 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '../../../utils/supabase/client'
 import { useLanguage } from '../../../lib/i18n/LanguageContext'
 
 export default function NewJob() {
   const [name, setName] = useState('')
   const [clientName, setClientName] = useState('')
+  const [clientId, setClientId] = useState('')
   const [notes, setNotes] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
   const { lang } = useLanguage()
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const cn = params.get('client_name')
+    const ci = params.get('client_id')
+    if (cn) setClientName(decodeURIComponent(cn))
+    if (ci) setClientId(ci)
+  }, [])
 
   async function handleSubmit() {
     if (!name) return
@@ -21,6 +30,7 @@ export default function NewJob() {
     const { error } = await supabase.from('jobs').insert({
       name,
       client_name: clientName,
+      client_id: clientId || null,
       notes: notes || null,
       start_date: startDate || null,
       end_date: endDate || null,
@@ -36,7 +46,7 @@ export default function NewJob() {
     <div className="min-h-screen bg-gray-50 dark:bg-[#1C1C1E] pt-12 md:pt-0">
       <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700/60 px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
-          <button onClick={() => window.location.href = '/'} className="text-gray-400 dark:text-[#8E8E93] text-sm">← {lang === 'zh' ? '返回' : 'Back'}</button>
+          <button onClick={() => window.history.back()} className="text-gray-400 dark:text-[#8E8E93] text-sm">← {lang === 'zh' ? '返回' : 'Back'}</button>
           <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '新建工单' : 'New Job'}</h1>
         </div>
       </nav>
@@ -44,11 +54,12 @@ export default function NewJob() {
         <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-4">
           <div>
             <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{lang === 'zh' ? '工单名称 *' : 'Job Name *'}</label>
-            <input className={inputCls} placeholder={lang === 'zh' ? '例如：厨房翻新' : 'e.g. Kitchen Renovation'} value={name} onChange={e => setName(e.target.value)} />
+            <input className={inputCls} placeholder={lang === 'zh' ? '例如：厨房翻新' : 'e.g. Kitchen Renovation'} value={name} onChange={e => setName(e.target.value)} autoFocus />
           </div>
           <div>
             <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{lang === 'zh' ? '客户名称' : 'Client Name'}</label>
             <input className={inputCls} placeholder={lang === 'zh' ? '例如：张先生' : 'e.g. John Smith'} value={clientName} onChange={e => setClientName(e.target.value)} />
+            {clientId && <p className="text-xs text-[#30D158] mt-1">✓ {lang === 'zh' ? '已关联客户档案' : 'Linked to client profile'}</p>}
           </div>
           <div className="flex gap-3">
             <div className="flex-1">
