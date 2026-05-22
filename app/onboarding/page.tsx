@@ -1,3 +1,4 @@
+cat > /Users/shux/Desktop/job-profit-os/app/onboarding/page.tsx << 'EOF'
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -31,10 +32,10 @@ export default function Onboarding() {
     if (!companyName.trim()) return
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) { setLoading(false); return }
     const trialEndsAt = new Date()
     trialEndsAt.setDate(trialEndsAt.getDate() + 60)
-    await supabase.from('profiles').upsert({
+    const { error } = await supabase.from('profiles').upsert({
       id: user.id,
       company_name: companyName.trim(),
       abn: abn || null,
@@ -49,8 +50,8 @@ export default function Onboarding() {
       plan_type: 'trial',
       updated_at: new Date().toISOString()
     })
+    if (error) { alert('Error: ' + error.message); setLoading(false); return }
     window.location.href = '/'
-    setLoading(false)
   }
 
   const inputCls = "w-full border border-[#3A3A3C] rounded-xl p-3 mt-1 text-white bg-[#2C2C2E] outline-none focus:ring-2 focus:ring-[#0A84FF]/50 transition placeholder-[#636366]"
@@ -83,7 +84,7 @@ export default function Onboarding() {
               <div><label className={labelCls}>Email</label><input className={inputCls} placeholder="info@company.com.au" value={companyEmail} onChange={e => setCompanyEmail(e.target.value)} /></div>
               <div><label className={labelCls}>Address</label><input className={inputCls} placeholder="123 Main St, Brisbane QLD 4000" value={companyAddress} onChange={e => setCompanyAddress(e.target.value)} /></div>
               <button onClick={() => companyName.trim() && setStep(2)} disabled={!companyName.trim()} className="w-full bg-[#0A84FF] hover:bg-blue-500 text-white py-3.5 rounded-2xl font-semibold disabled:opacity-40 transition-colors mt-2">Next →</button>
-              <button onClick={() => companyName.trim() && handleSave()} className="w-full text-[#8E8E93] text-sm py-2">Skip bank details for now</button>
+              <button onClick={handleSave} disabled={loading || !companyName.trim()} className="w-full text-[#8E8E93] text-sm py-2 disabled:opacity-40">{loading ? 'Setting up...' : 'Skip bank details for now'}</button>
             </>
           )}
           {step === 2 && (
@@ -96,7 +97,7 @@ export default function Onboarding() {
                 <div className="flex-1"><label className={labelCls}>Account No</label><input className={inputCls} placeholder="12345678" value={accountNumber} onChange={e => setAccountNumber(e.target.value)} /></div>
               </div>
               <button onClick={handleSave} disabled={loading} className="w-full bg-[#30D158] hover:bg-green-400 text-white py-3.5 rounded-2xl font-semibold disabled:opacity-50 transition-colors mt-2">{loading ? 'Setting up...' : "🚀 Let's go!"}</button>
-              <button onClick={() => setStep(1)} className="w-full text-[#8E8E93] text-sm py-2">← Back</button>
+              <button onClick={() => setStep(1)} disabled={loading} className="w-full text-[#8E8E93] text-sm py-2">← Back</button>
             </>
           )}
         </div>
@@ -104,3 +105,4 @@ export default function Onboarding() {
     </div>
   )
 }
+EOF
