@@ -46,7 +46,7 @@ export default function Login() {
   return (
     <main className="min-h-screen bg-gray-950 text-white flex items-center justify-center p-6">
       <div className="w-full max-w-sm">
-        <h1 className="text-3xl font-bold mb-2 text-center tracking-tight">Job Profit OS</h1>
+        <h1 className="text-3xl font-bold mb-2 text-center tracking-tight">CIMO</h1>
         <p className="text-[#8E8E93] text-center mb-2 text-sm">For Australian tradies & builders</p>
         {isSignUp && (
           <div className="mb-6 text-center">

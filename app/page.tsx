@@ -108,7 +108,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><span className="text-white font-bold text-sm">JP</span></div>
-            <span className="font-semibold text-gray-900 dark:text-white">Job Profit OS</span>
+            <span className="font-semibold text-gray-900 dark:text-white">CIMO</span>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/clients" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition-colors">{t.clients}</Link>

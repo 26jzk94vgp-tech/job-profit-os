@@ -73,7 +73,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
     const clientInfo = job.client_name ? `Client: ${job.client_name}` : ''
     const profitInfo = `Profit: $${profit.toLocaleString()} (${margin}%)`
     const ics = [
-      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Job Profit OS//EN',
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//CIMO//EN',
       'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
       `DTSTART;VALUE=DATE:${icsStart}`, `DTEND;VALUE=DATE:${icsEnd}`,
       `DTSTAMP:${now}`, `UID:job-${id}@jobprofitos`,

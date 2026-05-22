@@ -7,8 +7,8 @@ import InstallBanner from "./components/InstallBanner";
 import ServiceWorkerRegistrar from './components/ServiceWorkerRegistrar';
 
 export const metadata: Metadata = {
-  title: "Job Profit OS",
-  description: "Job-centric profitability system for Australian tradies",
+  title: "CIMO",
+  description: "Construction Inventory & Management Optimizer for Australian tradies",
 };
 
 export default function RootLayout({

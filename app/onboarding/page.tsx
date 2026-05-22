@@ -65,7 +65,7 @@ export default function Onboarding() {
           <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <span className="text-white font-bold text-xl">JP</span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Welcome to Job Profit OS</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Welcome to CIMO</h1>
           <p className="text-[#8E8E93] text-sm mt-1">Set up your company — takes 1 minute</p>
           <div className="mt-3 inline-block bg-[#30D158]/20 border border-[#30D158]/40 rounded-full px-3 py-1">
             <p className="text-[#30D158] text-xs font-semibold">🎉 60-day free trial — all features unlocked</p>
