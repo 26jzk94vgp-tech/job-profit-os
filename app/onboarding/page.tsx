@@ -111,7 +111,6 @@ export default function Onboarding() {
                 Next →
               </button>
               <button onClick={() => companyName.trim() && handleSave()} className="w-full text-[#8E8E93] text-sm py-2">
-                Skip bank details for now
               </button>
             </>
           )}
