@@ -99,7 +99,7 @@ export default function Finance() {
           <div className="px-6 py-3 bg-gray-50 border-b border-gray-100">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{lang === 'zh' ? '财务报告' : 'Reports'}</p>
           </div>
-          <Link href="/reports/monthly" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] border-b border-gray-100">
+          <Link href="/reports/monthly" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📅</span>
               <div>
@@ -109,7 +109,7 @@ export default function Finance() {
             </div>
             <span className="text-gray-400">→</span>
           </Link>
-          <Link href="/cashflow" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] border-b border-gray-100">
+          <Link href="/cashflow" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📈</span>
               <div>
@@ -119,7 +119,17 @@ export default function Finance() {
             </div>
             <span className="text-gray-400">→</span>
           </Link>
-          <Link href="/reports/annual" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] border-b border-gray-100">
+          <Link href="/tax/bas" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📋</span>
+              <div>
+                <p className="font-medium text-gray-900">BAS Report</p>
+                <p className="text-gray-400 text-xs">{lang === 'zh' ? '季度GST汇总，直接给会计师' : 'Quarterly GST summary for ATO'}</p>
+              </div>
+            </div>
+            <span className="text-gray-400">→</span>
+          </Link>
+          <Link href="/reports/annual" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📊</span>
               <div>
@@ -129,7 +139,7 @@ export default function Finance() {
             </div>
             <span className="text-gray-400">→</span>
           </Link>
-          <Link href="/import-materials" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] border-b border-gray-100">
+          <Link href="/import-materials" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📊</span>
               <div>
