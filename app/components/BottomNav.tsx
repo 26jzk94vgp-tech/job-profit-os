@@ -8,6 +8,8 @@ export default function BottomNav() {
   const pathname = usePathname()
   const { lang } = useLanguage()
 
+  if (pathname === '/login' || pathname === '/onboarding') return null
+
   const tabs = [
     { href: '/', icon: '🏠', label: lang === 'zh' ? '首页' : 'Home' },
     { href: '/jobs', icon: '🔨', label: lang === 'zh' ? '工单' : 'Jobs' },

@@ -9,7 +9,7 @@ export default function MobileHeader() {
   const pathname = usePathname()
   const supabase = createClient()
 
-  if (pathname === '/login') return null
+  if (pathname === '/login' || pathname === '/onboarding') return null
 
   async function handleSignOut() {
     await supabase.auth.signOut()
