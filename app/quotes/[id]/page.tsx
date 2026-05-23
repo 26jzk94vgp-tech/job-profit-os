@@ -39,14 +39,9 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        jobId: id,
-        toEmail,
-        toName: quote.client_name || '',
-        companyName: profile?.company_name || '',
-        companyEmail: profile?.company_email || '',
-        invoiceNumber: quote.quote_number || 'Q-001',
-        dueDate: '',
-        isQuote: true
+        jobId: id, toEmail, toName: quote.client_name || '',
+        companyName: profile?.company_name || '', companyEmail: profile?.company_email || '',
+        invoiceNumber: quote.quote_number || 'Q-001', dueDate: '', isQuote: true
       })
     })
     const json = await res.json()
@@ -54,20 +49,14 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
       setSent(true)
       await updateStatus('sent')
       setTimeout(() => { setSent(false); setShowEmailPanel(false) }, 2000)
-    } else {
-      alert('Failed: ' + json.error)
-    }
+    } else { alert('Failed: ' + json.error) }
     setSending(false)
   }
 
   async function handleShareOrPrint() {
     if (typeof navigator !== 'undefined' && navigator.share) {
-      try {
-        await navigator.share({ title: (quote.quote_number || 'Quote') + ' - ' + (quote.client_name || ''), url: window.location.href })
-      } catch (e) {}
-    } else {
-      window.print()
-    }
+      try { await navigator.share({ title: (quote.quote_number || 'Quote') + ' - ' + (quote.client_name || ''), url: window.location.href }) } catch (e) {}
+    } else { window.print() }
   }
 
   async function handleWon() {
@@ -75,96 +64,89 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
     const { data: { user } } = await supabase.auth.getUser()
 
     try {
-      let jobId = quote.job_id
+      // ✅ 每次从数据库重新读取最新状态，防止重复执行
+      const { data: freshQuote } = await supabase.from('quotes').select('*').eq('id', id).single()
+      if (!freshQuote) throw new Error('Quote not found')
 
-      // 如果没有关联工单 → 自动创建 Client + Job
+      // ✅ 如果已经成交，直接跳转工单，不重复创建
+      if (freshQuote.status === 'accepted' && freshQuote.job_id) {
+        window.location.href = '/jobs/' + freshQuote.job_id
+        return
+      }
+
+      let jobId = freshQuote.job_id
+
       if (!jobId) {
         // 1. 创建或找到 Client
-        let clientId = quote.client_id
-        if (!clientId && quote.client_name) {
+        let clientId = freshQuote.client_id
+        if (!clientId && freshQuote.client_name) {
           const { data: existingClient } = await supabase
-            .from('clients')
-            .select('id')
-            .eq('owner_id', user?.id)
-            .ilike('name', quote.client_name.trim())
-            .single()
-
+            .from('clients').select('id').eq('owner_id', user?.id)
+            .ilike('name', freshQuote.client_name.trim()).single()
           if (existingClient) {
             clientId = existingClient.id
           } else {
             const { data: newClient } = await supabase
               .from('clients')
-              .insert({ name: quote.client_name.trim(), owner_id: user?.id, address: quote.site_address || null })
-              .select('id')
-              .single()
+              .insert({ name: freshQuote.client_name.trim(), owner_id: user?.id, address: freshQuote.site_address || null })
+              .select('id').single()
             clientId = newClient?.id
           }
         }
 
         // 2. 创建 Job
-        const jobName = quote.job_name || quote.client_name || (lang === 'zh' ? '新工单' : 'New Job')
+        const jobName = freshQuote.job_name || freshQuote.client_name || (lang === 'zh' ? '新工单' : 'New Job')
         const { data: newJob, error: jobError } = await supabase
           .from('jobs')
-          .insert({
-            name: jobName,
-            client_id: clientId || null,
-            client_name: quote.client_name || null,
-            site_address: quote.site_address || null,
-            owner_id: user?.id,
-            status: 'active'
-          })
-          .select('id')
-          .single()
-
+          .insert({ name: jobName, client_id: clientId || null, client_name: freshQuote.client_name || null, site_address: freshQuote.site_address || null, owner_id: user?.id, status: 'active' })
+          .select('id').single()
         if (jobError) throw new Error(jobError.message)
         jobId = newJob.id
 
-        // 3. 把工单关联到报价单
-        await supabase.from('quotes').update({ job_id: jobId, client_id: clientId || null }).eq('id', id)
+        // 3. ✅ 立即保存 job_id 到报价单（关键！）
+        const { error: updateError } = await supabase.from('quotes').update({ job_id: jobId, client_id: clientId || null, status: 'accepted', deposit_status: 'pending' }).eq('id', id)
+        if (updateError) throw new Error(updateError.message)
       }
 
-      // 4. 插入 invoice 条目（每个报价条目 → 一张发票）
+      // 4. 检查是否已有发票条目，避免重复插入
+      const { data: existingInvoices } = await supabase.from('job_entries').select('id').eq('job_id', jobId).eq('type', 'invoice')
+      if (!existingInvoices || existingInvoices.length === 0) {
+        // 插入 invoice 条目
+        const invoiceItems = items.map(item => ({
+          job_id: jobId, owner_id: user?.id, type: 'invoice',
+          description: item.description + (item.area ? ' - ' + item.area : ''),
+          item_group: item.item_group || null,
+          area: item.area || null,
+          quantity: Number(item.quantity),
+          unit: item.item_unit || item.unit || null,
+          unit_price: Number(item.unit_price),
+          amount: Number(item.quantity) * Number(item.unit_price),
+          gst_status: 'exclusive', tax_category: 'other_income', payment_status: 'unpaid'
+        }))
+        const { error: invoiceError } = await supabase.from('job_entries').insert(invoiceItems)
+        if (invoiceError) throw new Error(invoiceError.message)
+
+        // 插入材料估算条目
+        const materialItems = items.filter(i => Number(i.cost_price) > 0).map(item => ({
+          job_id: jobId, owner_id: user?.id, type: 'material',
+          description: item.description + (item.area ? ' - ' + item.area : ''),
+          quantity: Number(item.quantity), unit: item.item_unit || item.unit || null,
+          unit_price: Number(item.cost_price), amount: Number(item.quantity) * Number(item.cost_price),
+          gst_status: 'inclusive', tax_category: 'cogs_material', notes: 'QUOTE_ESTIMATE'
+        }))
+        if (materialItems.length > 0) await supabase.from('job_entries').insert(materialItems)
+      }
+
+      // 5. 更新状态（如果上面没更新过）
+      if (!freshQuote.job_id) {
+        // 已在步骤3更新过了
+      } else {
+        await supabase.from('quotes').update({ status: 'accepted', deposit_status: 'pending' }).eq('id', id)
+      }
+
       const subTotal = items.reduce((sum, item) => sum + Number(item.quantity) * Number(item.unit_price), 0)
-      const invoiceItems = items.map(item => ({
-        job_id: jobId,
-        owner_id: user?.id,
-        type: 'invoice',
-        description: item.description + (item.area ? ' - ' + item.area : ''),
-        quantity: Number(item.quantity),
-        unit: item.item_unit || item.unit || null,
-        unit_price: Number(item.unit_price),
-        amount: Number(item.quantity) * Number(item.unit_price),
-        gst_status: 'exclusive',
-        tax_category: 'other_income',
-        payment_status: 'unpaid'
-      }))
-      const { error: invoiceError } = await supabase.from('job_entries').insert(invoiceItems)
-      if (invoiceError) throw new Error(invoiceError.message)
-
-      // 5. 插入材料估算条目
-      const materialItems = items.filter(i => Number(i.cost_price) > 0).map(item => ({
-        job_id: jobId,
-        owner_id: user?.id,
-        type: 'material',
-        description: item.description + (item.area ? ' - ' + item.area : ''),
-        quantity: Number(item.quantity),
-        unit: item.item_unit || item.unit || null,
-        unit_price: Number(item.cost_price),
-        amount: Number(item.quantity) * Number(item.cost_price),
-        gst_status: 'inclusive',
-        tax_category: 'cogs_material',
-        notes: 'QUOTE_ESTIMATE'
-      }))
-      if (materialItems.length > 0) await supabase.from('job_entries').insert(materialItems)
-
-      // 6. 更新报价单状态为 accepted
-      await supabase.from('quotes').update({ status: 'accepted', deposit_status: 'pending' }).eq('id', id)
-
-      // 7. 显示成功 banner（含 20% 预付款提示）
       const deposit = subTotal * 0.2
-      const msg = materialItems.length > 0
-        ? (lang === 'zh' ? `已自动创建工单并导入 ${invoiceItems.length} 张发票 + ${materialItems.length} 条材料估算` : `Job created! ${invoiceItems.length} invoice(s) + ${materialItems.length} material estimate(s) added`)
-        : (lang === 'zh' ? `已自动创建工单并导入 ${invoiceItems.length} 张发票` : `Job created! ${invoiceItems.length} invoice(s) added`)
+      const msg = lang === 'zh' ? `已自动创建工单并导入 ${items.length} 个条目` : `Job created! ${items.length} item(s) added`
 
       setSuccessBanner({ jobId, deposit, msg })
       setQuote((q: any) => ({ ...q, status: 'accepted', job_id: jobId }))
@@ -195,22 +177,15 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-
-      {/* ── Top control bar ── */}
       <div className="max-w-4xl mx-auto px-4 pt-5 pb-4 print:hidden">
-
-        {/* Back + title */}
         <div className="flex items-center gap-2 mb-4">
           <a href="/quotes" className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
             ← {lang === 'zh' ? '返回' : 'Back'}
           </a>
           <span className="text-gray-300 dark:text-gray-600">/</span>
-          <h1 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-            {lang === 'zh' ? '报价单详情' : 'Quote Detail'}
-          </h1>
+          <h1 className="text-sm font-semibold text-gray-800 dark:text-gray-100">{lang === 'zh' ? '报价单详情' : 'Quote Detail'}</h1>
         </div>
 
-        {/* Success banner */}
         {successBanner && (
           <div className="mb-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/40 rounded-2xl p-4">
             <div className="flex items-start justify-between gap-3">
@@ -222,108 +197,58 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
                   <p className="font-bold text-[#FF9F0A] text-base">${successBanner.deposit.toFixed(2)}</p>
                 </div>
               </div>
-              <a
-                href={'/jobs/' + successBanner.jobId}
-                className="shrink-0 bg-green-600 hover:bg-green-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors"
-              >
+              <a href={'/jobs/' + successBanner.jobId} className="shrink-0 bg-green-600 hover:bg-green-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors">
                 {lang === 'zh' ? '查看工单 →' : 'View Job →'}
               </a>
             </div>
           </div>
         )}
 
-        {/* Action bar */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700/60 shadow-sm px-4 py-3 flex flex-wrap items-center gap-2">
-
-          {/* Status pills */}
-          <span className="text-xs text-gray-400 dark:text-gray-500 mr-1">
-            {lang === 'zh' ? '状态' : 'Status'}
-          </span>
+          <span className="text-xs text-gray-400 dark:text-gray-500 mr-1">{lang === 'zh' ? '状态' : 'Status'}</span>
           {(['draft', 'sent', 'accepted', 'declined'] as const).map(s => {
             const cfg = statusConfig[s]
             const isActive = quote.status === s
             return (
-              <button
-                key={s}
-                onClick={() => updateStatus(s)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                  isActive
-                    ? cfg.color + ' ring-2 ring-offset-1 ring-offset-white dark:ring-offset-gray-900 ring-current'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'
-                }`}
-              >
+              <button key={s} onClick={() => updateStatus(s)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${isActive ? cfg.color + ' ring-2 ring-offset-1 ring-offset-white dark:ring-offset-gray-900 ring-current' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>
                 {lang === 'zh' ? cfg.labelZh : cfg.label}
               </button>
             )
           })}
-
-          {/* Edit */}
-          <a
-            href={`/quotes/${id}/edit`}
-            className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          >
+          <a href={`/quotes/${id}/edit`} className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
             ✏️ {lang === 'zh' ? '编辑' : 'Edit'}
           </a>
-
           <div className="flex-1" />
-
-          {/* Print */}
-          <button
-            onClick={handleShareOrPrint}
-            className="px-4 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          >
+          <button onClick={handleShareOrPrint} className="px-4 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
             📤 {lang === 'zh' ? '分享/PDF' : 'Share / PDF'}
           </button>
-          <button
-            onClick={() => setShowEmailPanel(!showEmailPanel)}
-            className="px-4 py-1.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 transition-colors"
-          >
+          <button onClick={() => setShowEmailPanel(!showEmailPanel)} className="px-4 py-1.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 transition-colors">
             📧 {lang === 'zh' ? '发送报价' : 'Send Quote'}
           </button>
 
-          {/* 成交按钮 — 无论是否有 job_id 都显示 */}
-          {quote.status !== 'accepted' && (
-            <button
-              onClick={handleWon}
-              disabled={loading}
-              className="px-4 py-1.5 rounded-full text-xs font-semibold bg-[#30D158] hover:bg-green-400 text-white disabled:opacity-50 transition-colors"
-            >
-              {loading
-                ? (lang === 'zh' ? '处理中…' : 'Processing…')
-                : (lang === 'zh' ? '🎉 成交！' : '🎉 Won!')}
+          {/* ✅ 未成交显示成交按钮，已成交显示查看工单 */}
+          {quote.status !== 'accepted' ? (
+            <button onClick={handleWon} disabled={loading}
+              className="px-4 py-1.5 rounded-full text-xs font-semibold bg-[#30D158] hover:bg-green-400 text-white disabled:opacity-50 transition-colors">
+              {loading ? (lang === 'zh' ? '处理中…' : 'Processing…') : (lang === 'zh' ? '🎉 成交！' : '🎉 Won!')}
             </button>
-          )}
-
-          {/* 已成交 — 跳转工单 */}
-          {quote.status === 'accepted' && quote.job_id && (
-            <a
-              href={'/jobs/' + quote.job_id}
-              className="px-4 py-1.5 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-green-600 dark:text-[#30D158] transition-colors"
-            >
+          ) : (
+            <a href={'/jobs/' + quote.job_id} className="px-4 py-1.5 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-green-600 dark:text-[#30D158] transition-colors">
               ✅ {lang === 'zh' ? '查看工单' : 'View Job'}
             </a>
           )}
         </div>
       </div>
 
-      {/* Email panel */}
       {showEmailPanel && (
         <div className="max-w-4xl mx-auto px-4 pb-4 print:hidden">
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700/60 shadow-sm px-4 py-4 space-y-3">
             <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">📧 {lang === 'zh' ? '发送报价单' : 'Send Quote'}</p>
             <div className="flex gap-2">
-              <input
-                type="email"
-                className="flex-1 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm outline-none dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500/40"
-                placeholder={quote.clients?.email || 'client@email.com'}
-                value={toEmail}
-                onChange={e => setToEmail(e.target.value)}
-              />
-              <button
-                onClick={sendQuote}
-                disabled={sending}
-                className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors"
-              >
+              <input type="email" className="flex-1 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm outline-none dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500/40"
+                placeholder={quote.clients?.email || 'client@email.com'} value={toEmail} onChange={e => setToEmail(e.target.value)} />
+              <button onClick={sendQuote} disabled={sending} className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors">
                 {sent ? '✅' : sending ? (lang === 'zh' ? '发送中...' : 'Sending...') : (lang === 'zh' ? '发送' : 'Send')}
               </button>
             </div>
@@ -331,56 +256,30 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
         </div>
       )}
 
-      {/* ── Quote document ── */}
       <div className="max-w-4xl mx-auto px-4 pb-12 print:px-0 print:pb-0">
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700/60 shadow-sm overflow-hidden print:rounded-none print:shadow-none print:border-0">
-
-          {/* Header */}
           <div className="px-8 pt-8 pb-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-start">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-                {profile?.company_name || 'Your Company'}
-              </h2>
-              {profile?.company_abn && (
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">ABN {profile.company_abn}</p>
-              )}
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{profile?.company_name || 'Your Company'}</h2>
+              {profile?.company_abn && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">ABN {profile.company_abn}</p>}
             </div>
             <div className="text-right text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
               <p className="font-semibold text-gray-700 dark:text-gray-200">{profile?.company_name || 'Your Company'}</p>
               {profile?.company_phone && <p>{profile.company_phone}</p>}
-              {profile?.company_email && (
-                <p className="text-blue-500 dark:text-blue-400">{profile.company_email}</p>
-              )}
+              {profile?.company_email && <p className="text-blue-500 dark:text-blue-400">{profile.company_email}</p>}
             </div>
           </div>
 
-          {/* Meta info */}
           <div className="px-8 py-5 border-b border-gray-100 dark:border-gray-800">
             <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <div className="flex gap-3">
-                <span className="w-20 text-gray-400 dark:text-gray-500 shrink-0">{lang === 'zh' ? '报价单号' : 'Quote No.'}</span>
-                <span className="font-semibold text-gray-800 dark:text-gray-100">{quote.quote_number || 'Q-001'}</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="w-20 text-gray-400 dark:text-gray-500 shrink-0">{lang === 'zh' ? '日期' : 'Date'}</span>
-                <span className="text-gray-700 dark:text-gray-200">{quote.quote_date || new Date().toLocaleDateString('en-AU')}</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="w-20 text-gray-400 dark:text-gray-500 shrink-0">{lang === 'zh' ? '客户' : 'Client'}</span>
-                <span className="text-gray-700 dark:text-gray-200">{quote.client_name || quote.clients?.name || '—'}</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="w-20 text-gray-400 dark:text-gray-500 shrink-0">{lang === 'zh' ? '类型' : 'Type'}</span>
-                <span className="text-gray-700 dark:text-gray-200">{quote.quote_type || 'Residential'}</span>
-              </div>
-              <div className="flex gap-3 col-span-2">
-                <span className="w-20 text-gray-400 dark:text-gray-500 shrink-0">{lang === 'zh' ? '地址' : 'Address'}</span>
-                <span className="text-gray-700 dark:text-gray-200">{quote.site_address || quote.jobs?.name || '—'}</span>
-              </div>
+              <div className="flex gap-3"><span className="w-20 text-gray-400 dark:text-gray-500 shrink-0">{lang === 'zh' ? '报价单号' : 'Quote No.'}</span><span className="font-semibold text-gray-800 dark:text-gray-100">{quote.quote_number || 'Q-001'}</span></div>
+              <div className="flex gap-3"><span className="w-20 text-gray-400 dark:text-gray-500 shrink-0">{lang === 'zh' ? '日期' : 'Date'}</span><span className="text-gray-700 dark:text-gray-200">{quote.quote_date || new Date().toLocaleDateString('en-AU')}</span></div>
+              <div className="flex gap-3"><span className="w-20 text-gray-400 dark:text-gray-500 shrink-0">{lang === 'zh' ? '客户' : 'Client'}</span><span className="text-gray-700 dark:text-gray-200">{quote.client_name || quote.clients?.name || '—'}</span></div>
+              <div className="flex gap-3"><span className="w-20 text-gray-400 dark:text-gray-500 shrink-0">{lang === 'zh' ? '类型' : 'Type'}</span><span className="text-gray-700 dark:text-gray-200">{quote.quote_type || 'Residential'}</span></div>
+              <div className="flex gap-3 col-span-2"><span className="w-20 text-gray-400 dark:text-gray-500 shrink-0">{lang === 'zh' ? '地址' : 'Address'}</span><span className="text-gray-700 dark:text-gray-200">{quote.site_address || quote.jobs?.name || '—'}</span></div>
             </div>
           </div>
 
-          {/* Items table */}
           <div className="px-8 py-5">
             <table className="w-full text-sm">
               <thead>
@@ -400,7 +299,6 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
                 {(() => {
                   const groups = [...new Set(items.map(i => i.item_group || ''))].filter(Boolean)
                   const noGroup = items.filter(i => !i.item_group)
-
                   const renderRow = (item: any) => (
                     <tr key={item.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                       <td className="py-2.5 pr-3 text-gray-700 dark:text-gray-200">{item.description}</td>
@@ -414,16 +312,11 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
                       <td className="py-2.5 text-right font-medium text-gray-800 dark:text-gray-100">${(Number(item.quantity) * Number(item.unit_price)).toFixed(2)}</td>
                     </tr>
                   )
-
                   return (
                     <>
                       {groups.map(group => (
-                        <>
-                          <tr key={group}>
-                            <td colSpan={9} className="pt-4 pb-1.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{group}</td>
-                          </tr>
-                          {items.filter(i => i.item_group === group).map(renderRow)}
-                        </>
+                        <><tr key={group}><td colSpan={9} className="pt-4 pb-1.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{group}</td></tr>
+                        {items.filter(i => i.item_group === group).map(renderRow)}</>
                       ))}
                       {noGroup.map(renderRow)}
                     </>
@@ -433,22 +326,11 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
             </table>
           </div>
 
-          {/* Totals */}
           <div className="px-8 pb-8 flex justify-end">
             <div className="w-64 space-y-1 text-sm">
-              <div className="flex justify-between py-1.5 text-gray-500 dark:text-gray-400">
-                <span>{lang === 'zh' ? '小计' : 'Sub-Total'}</span>
-                <span>${subTotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between py-1.5 text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-800">
-                <span>GST (10%)</span>
-                <span>${gst.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between py-2.5 font-semibold text-base text-gray-900 dark:text-white">
-                <span>{lang === 'zh' ? '含GST总计' : 'Total Inc. GST'}</span>
-                <span className="text-blue-600 dark:text-blue-400">${totalIncGst.toFixed(2)}</span>
-              </div>
-              {/* 20% deposit hint */}
+              <div className="flex justify-between py-1.5 text-gray-500 dark:text-gray-400"><span>{lang === 'zh' ? '小计' : 'Sub-Total'}</span><span>${subTotal.toFixed(2)}</span></div>
+              <div className="flex justify-between py-1.5 text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-800"><span>GST (10%)</span><span>${gst.toFixed(2)}</span></div>
+              <div className="flex justify-between py-2.5 font-semibold text-base text-gray-900 dark:text-white"><span>{lang === 'zh' ? '含GST总计' : 'Total Inc. GST'}</span><span className="text-blue-600 dark:text-blue-400">${totalIncGst.toFixed(2)}</span></div>
               <div className="flex justify-between py-1.5 text-[#FF9F0A] text-xs border-t border-gray-100 dark:border-gray-800 mt-1 pt-2">
                 <span>{lang === 'zh' ? '建议预付款 (20%)' : 'Suggested Deposit (20%)'}</span>
                 <span className="font-semibold">${(subTotal * 0.2).toFixed(2)}</span>
@@ -456,28 +338,18 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
             </div>
           </div>
 
-          {/* Scope of work */}
           {quote.scope_of_work && (
             <div className="px-8 pb-6 border-t border-gray-100 dark:border-gray-800 pt-5">
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">
-                {lang === 'zh' ? '工作范围' : 'Scope of Work'}
-              </p>
-              <pre className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap font-sans leading-relaxed">
-                {quote.scope_of_work}
-              </pre>
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">{lang === 'zh' ? '工作范围' : 'Scope of Work'}</p>
+              <pre className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap font-sans leading-relaxed">{quote.scope_of_work}</pre>
             </div>
           )}
-
-          {/* Notes */}
           {quote.notes && (
             <div className="px-8 pb-8">
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1">
-                {lang === 'zh' ? '备注' : 'Notes'}
-              </p>
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1">{lang === 'zh' ? '备注' : 'Notes'}</p>
               <p className="text-sm text-gray-600 dark:text-gray-300">{quote.notes}</p>
             </div>
           )}
-
         </div>
       </div>
     </div>
