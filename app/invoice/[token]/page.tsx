@@ -88,7 +88,7 @@ export default function PublicInvoice({ params }: { params: Promise<{ token: str
         {/* Bill To */}
         <div className="mb-6 bg-gray-50 rounded-lg p-4">
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Bill To</p>
-          <p className="text-sm font-semibold text-gray-900">{job.client_name || '—'}|/p>
+          <p className="text-sm font-semibold text-gray-900">{job.client_name || '—'}</p>
           {job.site_address && <p className="text-sm text-gray-600">{job.site_address}</p>}
         </div>
 
