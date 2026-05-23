@@ -56,6 +56,25 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
     setSending(false)
   }
 
+  async function generateAndCopyLink() {
+    setCopyingLink(true)
+    try {
+      let token = null
+      const { data: jobData } = await supabase.from('jobs').select('public_token').eq('id', id).single()
+      if (jobData?.public_token) {
+        token = jobData.public_token
+      } else {
+        token = Math.random().toString(36).substring(2) + Date.now().toString(36)
+        await supabase.from('jobs').update({ public_token: token }).eq('id', id)
+      }
+      const url = window.location.origin + '/invoice/' + token
+      await navigator.clipboard.writeText(url)
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2000)
+    } catch (e) {}
+    setCopyingLink(false)
+  }
+
   async function handleShareOrPrint() {
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
@@ -107,6 +126,9 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
           <div className="flex gap-3">
             <button onClick={handleSendEmail} disabled={sending} className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50">
               {sending ? (lang === 'zh' ? '发送中...' : 'Sending...') : '📧 ' + (lang === 'zh' ? '发送发票' : 'Send Invoice')}
+            </button>
+            <button onClick={generateAndCopyLink} disabled={copyingLink} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium">
+              {linkCopied ? '✅ ' + (lang === 'zh' ? '已复制!' : 'Copied!') : copyingLink ? '...' : '🔗 ' + (lang === 'zh' ? '复制链接' : 'Copy Link')}
             </button>
             <button onClick={handleShareOrPrint} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium">
               📤 {lang === 'zh' ? '分享/存PDF' : 'Share / Save PDF'}
