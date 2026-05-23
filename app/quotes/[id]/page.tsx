@@ -14,6 +14,10 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [successBanner, setSuccessBanner] = useState<{ jobId: string; deposit: number; msg: string } | null>(null)
+  const [showEmailPanel, setShowEmailPanel] = useState(false)
+  const [toEmail, setToEmail] = useState('')
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
 
   useEffect(() => {
     supabase.from('quotes').select('*, jobs(name), clients(name, address, phone, email)').eq('id', id).single().then(({ data }) => setQuote(data))
@@ -26,6 +30,44 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
   async function updateStatus(status: string) {
     await supabase.from('quotes').update({ status }).eq('id', id)
     setQuote((q: any) => ({ ...q, status }))
+  }
+
+  async function sendQuote() {
+    if (!toEmail) { alert('Please enter client email'); return }
+    setSending(true)
+    const res = await fetch('/api/send-invoice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jobId: id,
+        toEmail,
+        toName: quote.client_name || '',
+        companyName: profile?.company_name || '',
+        companyEmail: profile?.company_email || '',
+        invoiceNumber: quote.quote_number || 'Q-001',
+        dueDate: '',
+        isQuote: true
+      })
+    })
+    const json = await res.json()
+    if (json.success) {
+      setSent(true)
+      await updateStatus('sent')
+      setTimeout(() => { setSent(false); setShowEmailPanel(false) }, 2000)
+    } else {
+      alert('Failed: ' + json.error)
+    }
+    setSending(false)
+  }
+
+  async function handleShareOrPrint() {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({ title: (quote.quote_number || 'Quote') + ' - ' + (quote.client_name || ''), url: window.location.href })
+      } catch (e) {}
+    } else {
+      window.print()
+    }
   }
 
   async function handleWon() {
@@ -227,10 +269,16 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
 
           {/* Print */}
           <button
-            onClick={() => window.print()}
+            onClick={handleShareOrPrint}
             className="px-4 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
-            🖨️ {lang === 'zh' ? '打印/PDF' : 'Print / PDF'}
+            📤 {lang === 'zh' ? '分享/PDF' : 'Share / PDF'}
+          </button>
+          <button
+            onClick={() => setShowEmailPanel(!showEmailPanel)}
+            className="px-4 py-1.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 transition-colors"
+          >
+            📧 {lang === 'zh' ? '发送报价' : 'Send Quote'}
           </button>
 
           {/* 成交按钮 — 无论是否有 job_id 都显示 */}
@@ -257,6 +305,31 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
           )}
         </div>
       </div>
+
+      {/* Email panel */}
+      {showEmailPanel && (
+        <div className="max-w-4xl mx-auto px-4 pb-4 print:hidden">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700/60 shadow-sm px-4 py-4 space-y-3">
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">📧 {lang === 'zh' ? '发送报价单' : 'Send Quote'}</p>
+            <div className="flex gap-2">
+              <input
+                type="email"
+                className="flex-1 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm outline-none dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500/40"
+                placeholder={quote.clients?.email || 'client@email.com'}
+                value={toEmail}
+                onChange={e => setToEmail(e.target.value)}
+              />
+              <button
+                onClick={sendQuote}
+                disabled={sending}
+                className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors"
+              >
+                {sent ? '✅' : sending ? (lang === 'zh' ? '发送中...' : 'Sending...') : (lang === 'zh' ? '发送' : 'Send')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Quote document ── */}
       <div className="max-w-4xl mx-auto px-4 pb-12 print:px-0 print:pb-0">
