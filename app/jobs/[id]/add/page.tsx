@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '../../../../utils/supabase/client'
 import { use } from 'react'
 import { useLanguage } from '../../../../lib/i18n/LanguageContext'
@@ -10,11 +10,8 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   const supabase = createClient()
   const { lang } = useLanguage()
 
-  // ✅ 读取 ?type=invoice 参数，自动预选收入+发票
-  const isInvoicePreset = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('type') === 'invoice'
-
-  const [category, setCategory] = useState(isInvoicePreset ? 'income' : 'expense')
-  const [type, setType] = useState(isInvoicePreset ? 'invoice' : 'material')
+  const [category, setCategory] = useState('expense')
+  const [type, setType] = useState('material')
   const [description, setDescription] = useState('')
   const [suggestedType, setSuggestedType] = useState<string | null>(null)
   const [classifying, setClassifying] = useState(false)
@@ -36,7 +33,17 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   const [showAtoInfo, setShowAtoInfo] = useState(false)
   const [paymentDueDate, setPaymentDueDate] = useState('')
   const [paymentStatus, setPaymentStatus] = useState('unpaid')
-  const [taxCategory, setTaxCategory] = useState(isInvoicePreset ? 'other_income' : '')
+  const [taxCategory, setTaxCategory] = useState('')
+
+  // ✅ 用 useEffect 读取 ?type=invoice，自动预选收入+发票
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('type') === 'invoice') {
+      setCategory('income')
+      setType('invoice')
+      setTaxCategory('other_income')
+    }
+  }, [])
 
   const t = {
     back: lang === 'zh' ? '返回' : 'Back',
@@ -255,17 +262,6 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label>
                 <input className={inputCls} placeholder={lang === 'zh' ? '例如：进度款' : 'e.g. Progress payment'} value={description} onChange={e => { setDescription(e.target.value); setSuggestedType(null) }} onBlur={e => lookupHistoricalPrice(e.target.value)} />
                 {errors.description && <p className={errCls}>{errors.description}</p>}
-                {classifying && <p className="text-xs text-[#8E8E93] mt-1">📊 {lang === 'zh' ? '查询历史成本均价...' : 'Looking up cost history...'}</p>}
-                {suggestedType && !classifying && (
-                  <div className="mt-1.5 flex items-center gap-2">
-                    <span className="text-xs text-[#8E8E93]">📊 {lang === 'zh' ? '历史成本均价:' : 'Hist. cost avg:'}</span>
-                    <button onClick={() => { const price = suggestedType?.match(/\$([\d.]+)/)?.[1]; if (price) setUnitPrice(price); setSuggestedType(null) }}
-                      className="text-xs bg-[#0A84FF]/10 text-[#0A84FF] px-2 py-0.5 rounded-full font-medium hover:bg-[#0A84FF]/20 transition-colors">
-                      {suggestedType} ✓
-                    </button>
-                    <button onClick={() => setSuggestedType(null)} className="text-xs text-[#8E8E93]">✕</button>
-                  </div>
-                )}
               </div>
               <div>
                 <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.amount}</label>
