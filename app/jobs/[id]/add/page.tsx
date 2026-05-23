@@ -85,6 +85,21 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
     gstFreeHint: lang === 'zh' ? '无GST（如工资、某些食品）' : 'No GST applies (e.g. wages, some fresh food)',
   }
 
+  async function classifyDescription(desc: string) {
+    if (!desc || category !== 'expense') return
+    setClassifying(true)
+    try {
+      const res = await fetch('/api/classify-entry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: desc })
+      })
+      const data = await res.json()
+      if (data.type && data.type !== type) setSuggestedType(data.type)
+    } catch {}
+    setClassifying(false)
+  }
+
   function validatePositive(value: string, field: string) {
     if (value === '' || value === '/') { setErrors(e => { const n = {...e}; delete n[field]; return n }); return true }
     if (!/^\d+(\.\d{0,2})?$/.test(value)) {
