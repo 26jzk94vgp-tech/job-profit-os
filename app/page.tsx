@@ -14,6 +14,7 @@ export default function Home() {
   const [showImportTip, setShowImportTip] = useState(true)
   const [sortBy, setSortBy] = useState("date")
   const [user, setUser] = useState<any>(null)
+  const [authLoading, setAuthLoading] = useState(true)
   const [editMode, setEditMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -36,6 +37,8 @@ export default function Home() {
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser()
     setUser(user)
+    setAuthLoading(false)
+    if (!user) return
     const { data: jobData } = await supabase.from('job_summary').select('*')
     setJobs(jobData || [])
     const { data: entryData } = await supabase.from('job_entries').select('*, jobs(name)').in('type', ['invoice', 'material', 'subcontract', 'labor', 'fuel'])
@@ -101,6 +104,8 @@ export default function Home() {
     </div>
   )
 
+  if (authLoading) return null
+  if (!user) { window.location.href = '/landing'; return null }
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Desktop nav */}
