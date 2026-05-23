@@ -12,6 +12,8 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   const [category, setCategory] = useState('expense')
   const [type, setType] = useState('material')
   const [description, setDescription] = useState('')
+  const [suggestedType, setSuggestedType] = useState<string | null>(null)
+  const [classifying, setClassifying] = useState(false)
   const [workerName, setWorkerName] = useState('')
   const [hours, setHours] = useState('')
   const [hourlyRate, setHourlyRate] = useState('')
@@ -220,8 +222,19 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
             <div className="space-y-5">
               <div>
                 <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label>
-                <input className={inputCls} placeholder={lang === 'zh' ? '例如：进度款' : 'e.g. Progress payment'} value={description} onChange={e => setDescription(e.target.value)} />
+                <input className={inputCls} placeholder={lang === 'zh' ? '例如：进度款' : 'e.g. Progress payment'} value={description} onChange={e => { setDescription(e.target.value); setSuggestedType(null) }} onBlur={e => classifyDescription(e.target.value)} />
                 {errors.description && <p className={errCls}>{errors.description}</p>}
+                {classifying && <p className="text-xs text-[#8E8E93] mt-1">🤖 {lang === 'zh' ? 'AI 分析中...' : 'AI analysing...'}</p>}
+                {suggestedType && !classifying && (
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <span className="text-xs text-[#8E8E93]">🤖 {lang === 'zh' ? 'AI 建议:' : 'AI suggests:'}</span>
+                    <button onClick={() => { setType(suggestedType); setCategory('expense'); setSuggestedType(null) }}
+                      className="text-xs bg-[#0A84FF]/10 text-[#0A84FF] px-2 py-0.5 rounded-full font-medium hover:bg-[#0A84FF]/20 transition-colors">
+                      {suggestedType} ✓
+                    </button>
+                    <button onClick={() => setSuggestedType(null)} className="text-xs text-[#8E8E93]">✕</button>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.amount}</label>
@@ -285,7 +298,18 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
           {/* ── MATERIAL ── */}
           {type === 'material' && (
             <div className="space-y-5">
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder="e.g. Timber" value={description} onChange={e => setDescription(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}</div>
+              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder="e.g. Timber" value={description} onChange={e => { setDescription(e.target.value); setSuggestedType(null) }} onBlur={e => classifyDescription(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}
+                {classifying && <p className="text-xs text-[#8E8E93] mt-1">🤖 {lang === 'zh' ? 'AI 分析中...' : 'AI analysing...'}</p>}
+                {suggestedType && !classifying && (
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <span className="text-xs text-[#8E8E93]">🤖 {lang === 'zh' ? 'AI 建议:' : 'AI suggests:'}</span>
+                    <button onClick={() => { setType(suggestedType); setCategory('expense'); setSuggestedType(null) }}
+                      className="text-xs bg-[#0A84FF]/10 text-[#0A84FF] px-2 py-0.5 rounded-full font-medium hover:bg-[#0A84FF]/20 transition-colors">
+                      {suggestedType} ✓
+                    </button>
+                    <button onClick={() => setSuggestedType(null)} className="text-xs text-[#8E8E93]">✕</button>
+                  </div>
+                )}</div>
               <div className="flex gap-3">
                 <div className="flex-1"><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.quantity}</label><input type="text" className={inputCls} placeholder="e.g. 10" value={quantity} onChange={e => { setQuantity(e.target.value); validatePositive(e.target.value, 'quantity') }} />{errors.quantity && <p className={errCls}>{errors.quantity}</p>}</div>
                 <div className="w-24"><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.unit}</label><input className={inputCls} placeholder="m/kg" value={unit} onChange={e => setUnit(e.target.value)} /></div>
@@ -327,7 +351,18 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 <p className="text-orange-600 dark:text-orange-400 text-xs">{lang === 'zh' ? '• 用于支付有ABN的分包商（非直接雇员）' : '• For payments to subcontractors with their own ABN'}</p>
                 <p className="text-orange-600 dark:text-orange-400 text-xs">{lang === 'zh' ? '• 建筑行业每年需向ATO提交TPAR（应税付款年度报告）' : '• Building businesses must lodge a TPAR (Taxable Payments Annual Report) with the ATO each year'}</p>
               </div>
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder={lang === 'zh' ? '例如：分包商姓名' : 'e.g. Subcontractor name'} value={description} onChange={e => setDescription(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}</div>
+              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder={lang === 'zh' ? '例如：分包商姓名' : 'e.g. Subcontractor name'} value={description} onChange={e => { setDescription(e.target.value); setSuggestedType(null) }} onBlur={e => classifyDescription(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}
+                {classifying && <p className="text-xs text-[#8E8E93] mt-1">🤖 {lang === 'zh' ? 'AI 分析中...' : 'AI analysing...'}</p>}
+                {suggestedType && !classifying && (
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <span className="text-xs text-[#8E8E93]">🤖 {lang === 'zh' ? 'AI 建议:' : 'AI suggests:'}</span>
+                    <button onClick={() => { setType(suggestedType); setCategory('expense'); setSuggestedType(null) }}
+                      className="text-xs bg-[#0A84FF]/10 text-[#0A84FF] px-2 py-0.5 rounded-full font-medium hover:bg-[#0A84FF]/20 transition-colors">
+                      {suggestedType} ✓
+                    </button>
+                    <button onClick={() => setSuggestedType(null)} className="text-xs text-[#8E8E93]">✕</button>
+                  </div>
+                )}</div>
               <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.amount}</label><input type="text" className={inputCls} placeholder="e.g. 1200" value={amount} onChange={e => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className={errCls}>{errors.amount}</p>}</div>
             </div>
           )}
