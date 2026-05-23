@@ -85,17 +85,30 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
     gstFreeHint: lang === 'zh' ? '无GST（如工资、某些食品）' : 'No GST applies (e.g. wages, some fresh food)',
   }
 
-  async function classifyDescription(desc: string) {
-    if (!desc || category !== 'expense') return
+  async function lookupHistoricalPrice(desc: string) {
+    if (!desc || desc.length < 2 || category !== 'expense') return
     setClassifying(true)
+    setSuggestedType(null)
     try {
-      const res = await fetch('/api/classify-entry', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: desc })
-      })
-      const data = await res.json()
-      if (data.type) setSuggestedType(data.type)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: entries } = await supabase
+        .from('job_entries')
+        .select('amount, quantity, unit_price, description')
+        .eq('owner_id', user.id)
+        .eq('type', 'material')
+        .ilike('description', '%' + desc + '%')
+        .order('created_at', { ascending: false })
+        .limit(10)
+      if (entries && entries.length > 0) {
+        const prices = entries
+          .map((e: any) => Number(e.unit_price) || (Number(e.amount) / (Number(e.quantity) || 1)))
+          .filter((p: number) => p > 0)
+        if (prices.length > 0) {
+          const avg = prices.reduce((a: number, b: number) => a + b, 0) / prices.length
+          setSuggestedType(`$${avg.toFixed(2)} avg (${prices.length} records)`)
+        }
+      }
     } catch {}
     setClassifying(false)
   }
@@ -237,13 +250,13 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
             <div className="space-y-5">
               <div>
                 <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label>
-                <input className={inputCls} placeholder={lang === 'zh' ? '例如：进度款' : 'e.g. Progress payment'} value={description} onChange={e => { setDescription(e.target.value); setSuggestedType(null) }} onBlur={e => classifyDescription(e.target.value)} />
+                <input className={inputCls} placeholder={lang === 'zh' ? '例如：进度款' : 'e.g. Progress payment'} value={description} onChange={e => { setDescription(e.target.value); setSuggestedType(null) }} onBlur={e => lookupHistoricalPrice(e.target.value)} />
                 {errors.description && <p className={errCls}>{errors.description}</p>}
-                {classifying && <p className="text-xs text-[#8E8E93] mt-1">🤖 {lang === 'zh' ? 'AI 分析中...' : 'AI analysing...'}</p>}
+                {classifying && <p className="text-xs text-[#8E8E93] mt-1">📊 {lang === 'zh' ? '查询历史价格...' : 'Looking up history...'}</p>}
                 {suggestedType && !classifying && (
                   <div className="mt-1.5 flex items-center gap-2">
-                    <span className="text-xs text-[#8E8E93]">🤖 {lang === 'zh' ? 'AI 建议:' : 'AI suggests:'}</span>
-                    <button onClick={() => { setType(suggestedType); setCategory('expense'); setSuggestedType(null) }}
+                    <span className="text-xs text-[#8E8E93]">📊 {lang === 'zh' ? '历史均价:' : 'Historical avg:'}</span>
+                    <button onClick={() => { const price = suggestedType?.match(/\$([\d.]+)/)?.[1]; if (price) setUnitPrice(price); setSuggestedType(null) }}
                       className="text-xs bg-[#0A84FF]/10 text-[#0A84FF] px-2 py-0.5 rounded-full font-medium hover:bg-[#0A84FF]/20 transition-colors">
                       {suggestedType} ✓
                     </button>
@@ -313,12 +326,12 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
           {/* ── MATERIAL ── */}
           {type === 'material' && (
             <div className="space-y-5">
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder="e.g. Timber" value={description} onChange={e => { setDescription(e.target.value); setSuggestedType(null) }} onBlur={e => classifyDescription(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}
-                {classifying && <p className="text-xs text-[#8E8E93] mt-1">🤖 {lang === 'zh' ? 'AI 分析中...' : 'AI analysing...'}</p>}
+              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder="e.g. Timber" value={description} onChange={e => { setDescription(e.target.value); setSuggestedType(null) }} onBlur={e => lookupHistoricalPrice(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}
+                {classifying && <p className="text-xs text-[#8E8E93] mt-1">📊 {lang === 'zh' ? '查询历史价格...' : 'Looking up history...'}</p>}
                 {suggestedType && !classifying && (
                   <div className="mt-1.5 flex items-center gap-2">
-                    <span className="text-xs text-[#8E8E93]">🤖 {lang === 'zh' ? 'AI 建议:' : 'AI suggests:'}</span>
-                    <button onClick={() => { setType(suggestedType); setCategory('expense'); setSuggestedType(null) }}
+                    <span className="text-xs text-[#8E8E93]">📊 {lang === 'zh' ? '历史均价:' : 'Historical avg:'}</span>
+                    <button onClick={() => { const price = suggestedType?.match(/\$([\d.]+)/)?.[1]; if (price) setUnitPrice(price); setSuggestedType(null) }}
                       className="text-xs bg-[#0A84FF]/10 text-[#0A84FF] px-2 py-0.5 rounded-full font-medium hover:bg-[#0A84FF]/20 transition-colors">
                       {suggestedType} ✓
                     </button>
@@ -366,12 +379,12 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 <p className="text-orange-600 dark:text-orange-400 text-xs">{lang === 'zh' ? '• 用于支付有ABN的分包商（非直接雇员）' : '• For payments to subcontractors with their own ABN'}</p>
                 <p className="text-orange-600 dark:text-orange-400 text-xs">{lang === 'zh' ? '• 建筑行业每年需向ATO提交TPAR（应税付款年度报告）' : '• Building businesses must lodge a TPAR (Taxable Payments Annual Report) with the ATO each year'}</p>
               </div>
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder={lang === 'zh' ? '例如：分包商姓名' : 'e.g. Subcontractor name'} value={description} onChange={e => { setDescription(e.target.value); setSuggestedType(null) }} onBlur={e => classifyDescription(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}
-                {classifying && <p className="text-xs text-[#8E8E93] mt-1">🤖 {lang === 'zh' ? 'AI 分析中...' : 'AI analysing...'}</p>}
+              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder={lang === 'zh' ? '例如：分包商姓名' : 'e.g. Subcontractor name'} value={description} onChange={e => { setDescription(e.target.value); setSuggestedType(null) }} onBlur={e => lookupHistoricalPrice(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}
+                {classifying && <p className="text-xs text-[#8E8E93] mt-1">📊 {lang === 'zh' ? '查询历史价格...' : 'Looking up history...'}</p>}
                 {suggestedType && !classifying && (
                   <div className="mt-1.5 flex items-center gap-2">
-                    <span className="text-xs text-[#8E8E93]">🤖 {lang === 'zh' ? 'AI 建议:' : 'AI suggests:'}</span>
-                    <button onClick={() => { setType(suggestedType); setCategory('expense'); setSuggestedType(null) }}
+                    <span className="text-xs text-[#8E8E93]">📊 {lang === 'zh' ? '历史均价:' : 'Historical avg:'}</span>
+                    <button onClick={() => { const price = suggestedType?.match(/\$([\d.]+)/)?.[1]; if (price) setUnitPrice(price); setSuggestedType(null) }}
                       className="text-xs bg-[#0A84FF]/10 text-[#0A84FF] px-2 py-0.5 rounded-full font-medium hover:bg-[#0A84FF]/20 transition-colors">
                       {suggestedType} ✓
                     </button>
