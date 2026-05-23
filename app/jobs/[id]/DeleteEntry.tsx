@@ -11,7 +11,7 @@ export default function DeleteEntry({ entryId, jobId }: { entryId: string, jobId
 
   async function handleDelete() {
     await supabase.from('job_entries').delete().eq('id', entryId)
-    window.location.href = '/jobs/' + jobId
+    window.location.reload()
   }
 
   if (confirming) {
