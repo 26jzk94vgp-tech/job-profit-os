@@ -95,7 +95,7 @@ export default function NewQuote() {
       unit_price: Number(i.unit_price), cost_price: Number(i.cost_price) || 0
     }))
     if (quoteItems.length > 0) await supabase.from('quote_items').insert(quoteItems)
-    window.location.href = '/quotes/' + quote.id
+    window.location.href = '/quotes'
     setLoading(false)
   }
 
@@ -109,7 +109,7 @@ export default function NewQuote() {
       <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700/60 px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => window.location.href = '/quotes/' + quote.id} className="text-gray-400 dark:text-[#8E8E93] text-sm">← {lang === 'zh' ? '返回' : 'Back'}</button>
+            <button onClick={() => window.location.href = '/quotes'} className="text-gray-400 dark:text-[#8E8E93] text-sm">← {lang === 'zh' ? '返回' : 'Back'}</button>
             <span className="text-gray-300 dark:text-[#3A3A3C]">/</span>
             <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '新建报价单' : 'New Quote'}</h1>
           </div>
