@@ -252,10 +252,10 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label>
                 <input className={inputCls} placeholder={lang === 'zh' ? '例如：进度款' : 'e.g. Progress payment'} value={description} onChange={e => { setDescription(e.target.value); setSuggestedType(null) }} onBlur={e => lookupHistoricalPrice(e.target.value)} />
                 {errors.description && <p className={errCls}>{errors.description}</p>}
-                {classifying && <p className="text-xs text-[#8E8E93] mt-1">📊 {lang === 'zh' ? '查询历史价格...' : 'Looking up history...'}</p>}
+                {classifying && <p className="text-xs text-[#8E8E93] mt-1">📊 {lang === 'zh' ? '查询历史成本均价...' : 'Looking up cost history...'}</p>}
                 {suggestedType && !classifying && (
                   <div className="mt-1.5 flex items-center gap-2">
-                    <span className="text-xs text-[#8E8E93]">📊 {lang === 'zh' ? '历史均价:' : 'Historical avg:'}</span>
+                    <span className="text-xs text-[#8E8E93]">📊 {lang === 'zh' ? '历史成本均价:' : 'Hist. cost avg:'}</span>
                     <button onClick={() => { const price = suggestedType?.match(/\$([\d.]+)/)?.[1]; if (price) setUnitPrice(price); setSuggestedType(null) }}
                       className="text-xs bg-[#0A84FF]/10 text-[#0A84FF] px-2 py-0.5 rounded-full font-medium hover:bg-[#0A84FF]/20 transition-colors">
                       {suggestedType} ✓
@@ -327,10 +327,10 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
           {type === 'material' && (
             <div className="space-y-5">
               <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder="e.g. Timber" value={description} onChange={e => { setDescription(e.target.value); setSuggestedType(null) }} onBlur={e => lookupHistoricalPrice(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}
-                {classifying && <p className="text-xs text-[#8E8E93] mt-1">📊 {lang === 'zh' ? '查询历史价格...' : 'Looking up history...'}</p>}
+                {classifying && <p className="text-xs text-[#8E8E93] mt-1">📊 {lang === 'zh' ? '查询历史成本均价...' : 'Looking up cost history...'}</p>}
                 {suggestedType && !classifying && (
                   <div className="mt-1.5 flex items-center gap-2">
-                    <span className="text-xs text-[#8E8E93]">📊 {lang === 'zh' ? '历史均价:' : 'Historical avg:'}</span>
+                    <span className="text-xs text-[#8E8E93]">📊 {lang === 'zh' ? '历史成本均价:' : 'Hist. cost avg:'}</span>
                     <button onClick={() => { const price = suggestedType?.match(/\$([\d.]+)/)?.[1]; if (price) setUnitPrice(price); setSuggestedType(null) }}
                       className="text-xs bg-[#0A84FF]/10 text-[#0A84FF] px-2 py-0.5 rounded-full font-medium hover:bg-[#0A84FF]/20 transition-colors">
                       {suggestedType} ✓
@@ -380,10 +380,10 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 <p className="text-orange-600 dark:text-orange-400 text-xs">{lang === 'zh' ? '• 建筑行业每年需向ATO提交TPAR（应税付款年度报告）' : '• Building businesses must lodge a TPAR (Taxable Payments Annual Report) with the ATO each year'}</p>
               </div>
               <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder={lang === 'zh' ? '例如：分包商姓名' : 'e.g. Subcontractor name'} value={description} onChange={e => { setDescription(e.target.value); setSuggestedType(null) }} onBlur={e => lookupHistoricalPrice(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}
-                {classifying && <p className="text-xs text-[#8E8E93] mt-1">📊 {lang === 'zh' ? '查询历史价格...' : 'Looking up history...'}</p>}
+                {classifying && <p className="text-xs text-[#8E8E93] mt-1">📊 {lang === 'zh' ? '查询历史成本均价...' : 'Looking up cost history...'}</p>}
                 {suggestedType && !classifying && (
                   <div className="mt-1.5 flex items-center gap-2">
-                    <span className="text-xs text-[#8E8E93]">📊 {lang === 'zh' ? '历史均价:' : 'Historical avg:'}</span>
+                    <span className="text-xs text-[#8E8E93]">📊 {lang === 'zh' ? '历史成本均价:' : 'Hist. cost avg:'}</span>
                     <button onClick={() => { const price = suggestedType?.match(/\$([\d.]+)/)?.[1]; if (price) setUnitPrice(price); setSuggestedType(null) }}
                       className="text-xs bg-[#0A84FF]/10 text-[#0A84FF] px-2 py-0.5 rounded-full font-medium hover:bg-[#0A84FF]/20 transition-colors">
                       {suggestedType} ✓
