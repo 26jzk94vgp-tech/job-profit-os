@@ -23,26 +23,94 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   const [note, setNote] = useState(lang === 'zh' ? '请在14天内付款。感谢您的惠顾！' : 'Payment due within 14 days. Thank you for your business!')
   const [copyingLink, setCopyingLink] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [importDone, setImportDone] = useState(false)
 
   useEffect(() => {
-    supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }: { data: any }) => {
-      setJob(data)
-      if (data?.client_name) setToName(data.client_name)
-      if (data?.client_name) {
-        supabase.from('clients').select('address, email').eq('name', data.client_name).single().then(({ data: c }) => {
+    async function load() {
+      const { data: jobData } = await supabase.from('job_summary').select('*').eq('id', id).single()
+      if (!jobData) return
+      setJob(jobData)
+      if (jobData.client_name) setToName(jobData.client_name)
+      if (jobData.client_name) {
+        supabase.from('clients').select('address, email').eq('name', jobData.client_name).single().then(({ data: c }) => {
           if (c?.address) setToAddress(c.address)
           if (c?.email) setToEmail(c.email)
         })
       }
-    })
-    supabase.from('job_entries').select('*').eq('job_id', id).then(({ data }: { data: any }) => setEntries(data || []))
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        supabase.from('profiles').select('*').eq('id', user.id).single().then(({ data }: { data: any }) => {
-          if (data) setProfile(data)
-        })
+
+      const { data: entryData } = await supabase.from('job_entries').select('*').eq('job_id', id)
+      const allEntries = entryData || []
+      const invoiceEntries = allEntries.filter((e: any) => e.type === 'invoice')
+
+      // ✅ 自动检测：只有1条发票条目且描述像汇总（含「报价单」或「Quote」）→ 自动导入细分条目
+      const isSummaryOnly = invoiceEntries.length === 1 &&
+        /报价单|quote/i.test(invoiceEntries[0]?.description || '')
+
+      if (isSummaryOnly) {
+        setImporting(true)
+        try {
+          // 查找关联报价单
+          const { data: quote } = await supabase
+            .from('quotes')
+            .select('id, quote_number')
+            .eq('job_id', id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single()
+
+          if (quote) {
+            const { data: quoteItems } = await supabase
+              .from('quote_items')
+              .select('*')
+              .eq('quote_id', quote.id)
+
+            if (quoteItems && quoteItems.length > 0) {
+              const { data: { user } } = await supabase.auth.getUser()
+
+              // 删除原来的汇总条目
+              await supabase.from('job_entries').delete().eq('id', invoiceEntries[0].id)
+
+              // 插入细分条目
+              const newItems = quoteItems.map((item: any) => ({
+                job_id: id,
+                owner_id: user?.id,
+                type: 'invoice',
+                description: item.description + (item.area ? ' - ' + item.area : ''),
+                item_group: item.item_group || null,
+                area: item.area || null,
+                quantity: Number(item.quantity) || 1,
+                unit: item.unit || null,
+                unit_price: Number(item.unit_price),
+                amount: Number(item.quantity) * Number(item.unit_price),
+                gst_status: 'exclusive',
+                tax_category: 'other_income',
+                payment_status: 'unpaid'
+              }))
+
+              await supabase.from('job_entries').insert(newItems)
+
+              // 重新拉取条目
+              const { data: refreshed } = await supabase.from('job_entries').select('*').eq('job_id', id)
+              setEntries(refreshed || [])
+              setImportDone(true)
+            }
+          }
+        } catch (e) {}
+        setImporting(false)
+      } else {
+        setEntries(allEntries)
       }
-    })
+
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          supabase.from('profiles').select('*').eq('id', user.id).single().then(({ data }: { data: any }) => {
+            if (data) setProfile(data)
+          })
+        }
+      })
+    }
+    load()
   }, [id])
 
   async function handleSendEmail() {
@@ -87,24 +155,26 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
     }
   }
 
-  if (!job) return <div className="p-6">Loading...</div>
+  if (!job || importing) return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="text-center">
+        <div className="text-gray-400 text-sm mb-2">
+          {importing ? (lang === 'zh' ? '⏳ 正在导入报价单细分条目...' : '⏳ Importing quote items...') : 'Loading...'}
+        </div>
+      </div>
+    </div>
+  )
 
   const invoiceEntries = entries.filter(e => e.type === 'invoice')
 
-  // GST 正确计算：exclusive = 金额不含GST，需加10%；inclusive = 已含GST
-  const exclusiveTotal = invoiceEntries
-    .filter(e => e.gst_status === 'exclusive' || !e.gst_status)
-    .reduce((sum, e) => sum + Number(e.amount), 0)
-  const inclusiveTotal = invoiceEntries
-    .filter(e => e.gst_status === 'inclusive')
-    .reduce((sum, e) => sum + Number(e.amount), 0)
-  const gstFromExclusive = exclusiveTotal * 0.1
-  const gstFromInclusive = inclusiveTotal / 11
+  // GST 正确计算
+  const exclusiveTotal = invoiceEntries.filter(e => e.gst_status === 'exclusive' || !e.gst_status).reduce((sum, e) => sum + Number(e.amount), 0)
+  const inclusiveTotal = invoiceEntries.filter(e => e.gst_status === 'inclusive').reduce((sum, e) => sum + Number(e.amount), 0)
+  const gst = exclusiveTotal * 0.1 + inclusiveTotal / 11
   const subTotal = exclusiveTotal + inclusiveTotal
-  const gst = gstFromExclusive + gstFromInclusive
-  const total = exclusiveTotal + gstFromExclusive + inclusiveTotal
+  const total = exclusiveTotal + exclusiveTotal * 0.1 + inclusiveTotal
 
-  // 按 item_group 分组
+  // 分组
   const groups = [...new Set(invoiceEntries.map(e => e.item_group || ''))].filter(Boolean)
   const noGroup = invoiceEntries.filter(e => !e.item_group)
   const hasGroups = groups.length > 0
@@ -138,6 +208,13 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
           <Link href={"/jobs/" + id} className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
           <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '发票预览' : 'Invoice Preview'}</h1>
         </div>
+
+        {importDone && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-4">
+            <p className="text-green-700 text-sm">✅ {lang === 'zh' ? '已自动从报价单导入细分条目' : 'Quote items imported automatically'}</p>
+          </div>
+        )}
+
         <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4 mb-6">
           <div className="grid grid-cols-2 gap-4">
             <div><label className="text-gray-500 text-xs">{lang === 'zh' ? '发票编号' : 'Invoice Number'}</label><input className="w-full border border-gray-200 rounded-lg p-2 mt-1 text-sm outline-none" value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} /></div>
@@ -242,7 +319,9 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
                 )
               ) : (
                 <tr className="border border-gray-300">
-                  <td className="border border-gray-300 px-3 py-2 text-sm" colSpan={hasArea ? 5 : 4}>{job.name} - {lang === 'zh' ? '专业服务' : 'Professional Services'}</td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm text-gray-400 italic" colSpan={hasArea ? 5 : 4}>
+                    {lang === 'zh' ? '还没有发票条目' : 'No invoice items yet.'}
+                  </td>
                 </tr>
               )}
             </tbody>
