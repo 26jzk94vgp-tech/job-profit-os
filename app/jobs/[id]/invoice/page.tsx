@@ -21,6 +21,8 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   const [sent, setSent] = useState(false)
   const [toEmail, setToEmail] = useState('')
   const [note, setNote] = useState(lang === 'zh' ? '请在14天内付款。感谢您的惠顾！' : 'Payment due within 14 days. Thank you for your business!')
+  const [copyingLink, setCopyingLink] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
 
   useEffect(() => {
     supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }: { data: any }) => {
