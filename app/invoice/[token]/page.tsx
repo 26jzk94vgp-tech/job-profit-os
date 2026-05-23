@@ -1,8 +1,7 @@
 'use client'
-
 import { useState, useEffect } from 'react'
 import { use } from 'react'
-import { createClient } from '../../../../utils/supabase/client'
+import { createClient } from '../../../utils/supabase/client'
 
 export default function PublicInvoice({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params)
