@@ -388,12 +388,8 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
               ))}
             </div>
             {entries.filter((e: any) => e.type === 'invoice').length > 0 && (
-              <div className="px-6 py-4 border-t border-gray-100 dark:border-[#3A3A3C] flex gap-3">
-                {/* ✅ 有发票时也显示添加按钮 */}
-                <Link href={'/jobs/' + id + '/add?type=invoice'} className="flex-1 text-center bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-sm font-medium transition-colors">
-                  + {lang === 'zh' ? '添加发票' : 'Add Invoice'}
-                </Link>
-                <Link href={'/jobs/' + id + '/invoice'} className="flex-1 block text-center bg-gray-100 dark:bg-[#3A3A3C] hover:bg-gray-200 text-gray-700 dark:text-[#F2F2F7] py-3 rounded-xl text-sm font-medium transition-colors">
+              <div className="px-6 py-4 border-t border-gray-100 dark:border-[#3A3A3C]">
+                <Link href={'/jobs/' + id + '/invoice'} className="w-full block text-center bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-sm font-medium transition-colors">
                   🧾 {lang === 'zh' ? '查看完整发票 / 打印 PDF' : 'View Full Invoice / Print PDF'}
                 </Link>
               </div>

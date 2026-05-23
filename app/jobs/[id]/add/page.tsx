@@ -35,7 +35,6 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   const [paymentStatus, setPaymentStatus] = useState('unpaid')
   const [taxCategory, setTaxCategory] = useState('')
 
-  // ✅ 用 useEffect 读取 ?type=invoice，自动预选收入+发票
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('type') === 'invoice') {
@@ -48,7 +47,6 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   const t = {
     back: lang === 'zh' ? '返回' : 'Back',
     addEntry: lang === 'zh' ? '添加条目' : 'Add Entry',
-    tip: lang === 'zh' ? '提示：未知数值填 /' : 'Tip: Use / for unknown values',
     workerName: lang === 'zh' ? '工人姓名 *' : 'Worker Name *',
     hours: lang === 'zh' ? '工时 *' : 'Hours *',
     hourlyRate: lang === 'zh' ? '时薪 ($) *' : 'Hourly Rate ($) *',
@@ -136,9 +134,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   function validateForm(): boolean {
     const newErrors: Record<string, string> = {}
     const req = lang === 'zh' ? '此项为必填' : 'This field is required'
-
     if (!taxCategory) newErrors.taxCategory = req
-
     if (type === 'labor') {
       if (!workerName) newErrors.workerName = req
       if (!hours || hours === '/') newErrors.hours = req
@@ -157,9 +153,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
       if (!description) newErrors.description = req
       if (!amount || amount === '/') newErrors.amount = req
     }
-
     if (type !== 'invoice' && (!gstStatus || gstStatus === '')) newErrors.gstStatus = req
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -224,7 +218,6 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
 
         <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-6">
 
-          {/* Income / Expense */}
           <div className="flex gap-3">
             <button onClick={() => { setCategory('expense'); setType('material'); setAmount(''); setQuantity(''); setUnitPrice(''); setHours(''); setHourlyRate(''); setTaxCategory('cogs_material'); setErrors({}) }}
               className={`flex-1 py-3 rounded-xl text-sm font-semibold transition ${category === 'expense' ? 'bg-[#FF453A] text-white' : 'bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93]'}`}>
@@ -236,7 +229,6 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
             </button>
           </div>
 
-          {/* Type tabs (expense only) */}
           {category === 'expense' && (
             <div className="flex flex-wrap gap-2">
               {tabs.map(tab => (
@@ -255,12 +247,17 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
 
           <p className="text-[#8E8E93] text-xs">* {lang === 'zh' ? '为必填项' : 'required fields'}</p>
 
-          {/* ── INVOICE (income) ── */}
+          {/* ── INVOICE ── */}
           {type === 'invoice' && (
             <div className="space-y-5">
               <div>
                 <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label>
-                <input className={inputCls} placeholder={lang === 'zh' ? '例如：进度款' : 'e.g. Progress payment'} value={description} onChange={e => { setDescription(e.target.value); setSuggestedType(null) }} onBlur={e => lookupHistoricalPrice(e.target.value)} />
+                <input
+                  className={inputCls}
+                  placeholder={lang === 'zh' ? '例如：瓷砖铺贴 / 完工款' : 'e.g. Tiling works / Final payment'}
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                />
                 {errors.description && <p className={errCls}>{errors.description}</p>}
               </div>
               <div>
@@ -292,7 +289,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 </div>
                 {showAtoInfo && (
                   <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-xl p-3 text-xs text-blue-800 dark:text-blue-300 space-y-1 mt-2">
-                    <p>{lang === 'zh' ? '澳洲税务局（ATO）要求按正确类别申报收入，用于季度 BAS 和年度所得税申报。系统已自动设置，一般无需修改。' : 'The ATO (Australian Taxation Office) requires correct categorisation for your quarterly BAS and annual tax return. Auto-set — usually no need to change.'}</p>
+                    <p>{lang === 'zh' ? '澳洲税务局（ATO）要求按正确类别申报收入，用于季度 BAS 和年度所得税申报。系统已自动设置，一般无需修改。' : 'The ATO requires correct categorisation for your quarterly BAS and annual tax return. Auto-set — usually no need to change.'}</p>
                   </div>
                 )}
                 <select className={inputCls} value={taxCategory} onChange={e => setTaxCategory(e.target.value)}>
@@ -330,10 +327,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 {suggestedType && !classifying && (
                   <div className="mt-1.5 flex items-center gap-2">
                     <span className="text-xs text-[#8E8E93]">📊 {lang === 'zh' ? '历史成本均价:' : 'Hist. cost avg:'}</span>
-                    <button onClick={() => { const price = suggestedType?.match(/\$([\d.]+)/)?.[1]; if (price) setUnitPrice(price); setSuggestedType(null) }}
-                      className="text-xs bg-[#0A84FF]/10 text-[#0A84FF] px-2 py-0.5 rounded-full font-medium hover:bg-[#0A84FF]/20 transition-colors">
-                      {suggestedType} ✓
-                    </button>
+                    <button onClick={() => { const price = suggestedType?.match(/\$([\d.]+)/)?.[1]; if (price) setUnitPrice(price); setSuggestedType(null) }} className="text-xs bg-[#0A84FF]/10 text-[#0A84FF] px-2 py-0.5 rounded-full font-medium hover:bg-[#0A84FF]/20 transition-colors">{suggestedType} ✓</button>
                     <button onClick={() => setSuggestedType(null)} className="text-xs text-[#8E8E93]">✕</button>
                   </div>
                 )}</div>
@@ -378,23 +372,12 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 <p className="text-orange-600 dark:text-orange-400 text-xs">{lang === 'zh' ? '• 用于支付有ABN的分包商（非直接雇员）' : '• For payments to subcontractors with their own ABN'}</p>
                 <p className="text-orange-600 dark:text-orange-400 text-xs">{lang === 'zh' ? '• 建筑行业每年需向ATO提交TPAR（应税付款年度报告）' : '• Building businesses must lodge a TPAR (Taxable Payments Annual Report) with the ATO each year'}</p>
               </div>
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder={lang === 'zh' ? '例如：分包商姓名' : 'e.g. Subcontractor name'} value={description} onChange={e => { setDescription(e.target.value); setSuggestedType(null) }} onBlur={e => lookupHistoricalPrice(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}
-                {classifying && <p className="text-xs text-[#8E8E93] mt-1">📊 {lang === 'zh' ? '查询历史成本均价...' : 'Looking up cost history...'}</p>}
-                {suggestedType && !classifying && (
-                  <div className="mt-1.5 flex items-center gap-2">
-                    <span className="text-xs text-[#8E8E93]">📊 {lang === 'zh' ? '历史成本均价:' : 'Hist. cost avg:'}</span>
-                    <button onClick={() => { const price = suggestedType?.match(/\$([\d.]+)/)?.[1]; if (price) setUnitPrice(price); setSuggestedType(null) }}
-                      className="text-xs bg-[#0A84FF]/10 text-[#0A84FF] px-2 py-0.5 rounded-full font-medium hover:bg-[#0A84FF]/20 transition-colors">
-                      {suggestedType} ✓
-                    </button>
-                    <button onClick={() => setSuggestedType(null)} className="text-xs text-[#8E8E93]">✕</button>
-                  </div>
-                )}</div>
+              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.description}</label><input className={inputCls} placeholder={lang === 'zh' ? '例如：分包商姓名' : 'e.g. Subcontractor name'} value={description} onChange={e => { setDescription(e.target.value); setSuggestedType(null) }} onBlur={e => lookupHistoricalPrice(e.target.value)} />{errors.description && <p className={errCls}>{errors.description}</p>}</div>
               <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.amount}</label><input type="text" className={inputCls} placeholder="e.g. 1200" value={amount} onChange={e => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className={errCls}>{errors.amount}</p>}</div>
             </div>
           )}
 
-          {/* GST + ATO (expense types only) */}
+          {/* GST + ATO (expense only) */}
           {type !== 'invoice' && (
             <div className="border-t border-gray-100 dark:border-[#3A3A3C] pt-5 space-y-5">
               <div>
@@ -404,9 +387,9 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 </div>
                 {showGstInfo && (
                   <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-xl p-3 text-xs text-blue-800 dark:text-blue-300 space-y-2 mt-2">
-                    <p className="font-semibold">{lang === 'zh' ? 'GST（商品及服务税）是什么？' : 'What is GST (Goods and Services Tax)?'}</p>
-                    <p>{lang === 'zh' ? 'GST 是澳洲的消费税，税率10%。你可以在收据底部找到GST金额——Bunnings 和 Woolworths 的收据都会单独列出 GST 小计。' : "GST is Australia's 10% consumption tax. Find the GST amount at the bottom of receipts — Bunnings and Woolworths list it separately near the total."}</p>
-                    <p>• <strong>{lang === 'zh' ? '含GST（最常见）' : 'Inclusive (most common)'}</strong>: {lang === 'zh' ? '收据价格已含GST，例如 $110 中有 $10 是GST' : 'Price includes GST — e.g. $110 receipt includes $10 GST'}</p>
+                    <p className="font-semibold">{lang === 'zh' ? 'GST（商品及服务税）是什么？' : 'What is GST?'}</p>
+                    <p>{lang === 'zh' ? 'GST 是澳洲的消费税，税率10%。' : "GST is Australia's 10% consumption tax."}</p>
+                    <p>• <strong>{lang === 'zh' ? '含GST（最常见）' : 'Inclusive'}</strong>: {lang === 'zh' ? '收据价格已含GST' : 'Price includes GST'}</p>
                     <p>• <strong>{lang === 'zh' ? '不含GST' : 'Exclusive'}</strong>: {lang === 'zh' ? '价格未含GST，另加10%' : 'Price excludes GST, add 10% on top'}</p>
                     <p>• <strong>{lang === 'zh' ? '免GST' : 'GST Free'}</strong>: {lang === 'zh' ? '无需缴纳GST，例如工资' : 'No GST — e.g. wages'}</p>
                   </div>
@@ -421,7 +404,6 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 {gstStatus === 'exclusive' && <p className="text-[#0A84FF] text-xs mt-1">{t.gstExclusiveHint}</p>}
                 {gstStatus === 'free' && <p className="text-[#8E8E93] text-xs mt-1">{t.gstFreeHint}</p>}
               </div>
-
               <div>
                 <div className="flex items-center gap-2">
                   <label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.atoCategory}</label>
@@ -429,7 +411,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                 </div>
                 {showAtoInfo && (
                   <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-xl p-3 text-xs text-blue-800 dark:text-blue-300 space-y-1 mt-2">
-                    <p>{lang === 'zh' ? '澳洲税务局（ATO）要求按正确类别申报支出，用于季度 BAS 和年度所得税申报。系统已自动设置，一般无需修改。' : 'The ATO (Australian Taxation Office) requires correct categorisation for your quarterly BAS and annual tax return. Auto-set — usually no need to change.'}</p>
+                    <p>{lang === 'zh' ? '系统已自动设置，一般无需修改。' : 'Auto-set — usually no need to change.'}</p>
                   </div>
                 )}
                 <select className={inputCls} value={taxCategory} onChange={e => setTaxCategory(e.target.value)}>
