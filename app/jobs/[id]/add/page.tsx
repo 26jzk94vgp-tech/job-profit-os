@@ -95,7 +95,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
         body: JSON.stringify({ description: desc })
       })
       const data = await res.json()
-      if (data.type && data.type !== type) setSuggestedType(data.type)
+      if (data.type) setSuggestedType(data.type)
     } catch {}
     setClassifying(false)
   }
