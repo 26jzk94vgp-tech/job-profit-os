@@ -15,7 +15,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   const { lang } = useLanguage()
   const [job, setJob] = useState<any>(null)
   const [entries, setEntries] = useState<any[]>([])
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState(typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('tab') === 'entries' ? 'entries' : 'overview')
   const [notes, setNotes] = useState('')
   const [editingNotes, setEditingNotes] = useState(false)
   const [showMore, setShowMore] = useState(false)
