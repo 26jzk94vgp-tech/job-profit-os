@@ -9,8 +9,12 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   const { id } = use(params)
   const supabase = createClient()
   const { lang } = useLanguage()
-  const [category, setCategory] = useState('expense')
-  const [type, setType] = useState('material')
+
+  // ✅ 读取 ?type=invoice 参数，自动预选收入+发票
+  const isInvoicePreset = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('type') === 'invoice'
+
+  const [category, setCategory] = useState(isInvoicePreset ? 'income' : 'expense')
+  const [type, setType] = useState(isInvoicePreset ? 'invoice' : 'material')
   const [description, setDescription] = useState('')
   const [suggestedType, setSuggestedType] = useState<string | null>(null)
   const [classifying, setClassifying] = useState(false)
@@ -32,7 +36,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   const [showAtoInfo, setShowAtoInfo] = useState(false)
   const [paymentDueDate, setPaymentDueDate] = useState('')
   const [paymentStatus, setPaymentStatus] = useState('unpaid')
-  const [taxCategory, setTaxCategory] = useState('')
+  const [taxCategory, setTaxCategory] = useState(isInvoicePreset ? 'other_income' : '')
 
   const t = {
     back: lang === 'zh' ? '返回' : 'Back',
@@ -205,7 +209,6 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
         </div>
       </nav>
 
-      {/* 第10项：增加 py-8 和 mb-6 */}
       <main className="max-w-2xl mx-auto px-4 py-8">
         <div className="md:hidden flex items-center gap-3 mb-6">
           <button onClick={() => window.location.href = "/jobs/" + id} className="text-[#8E8E93] text-sm">← {t.back}</button>

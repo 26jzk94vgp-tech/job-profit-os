@@ -108,7 +108,6 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
     return labels[status] || status
   }
 
-  // 工期进度计算
   const timelineProgress = (() => {
     if (!jobDates.start || !jobDates.end) return null
     const start = new Date(jobDates.start)
@@ -217,7 +216,6 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
             </div>
           )}
 
-          {/* 工期进度卡片 */}
           <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent p-5 mb-4">
             <div className="flex justify-between items-center mb-3">
               <p className="text-gray-500 dark:text-[#8E8E93] text-sm">{lang === 'zh' ? '工期' : 'Timeline'}</p>
@@ -358,7 +356,8 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
             {entries.filter((e: any) => e.type === 'invoice').length === 0 && (
               <div className="px-6 py-8 text-center text-gray-400">
                 <p>{lang === 'zh' ? '还没有发票条目' : 'No invoice entries yet.'}</p>
-                <Link href={'/jobs/' + id + '/add'} className="mt-3 inline-block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">+ {lang === 'zh' ? '添加发票' : 'Add Invoice'}</Link>
+                {/* ✅ 修复：跳转时带 ?type=invoice，自动预选收入+发票 */}
+                <Link href={'/jobs/' + id + '/add?type=invoice'} className="mt-3 inline-block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">+ {lang === 'zh' ? '添加发票' : 'Add Invoice'}</Link>
               </div>
             )}
             <div className="divide-y divide-gray-100 dark:divide-[#3A3A3C]">
@@ -389,8 +388,12 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
               ))}
             </div>
             {entries.filter((e: any) => e.type === 'invoice').length > 0 && (
-              <div className="px-6 py-4 border-t border-gray-100 dark:border-[#3A3A3C]">
-                <Link href={'/jobs/' + id + '/invoice'} className="w-full block text-center bg-gray-100 dark:bg-[#3A3A3C] hover:bg-gray-200 text-gray-700 dark:text-[#F2F2F7] py-3 rounded-xl text-sm font-medium transition-colors">
+              <div className="px-6 py-4 border-t border-gray-100 dark:border-[#3A3A3C] flex gap-3">
+                {/* ✅ 有发票时也显示添加按钮 */}
+                <Link href={'/jobs/' + id + '/add?type=invoice'} className="flex-1 text-center bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-sm font-medium transition-colors">
+                  + {lang === 'zh' ? '添加发票' : 'Add Invoice'}
+                </Link>
+                <Link href={'/jobs/' + id + '/invoice'} className="flex-1 block text-center bg-gray-100 dark:bg-[#3A3A3C] hover:bg-gray-200 text-gray-700 dark:text-[#F2F2F7] py-3 rounded-xl text-sm font-medium transition-colors">
                   🧾 {lang === 'zh' ? '查看完整发票 / 打印 PDF' : 'View Full Invoice / Print PDF'}
                 </Link>
               </div>
