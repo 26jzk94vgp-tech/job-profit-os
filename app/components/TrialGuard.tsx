@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { createClient } from '../../utils/supabase/client'
 
-const ALLOWED_PATHS = ['/login', '/onboarding', '/pricing', '/settings']
+const ALLOWED_PATHS = ['/login', '/onboarding', '/pricing', '/settings', '/landing']
 
 export default function TrialGuard() {
   const pathname = usePathname()
