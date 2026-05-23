@@ -80,13 +80,8 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   async function handleShareOrPrint() {
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
-        await navigator.share({
-          title: (job?.name || 'Invoice') + ' - ' + invoiceNumber,
-          url: window.location.href
-        })
-      } catch (e) {
-        // user cancelled, do nothing
-      }
+        await navigator.share({ title: (job?.name || 'Invoice') + ' - ' + invoiceNumber, url: window.location.href })
+      } catch (e) {}
     } else {
       window.print()
     }
@@ -95,9 +90,45 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   if (!job) return <div className="p-6">Loading...</div>
 
   const invoiceEntries = entries.filter(e => e.type === 'invoice')
-  const subTotal = invoiceEntries.reduce((sum, e) => sum + (e.type === 'labor' ? Number(e.hours) * Number(e.hourly_rate) : Number(e.amount)), 0)
-  const gst = subTotal * 0.1
-  const total = subTotal + gst
+
+  // GST 正确计算：exclusive = 金额不含GST，需加10%；inclusive = 已含GST
+  const exclusiveTotal = invoiceEntries
+    .filter(e => e.gst_status === 'exclusive' || !e.gst_status)
+    .reduce((sum, e) => sum + Number(e.amount), 0)
+  const inclusiveTotal = invoiceEntries
+    .filter(e => e.gst_status === 'inclusive')
+    .reduce((sum, e) => sum + Number(e.amount), 0)
+  const gstFromExclusive = exclusiveTotal * 0.1
+  const gstFromInclusive = inclusiveTotal / 11
+  const subTotal = exclusiveTotal + inclusiveTotal
+  const gst = gstFromExclusive + gstFromInclusive
+  const total = exclusiveTotal + gstFromExclusive + inclusiveTotal
+
+  // 按 item_group 分组
+  const groups = [...new Set(invoiceEntries.map(e => e.item_group || ''))].filter(Boolean)
+  const noGroup = invoiceEntries.filter(e => !e.item_group)
+  const hasGroups = groups.length > 0
+  const hasArea = invoiceEntries.some(e => e.area)
+
+  const renderRow = (e: any) => {
+    const qty = Number(e.quantity || 1)
+    const unitPrice = e.unit_price ? Number(e.unit_price) : Number(e.amount) / qty
+    const amount = Number(e.amount)
+    return (
+      <tr key={e.id} className="border border-gray-300">
+        <td className="border border-gray-300 px-3 py-2 text-sm">
+          <div className="flex items-center justify-between gap-2">
+            <span>{e.description || e.type}</span>
+            <a href={'/jobs/' + id + '/entry/' + e.id + '/edit'} className="print:hidden text-blue-400 hover:text-blue-600 text-xs shrink-0">✏️</a>
+          </div>
+        </td>
+        {hasArea && <td className="border border-gray-300 px-3 py-2 text-sm text-center text-gray-500">{e.area || ''}</td>}
+        <td className="border border-gray-300 px-3 py-2 text-sm text-center">{qty}</td>
+        <td className="border border-gray-300 px-3 py-2 text-sm text-right">${unitPrice.toFixed(2)}</td>
+        <td className="border border-gray-300 px-3 py-2 text-sm text-right">${amount.toFixed(2)}</td>
+      </tr>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -184,35 +215,34 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
             <thead>
               <tr className="border border-gray-400 bg-gray-100">
                 <th className="border border-gray-400 px-3 py-2 text-left text-sm font-bold">{lang === 'zh' ? '描述' : 'DESCRIPTION'}</th>
+                {hasArea && <th className="border border-gray-400 px-3 py-2 text-center text-sm font-bold w-20">{lang === 'zh' ? '区域' : 'AREA'}</th>}
                 <th className="border border-gray-400 px-3 py-2 text-center text-sm font-bold w-16">{lang === 'zh' ? '数量' : 'QTY'}</th>
                 <th className="border border-gray-400 px-3 py-2 text-right text-sm font-bold w-24">{lang === 'zh' ? '单价' : 'UNIT PRICE'}</th>
                 <th className="border border-gray-400 px-3 py-2 text-right text-sm font-bold w-24">{lang === 'zh' ? '金额' : 'AMOUNT'}</th>
               </tr>
             </thead>
             <tbody>
-              {invoiceEntries.length > 0 ? invoiceEntries.map(e => {
-                const qty = e.type === 'labor' ? Number(e.hours) : Number(e.quantity || 1)
-                const unitPrice = e.type === 'labor' ? Number(e.hourly_rate) : (e.unit_price ? Number(e.unit_price) : Number(e.amount))
-                const price = e.type === 'labor' ? qty * unitPrice : Number(e.amount)
-                return (
-                  <tr key={e.id} className="border border-gray-300">
-                    <td className="border border-gray-300 px-3 py-2 text-sm">
-                      <div className="flex items-center justify-between gap-2">
-                        <span>{e.description || e.worker_name || e.type}</span>
-                        <a href={'/jobs/' + id + '/entry/' + e.id + '/edit'} className="print:hidden text-blue-400 hover:text-blue-600 text-xs shrink-0">✏️</a>
-                      </div>
-                    </td>
-                    <td className="border border-gray-300 px-3 py-2 text-sm text-center">{qty}</td>
-                    <td className="border border-gray-300 px-3 py-2 text-sm text-right">${unitPrice.toFixed(2)}</td>
-                    <td className="border border-gray-300 px-3 py-2 text-sm text-right">${price.toFixed(2)}</td>
-                  </tr>
+              {invoiceEntries.length > 0 ? (
+                hasGroups ? (
+                  <>
+                    {groups.map(group => (
+                      <>
+                        <tr key={'group-' + group}>
+                          <td colSpan={hasArea ? 5 : 4} className="border border-gray-300 px-3 py-1.5 bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            📁 {group}
+                          </td>
+                        </tr>
+                        {invoiceEntries.filter(e => e.item_group === group).map(renderRow)}
+                      </>
+                    ))}
+                    {noGroup.map(renderRow)}
+                  </>
+                ) : (
+                  invoiceEntries.map(renderRow)
                 )
-              }) : (
+              ) : (
                 <tr className="border border-gray-300">
-                  <td className="border border-gray-300 px-3 py-2 text-sm">{job.name} - {lang === 'zh' ? '专业服务' : 'Professional Services'}</td>
-                  <td className="border border-gray-300 px-3 py-2 text-sm text-center">1</td>
-                  <td className="border border-gray-300 px-3 py-2 text-sm text-right">${subTotal.toFixed(2)}</td>
-                  <td className="border border-gray-300 px-3 py-2 text-sm text-right">${subTotal.toFixed(2)}</td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm" colSpan={hasArea ? 5 : 4}>{job.name} - {lang === 'zh' ? '专业服务' : 'Professional Services'}</td>
                 </tr>
               )}
             </tbody>
