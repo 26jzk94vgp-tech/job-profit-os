@@ -150,7 +150,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
     <div className="invoice-page min-h-screen">
 
       {/* ── 控制面板 print:hidden ── */}
-      <div className="max-w-2xl mx-auto px-4 pt-6 pb-8 print:hidden">
+      <div className="max-w-2xl mx-auto px-4 pt-16 pb-8 md:pt-6 print:hidden">
 
         <div className="flex items-center gap-3 mb-6">
           <Link href={"/jobs/" + id} className="text-[#0A84FF] text-sm font-medium">← {lang === 'zh' ? '返回' : 'Back'}</Link>
