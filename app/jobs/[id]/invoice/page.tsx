@@ -284,20 +284,20 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
       </div>
 
       {/* ── 发票正文（打印区域）── */}
-      <div className="max-w-4xl mx-auto bg-white p-10 print:p-8 shadow-sm">
+      <div className="max-w-4xl mx-auto p-10 print:p-8 shadow-sm" style={{backgroundColor:'#FFFFFF', color:'#111827'}}>
         <div className="flex justify-between items-start mb-8">
           <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{lang === 'zh' ? '服务提供方' : 'From'}</p>
-            <p className="font-bold text-xl text-gray-900">{profile?.company_name || 'Your Company Name'}</p>
-            {profile?.company_address && <p className="text-sm text-gray-600 mt-1"><span className="text-gray-400">{lang === 'zh' ? '地址: ' : 'Address: '}</span>{profile.company_address}</p>}
-            {profile?.company_email && <p className="text-sm text-gray-600"><span className="text-gray-400">{lang === 'zh' ? '邮箱: ' : 'Email: '}</span>{profile.company_email}</p>}
-            {profile?.company_phone && <p className="text-sm text-gray-600"><span className="text-gray-400">{lang === 'zh' ? '电话: ' : 'Phone: '}</span>{profile.company_phone}</p>}
+            <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:'#9CA3AF'}}>{lang === 'zh' ? '服务提供方' : 'From'}</p>
+            <p className="font-bold text-xl" style={{color:'#111827'}}>{profile?.company_name || 'Your Company Name'}</p>
+            {profile?.company_address && <p className="text-sm mt-1" style={{color:'#4B5563'}}><span style={{color:'#9CA3AF'}}>{lang === 'zh' ? '地址: ' : 'Address: '}</span>{profile.company_address}</p>}
+            {profile?.company_email && <p className="text-sm" style={{color:'#4B5563'}}><span style={{color:'#9CA3AF'}}>{lang === 'zh' ? '邮箱: ' : 'Email: '}</span>{profile.company_email}</p>}
+            {profile?.company_phone && <p className="text-sm" style={{color:'#4B5563'}}><span style={{color:'#9CA3AF'}}>{lang === 'zh' ? '电话: ' : 'Phone: '}</span>{profile.company_phone}</p>}
           </div>
           <div className="text-right">
-            <p className="text-3xl font-bold text-gray-800 tracking-wide">INVOICE</p>
-            <p className="text-sm text-gray-600 mt-2"><span className="text-gray-400">{lang === 'zh' ? '发票编号: ' : 'Invoice #: '}</span><span className="font-bold">{invoiceNumber}</span></p>
-            <p className="text-sm text-gray-600"><span className="text-gray-400">{lang === 'zh' ? '日期: ' : 'Date: '}</span><span className="font-medium">{new Date().toLocaleDateString('en-AU')}</span></p>
-            {dueDate && <p className="text-sm text-gray-600"><span className="text-gray-400">{lang === 'zh' ? '到期日: ' : 'Due Date: '}</span><span className="font-medium">{dueDate}</span></p>}
+            <p className="text-3xl font-bold tracking-wide" style={{color:'#1F2937'}}>INVOICE</p>
+            <p className="text-sm mt-2" style={{color:'#4B5563'}}><span style={{color:'#9CA3AF'}}>{lang === 'zh' ? '发票编号: ' : 'Invoice #: '}</span><span className="font-bold">{invoiceNumber}</span></p>
+            <p className="text-sm" style={{color:'#4B5563'}}><span style={{color:'#9CA3AF'}}>{lang === 'zh' ? '日期: ' : 'Date: '}</span><span className="font-medium">{new Date().toLocaleDateString('en-AU')}</span></p>
+            {dueDate && <p className="text-sm" style={{color:'#4B5563'}}><span style={{color:'#9CA3AF'}}>{lang === 'zh' ? '到期日: ' : 'Due Date: '}</span><span className="font-medium">{dueDate}</span></p>}
           </div>
         </div>
 
@@ -311,11 +311,11 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
           </div>
         )}
 
-        <div className="mb-6 bg-gray-50 rounded-lg p-4">
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{lang === 'zh' ? '账单送达' : 'Bill To'}</p>
-          {toName && <p className="text-sm text-gray-700"><span className="text-gray-400">{lang === 'zh' ? '客户名称: ' : 'Client Name: '}</span><span className="font-semibold text-gray-900">{toName}</span></p>}
-          {toAddress && <p className="text-sm text-gray-700 mt-1"><span className="text-gray-400">{lang === 'zh' ? '客户地址: ' : 'Address: '}</span><span className="font-medium">{toAddress}</span></p>}
-          {!toName && !toAddress && <p className="text-sm text-gray-400 italic">{lang === 'zh' ? '请在上方填写客户名称和地址' : 'Please fill in client name and address above'}</p>}
+        <div className="mb-6 rounded-lg p-4" style={{backgroundColor:'#F9FAFB'}}>
+          <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:'#6B7280'}}>{lang === 'zh' ? '账单送达' : 'Bill To'}</p>
+          {toName && <p className="text-sm" style={{color:'#374151'}}><span style={{color:'#9CA3AF'}}>{lang === 'zh' ? '客户名称: ' : 'Client Name: '}</span><span className="font-semibold" style={{color:'#111827'}}>{toName}</span></p>}
+          {toAddress && <p className="text-sm mt-1" style={{color:'#374151'}}><span style={{color:'#9CA3AF'}}>{lang === 'zh' ? '客户地址: ' : 'Address: '}</span><span className="font-medium">{toAddress}</span></p>}
+          {!toName && !toAddress && <p className="text-sm italic" style={{color:'#9CA3AF'}}>{lang === 'zh' ? '请在上方填写客户名称和地址' : 'Please fill in client name and address above'}</p>}
         </div>
 
         <div className="overflow-x-auto mb-6">
@@ -383,8 +383,8 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
 
         {note && (
           <div className="mt-4 pt-4 border-t border-gray-300">
-            <p className="text-xs font-medium text-gray-600 mb-1">{lang === 'zh' ? '备注' : 'Note'}:</p>
-            <p className="text-sm text-gray-700">{note}</p>
+            <p className="text-xs font-medium mb-1" style={{color:'#4B5563'}}>{lang === 'zh' ? '备注' : 'Note'}:</p>
+            <p className="text-sm" style={{color:'#374151'}}>{note}</p>
           </div>
         )}
       </div>
