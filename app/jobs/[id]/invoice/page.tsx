@@ -67,7 +67,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
               setImportDone(true)
             }
           }
-        } catch (e) {}
+        } catch (e) { }
         setImporting(false)
       } else {
         setEntries(allEntries)
@@ -105,7 +105,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
       await navigator.clipboard.writeText(url)
       setLinkCopied(true)
       setTimeout(() => setLinkCopied(false), 2000)
-    } catch (e) {}
+    } catch (e) { }
     setCopyingLink(false)
   }
 
@@ -149,7 +149,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   const inputCls = "w-full bg-white dark:bg-[#2C2C2E] rounded-xl px-3 py-2.5 text-sm text-gray-900 dark:text-[#F2F2F7] outline-none focus:ring-2 focus:ring-[#0A84FF]/40 transition border-0"
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7]" style={{colorScheme: 'light'}}>
+    <div className="min-h-screen bg-[#F2F2F7]" style={{ colorScheme: 'light' }}>
 
       {/* ── 控制面板 print:hidden ── */}
       <div className="max-w-2xl mx-auto px-4 pt-6 pb-8 print:hidden">
@@ -283,7 +283,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
         </div>
 
         <div className="overflow-x-auto mb-6">
-          <table className="w-full border-collapse" style={{minWidth: '400px'}}>
+          <table className="w-full border-collapse" style={{ minWidth: '400px' }}>
             <thead>
               <tr className="border border-gray-400 bg-gray-100">
                 <th className="border border-gray-400 px-3 py-2 text-left text-sm font-bold">{lang === 'zh' ? '描述' : 'DESCRIPTION'}</th>
