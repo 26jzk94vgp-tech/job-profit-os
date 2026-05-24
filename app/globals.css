@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @variant dark (&:where(.dark, .dark *));
+
 /* ===== TYPOGRAPHY - Apple Design System ===== */
 @layer base {
   html {
@@ -9,22 +10,18 @@
     letter-spacing: -0.01em;
   }
 
- h1, h2, h3, h4, h5, h6 {
+  h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     letter-spacing: -0.03em;
     line-height: 1.1;
   }
 
-
-  /* 数字用等宽，对齐金额 */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
 }
 
 /* ===== DARK MODE - Apple Design System ===== */
-
-/* Backgrounds */
 .dark body { background-color: #1C1C1E !important; }
 .dark .bg-white { background-color: #2C2C2E !important; }
 .dark .bg-gray-50 { background-color: #1C1C1E !important; }
@@ -38,23 +35,17 @@
 .dark .bg-blue-600 { background-color: #0A84FF !important; }
 .dark .bg-red-50 { background-color: #2E1C1C !important; }
 .dark .bg-red-100 { background-color: #3D1A1A !important; }
-
-/* Borders */
 .dark .border-gray-200, .dark .border-gray-100 { border-color: #3A3A3C !important; }
 .dark .border-yellow-200 { border-color: #3A3A3C !important; }
 .dark .border-blue-200 { border-color: #2C5282 !important; }
 .dark .border-red-400 { border-color: #FF453A !important; }
 .dark .divide-gray-100 > * + * { border-color: #3A3A3C !important; }
-
-/* Text - Labels */
 .dark .text-gray-900 { color: #F2F2F7 !important; }
 .dark .text-gray-800 { color: #F2F2F7 !important; }
 .dark .text-gray-700 { color: #EBEBF5 !important; }
 .dark .text-gray-600 { color: #EBEBF5 !important; }
 .dark .text-gray-500 { color: #8E8E93 !important; }
 .dark .text-gray-400 { color: #8E8E93 !important; }
-
-/* Text - Colors */
 .dark .text-blue-600, .dark .text-blue-500 { color: #0A84FF !important; }
 .dark .text-blue-800, .dark .text-blue-700 { color: #60A5FA !important; }
 .dark .text-blue-100 { color: #93C5FD !important; }
@@ -64,8 +55,19 @@
 .dark .text-red-400 { color: #FF6961 !important; }
 .dark .text-red-700 { color: #FF453A !important; }
 .dark .text-yellow-800, .dark .text-yellow-600 { color: #FF9F0A !important; }
-
-/* Hover */
 .dark .hover\:bg-gray-50:hover { background-color: #3A3A3C !important; }
 .dark .hover\:bg-gray-100:hover { background-color: #3A3A3C !important; }
 .dark .hover\:bg-white:hover { background-color: #3A3A3C !important; }
+
+/* ===== 发票页专用 ===== */
+.invoice-page { background-color: #F2F2F7; }
+.dark .invoice-page { background-color: #1C1C1E !important; }
+.invoice-card { background-color: #FFFFFF; }
+.dark .invoice-card { background-color: #2C2C2E !important; }
+.invoice-divider { border-color: #E5E5EA; }
+.dark .invoice-divider { border-color: #3A3A3C !important; }
+.invoice-label { color: #8E8E93; font-size: 0.75rem; }
+.invoice-value { color: #1C1C1E; }
+.dark .invoice-value { color: #F2F2F7 !important; }
+.invoice-placeholder { color: #C7C7CC; }
+.dark .invoice-placeholder { color: #48484A !important; }
