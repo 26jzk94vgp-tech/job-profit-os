@@ -60,9 +60,9 @@
 .dark .hover\:bg-white:hover { background-color: #3A3A3C !important; }
 
 /* ===== 发票页专用 ===== */
-.invoice-page { background-color: #F2F2F7 !important; }
+.invoice-page { background-color: #F2F2F7; }
 .dark .invoice-page { background-color: #1C1C1E !important; }
-.invoice-card { background-color: #FFFFFF !important; }
+.invoice-card { background-color: #FFFFFF; }
 .dark .invoice-card { background-color: #2C2C2E !important; }
 .invoice-divider { border-color: #E5E5EA; }
 .dark .invoice-divider { border-color: #3A3A3C !important; }
