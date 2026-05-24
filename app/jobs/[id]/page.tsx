@@ -217,7 +217,6 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
           </div>
           <div className="flex gap-2">
             <button onClick={addToCalendar} className="bg-gray-100 dark:bg-[#3A3A3C] hover:bg-gray-200 text-gray-700 dark:text-[#F2F2F7] px-3 py-2 rounded-lg text-sm font-medium">📅 {lang === 'zh' ? '加入日历' : 'Add to Calendar'}</button>
-            <Link href={'/jobs/' + id + '/invoice'} className="bg-gray-100 dark:bg-[#3A3A3C] hover:bg-gray-200 text-gray-700 dark:text-[#F2F2F7] px-3 py-2 rounded-lg text-sm font-medium">🧾 {lang === 'zh' ? '发票' : 'Invoice'}</Link>
             <Link href={'/jobs/' + id + '/edit'} className="bg-gray-100 dark:bg-[#3A3A3C] hover:bg-gray-200 text-gray-700 dark:text-[#F2F2F7] px-3 py-2 rounded-lg text-sm font-medium">✏️ {lang === 'zh' ? '编辑' : 'Edit'}</Link>
             <Link href={'/jobs/' + id + '/add'} className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg text-sm font-medium">+ {lang === 'zh' ? '添加条目' : 'Add Entry'}</Link>
           </div>
@@ -238,7 +237,6 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
         {showMore && (
           <div className="md:hidden bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-[#3A3A3C] shadow-lg mb-4 overflow-hidden">
             <button onClick={() => { addToCalendar(); setShowMore(false) }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] text-sm text-gray-700 dark:text-[#F2F2F7]">📅 <span>{lang === 'zh' ? '加入日历' : 'Add to Calendar'}</span></button>
-            <div className="border-t border-gray-100 dark:border-[#3A3A3C]"><Link href={'/jobs/' + id + '/invoice'} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] text-sm text-gray-700 dark:text-[#F2F2F7]">🧾 <span>{lang === 'zh' ? '查看发票' : 'Invoice'}</span></Link></div>
             <div className="border-t border-gray-100 dark:border-[#3A3A3C]"><Link href={'/jobs/' + id + '/edit'} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] text-sm text-gray-700 dark:text-[#F2F2F7]">✏️ <span>{lang === 'zh' ? '编辑工单' : 'Edit Job'}</span></Link></div>
           </div>
         )}
@@ -256,7 +254,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
         <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-[#2C2C2E] p-1 rounded-xl">
           <button onClick={() => setActiveTab('overview')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'overview' ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-[#8E8E93]'}`}>{lang === 'zh' ? '概览' : 'Overview'}</button>
           <button onClick={() => setActiveTab('entries')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'entries' ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-[#8E8E93]'}`}>{lang === 'zh' ? '条目' : 'Entries'}</button>
-          <button onClick={() => setActiveTab('invoice')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'invoice' ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-[#8E8E93]'}`}>{lang === 'zh' ? '发票' : 'Invoice'}</button>
+          <button onClick={() => setActiveTab('invoice')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'invoice' ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-[#8E8E93]'}`}>{lang === 'zh' ? '票据' : 'Billing'}</button>
         </div>
 
         {/* ── 概览 ── */}
@@ -400,25 +398,31 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
           </div>
         )}
 
-        {/* ── 发票 Tab — 重构 ── */}
+        {/* ── 票据 Tab ── */}
         {activeTab === 'invoice' && (
           <div className="space-y-4">
 
-            {/* 报价单列表 */}
-            <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent">
+            {/* ── 区域1：报价单管理 ── */}
+            <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C] flex items-center justify-between">
-                <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '报价单' : 'Quotes'}</h2>
+                <div>
+                  <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '报价单' : 'Quotes'}</h2>
+                  <p className="text-[#8E8E93] text-xs mt-0.5">
+                    {lang === 'zh' ? '管理工程报价，成交后自动生成发票条目' : 'Manage quotes — accepted ones become invoice items'}
+                  </p>
+                </div>
                 <Link
                   href={`/quotes/new?job_id=${id}`}
-                  className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors"
+                  className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors shrink-0"
                 >
                   + {lang === 'zh' ? '新建报价单' : 'New Quote'}
                 </Link>
               </div>
 
               {quotes.length === 0 ? (
-                <div className="px-6 py-8 text-center text-gray-400">
-                  <p className="text-sm">{lang === 'zh' ? '还没有报价单' : 'No quotes yet'}</p>
+                <div className="px-6 py-10 text-center">
+                  <p className="text-2xl mb-2">📋</p>
+                  <p className="text-[#8E8E93] text-sm">{lang === 'zh' ? '还没有报价单' : 'No quotes yet'}</p>
                   <Link href={`/quotes/new?job_id=${id}`} className="mt-3 inline-block bg-blue-600 text-white px-4 py-2 rounded-xl text-sm">
                     + {lang === 'zh' ? '新建报价单' : 'New Quote'}
                   </Link>
@@ -436,20 +440,20 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
                       <div key={quote.id} className="px-6 py-4">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-xs font-bold text-gray-500 dark:text-[#8E8E93]">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <span className="text-xs font-bold bg-gray-100 dark:bg-[#3A3A3C] text-gray-500 dark:text-[#8E8E93] px-2 py-0.5 rounded-full">
                                 {lang === 'zh' ? `单${quoteNum}` : `Q${quoteNum}`}
                               </span>
-                              <span className="font-medium text-gray-900 dark:text-[#F2F2F7] text-sm">{quote.quote_number || `Q-00${quoteNum}`}</span>
+                              <span className="text-sm font-medium text-gray-700 dark:text-[#F2F2F7]">{quote.quote_number || `Q-00${quoteNum}`}</span>
                               {isAccepted && <span className="text-xs bg-green-100 dark:bg-[#30D158]/20 text-green-700 dark:text-[#30D158] px-2 py-0.5 rounded-full">✅ {lang === 'zh' ? '已成交' : 'Accepted'}</span>}
                               {isDeclined && <span className="text-xs bg-red-100 dark:bg-[#FF453A]/20 text-red-600 dark:text-[#FF453A] px-2 py-0.5 rounded-full">✗ {lang === 'zh' ? '不成交' : 'Declined'}</span>}
                               {!isAccepted && !isDeclined && <span className="text-xs bg-yellow-100 dark:bg-[#FF9F0A]/20 text-yellow-700 dark:text-[#FF9F0A] px-2 py-0.5 rounded-full">⏳ {lang === 'zh' ? '谈判中' : 'Pending'}</span>}
                             </div>
-                            <p className="text-[#30D158] font-semibold mt-1">${quoteTotal.toLocaleString()}</p>
-                            <p className="text-[#8E8E93] text-xs mt-0.5">{(quote.quote_items || []).length} {lang === 'zh' ? '个条目' : 'items'}</p>
+                            <p className="text-[#30D158] font-bold text-lg">${quoteTotal.toLocaleString()}</p>
+                            <p className="text-[#8E8E93] text-xs">{(quote.quote_items || []).length} {lang === 'zh' ? '个条目' : 'items'}</p>
                           </div>
                           <div className="flex flex-col gap-1.5 shrink-0">
-                            <Link href={`/quotes/${quote.id}`} className="text-xs bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93] px-3 py-1.5 rounded-xl text-center">
+                            <Link href={`/quotes/${quote.id}`} className="text-xs bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93] px-3 py-1.5 rounded-xl text-center font-medium">
                               {lang === 'zh' ? '查看' : 'View'}
                             </Link>
                             {!isAccepted && !isDeclined && (
@@ -457,13 +461,13 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
                                 <button
                                   onClick={() => handleQuoteWon(quote, quoteNum)}
                                   disabled={isConverting}
-                                  className="text-xs bg-[#30D158]/20 text-[#30D158] px-3 py-1.5 rounded-xl font-medium disabled:opacity-50"
+                                  className="text-xs bg-[#30D158]/20 text-[#30D158] px-3 py-1.5 rounded-xl font-medium disabled:opacity-50 transition-colors"
                                 >
                                   {isConverting ? '...' : (lang === 'zh' ? '✓ 成交' : '✓ Won')}
                                 </button>
                                 <button
                                   onClick={() => handleQuoteLost(quote.id)}
-                                  className="text-xs bg-[#FF453A]/10 text-[#FF453A] px-3 py-1.5 rounded-xl font-medium"
+                                  className="text-xs bg-[#FF453A]/10 text-[#FF453A] px-3 py-1.5 rounded-xl font-medium transition-colors"
                                 >
                                   {lang === 'zh' ? '✗ 不成交' : '✗ Lost'}
                                 </button>
@@ -478,30 +482,29 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
               )}
             </div>
 
-            {/* 发票汇总 — 只在有已成交报价单时显示 */}
+            {/* ── 区域2：发票输出（只在有已成交报价单时显示）── */}
             {acceptedQuotes.length > 0 && (
-              <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent">
+              <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C] flex items-center justify-between">
                   <div>
-                    <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '发票汇总' : 'Invoice Summary'}</h2>
+                    <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '发票' : 'Invoice'}</h2>
                     <p className="text-[#8E8E93] text-xs mt-0.5">
                       {acceptedQuotes.length} {lang === 'zh' ? '张已成交报价单' : 'accepted quote(s)'}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[#30D158] font-bold text-lg">${invoiceEntries.reduce((sum, e) => sum + Number(e.amount), 0).toLocaleString()}</p>
-                    <p className="text-[#8E8E93] text-xs">{lang === 'zh' ? '含GST' : 'inc. GST'}</p>
+                    <p className="text-[#30D158] font-bold text-xl">${invoiceEntries.reduce((sum, e) => sum + Number(e.amount), 0).toLocaleString()}</p>
+                    <p className="text-[#8E8E93] text-xs">{lang === 'zh' ? '不含GST' : 'excl. GST'}</p>
                   </div>
                 </div>
 
-                {/* 按单1/单2分组预览 */}
+                {/* 按单1/单2分组 */}
                 <div className="divide-y divide-gray-100 dark:divide-[#3A3A3C]">
-                  {acceptedQuotes.map((quote, index) => {
+                  {acceptedQuotes.map((quote) => {
                     const quoteNum = quotes.indexOf(quote) + 1
                     const quoteEntries = invoiceEntries.filter(e => e.quote_id === quote.id)
                     const quoteTotal = quoteEntries.reduce((sum, e) => sum + Number(e.amount), 0)
-                    const unpaid = quoteEntries.filter(e => e.payment_status !== 'paid')
-                    const unpaidAmt = unpaid.reduce((sum, e) => sum + Number(e.amount), 0)
+                    const unpaidAmt = quoteEntries.filter(e => e.payment_status !== 'paid').reduce((sum, e) => sum + Number(e.amount), 0)
 
                     return (
                       <div key={quote.id} className="px-6 py-4">
@@ -515,15 +518,13 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
                           <span className="text-[#30D158] font-semibold">${quoteTotal.toLocaleString()}</span>
                         </div>
                         {unpaidAmt > 0 && (
-                          <p className="text-xs text-[#FF9F0A]">
-                            {lang === 'zh' ? `未收：$${unpaidAmt.toLocaleString()}` : `Unpaid: $${unpaidAmt.toLocaleString()}`}
-                          </p>
+                          <p className="text-xs text-[#FF9F0A] mb-1">💰 {lang === 'zh' ? `待收：$${unpaidAmt.toLocaleString()}` : `Outstanding: $${unpaidAmt.toLocaleString()}`}</p>
                         )}
-                        {quoteEntries.slice(0, 2).map(e => (
-                          <p key={e.id} className="text-xs text-[#8E8E93] mt-0.5 truncate">· {e.description}</p>
+                        {quoteEntries.slice(0, 3).map(e => (
+                          <p key={e.id} className="text-xs text-[#8E8E93] truncate">· {e.description}</p>
                         ))}
-                        {quoteEntries.length > 2 && (
-                          <p className="text-xs text-[#8E8E93]">· +{quoteEntries.length - 2} {lang === 'zh' ? '更多' : 'more'}</p>
+                        {quoteEntries.length > 3 && (
+                          <p className="text-xs text-[#8E8E93]">· +{quoteEntries.length - 3} {lang === 'zh' ? '更多条目' : 'more items'}</p>
                         )}
                       </div>
                     )
@@ -533,9 +534,9 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
                 <div className="px-6 py-4 border-t border-gray-100 dark:border-[#3A3A3C]">
                   <Link
                     href={'/jobs/' + id + '/invoice'}
-                    className="w-full block text-center bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-sm font-medium transition-colors"
+                    className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-sm font-semibold transition-colors"
                   >
-                    🧾 {lang === 'zh' ? '查看完整发票 / 存PDF' : 'View Full Invoice / Save PDF'}
+                    🧾 {lang === 'zh' ? '查看完整发票 / 存PDF / 发送' : 'View Invoice / Save PDF / Send'}
                   </Link>
                 </div>
               </div>
