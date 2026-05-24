@@ -60,14 +60,14 @@
 .dark .hover\:bg-white:hover { background-color: #3A3A3C !important; }
 
 /* ===== 发票页专用 ===== */
-.invoice-page { background-color: #F2F2F7; }
+.invoice-page { background-color: #F2F2F7 !important; }
 .dark .invoice-page { background-color: #1C1C1E !important; }
-.invoice-card { background-color: #FFFFFF; }
+.invoice-card { background-color: #FFFFFF !important; }
 .dark .invoice-card { background-color: #2C2C2E !important; }
 .invoice-divider { border-color: #E5E5EA; }
 .dark .invoice-divider { border-color: #3A3A3C !important; }
 .invoice-label { color: #8E8E93; font-size: 0.75rem; }
-.invoice-value { color: #1C1C1E; }
+.invoice-value { color: #1C1C1E !important; }
 .dark .invoice-value { color: #F2F2F7 !important; }
 .invoice-placeholder { color: #C7C7CC; }
 .dark .invoice-placeholder { color: #48484A !important; }
