@@ -23,6 +23,7 @@ export default function NewQuote() {
   const [importLoading, setImportLoading] = useState(false)
   const [importedItems, setImportedItems] = useState<Item[]>([])
   const [showPreview, setShowPreview] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     async function load() {
@@ -75,7 +76,22 @@ export default function NewQuote() {
     setImportedItems([])
   }
 
+  function validate(): boolean {
+    const newErrors: Record<string, string> = {}
+    const req = lang === 'zh' ? '此项为必填' : 'This field is required'
+
+    if (!clientName.trim()) newErrors.clientName = req
+
+    const firstItem = items[0]
+    if (!firstItem.description.trim()) newErrors.firstDesc = lang === 'zh' ? '请填写第一个条目的描述' : 'First item description is required'
+    if (!firstItem.unit_price.trim()) newErrors.firstPrice = lang === 'zh' ? '请填写第一个条目的售价' : 'First item price is required'
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   async function handleSubmit() {
+    if (!validate()) return
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     const { data: quote, error } = await supabase.from('quotes').insert({
@@ -100,7 +116,9 @@ export default function NewQuote() {
   }
 
   const inputCls = "w-full border border-gray-200 dark:border-gray-700 rounded-xl p-2.5 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none text-sm focus:ring-2 focus:ring-blue-500/40 transition"
+  const inputErrCls = "w-full border border-[#FF453A] rounded-xl p-2.5 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none text-sm focus:ring-2 focus:ring-[#FF453A]/40 transition"
   const selectCls = "border border-gray-200 dark:border-gray-700 rounded-xl p-2.5 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none text-sm focus:ring-2 focus:ring-blue-500/40 transition"
+  const errCls = "text-[#FF453A] text-xs mt-1"
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pt-12 md:pt-0">
@@ -119,7 +137,6 @@ export default function NewQuote() {
         </div>
       </nav>
 
-      {/* 第11项：py-8 增加呼吸感 */}
       <main className="max-w-3xl mx-auto px-4 py-8">
         {showPreview && importedItems.length > 0 && (
           <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/40 rounded-2xl p-4 mb-6">
@@ -147,10 +164,18 @@ export default function NewQuote() {
 
         <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-6">
 
-          {/* 客户名称 */}
+          {/* 客户名称 — 必填 */}
           <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '客户名称' : 'Client Name'}</label>
-            <input className={inputCls + ' mt-1.5'} placeholder={lang === 'zh' ? '例如：张先生' : 'e.g. John Smith'} value={clientName} onChange={e => setClientName(e.target.value)} />
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {lang === 'zh' ? '客户名称' : 'Client Name'} <span className="text-[#FF453A]">*</span>
+            </label>
+            <input
+              className={(errors.clientName ? inputErrCls : inputCls) + ' mt-1.5'}
+              placeholder={lang === 'zh' ? '例如：张先生' : 'e.g. John Smith'}
+              value={clientName}
+              onChange={e => { setClientName(e.target.value); if (errors.clientName) setErrors(p => ({ ...p, clientName: '' })) }}
+            />
+            {errors.clientName && <p className={errCls}>{errors.clientName}</p>}
             {clients.length > 0 && (
               <select className={selectCls + ' w-full mt-1.5'} value={clientId} onChange={e => {
                 setClientId(e.target.value)
@@ -158,6 +183,7 @@ export default function NewQuote() {
                 if (found) {
                   setClientName(found.name)
                   if (found.address) setSiteAddress(found.address)
+                  if (errors.clientName) setErrors(p => ({ ...p, clientName: '' }))
                 }
               }}>
                 <option value="">{lang === 'zh' ? '或从客户列表选择...' : 'Or select from client list...'}</option>
@@ -197,7 +223,9 @@ export default function NewQuote() {
           {/* 报价条目 */}
           <div>
             <div className="mb-4">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2.5 block">{lang === 'zh' ? '报价条目' : 'Quote Items'}</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2.5 block">
+                {lang === 'zh' ? '报价条目' : 'Quote Items'} <span className="text-[#FF453A]">*</span>
+              </label>
               <div className="flex flex-wrap gap-2">
                 {defaultGroups.map(g => <button key={g} onClick={() => addItem(g)} className="text-xs bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93] px-2.5 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-[#48484A] transition-colors">+ {g}</button>)}
                 <button onClick={() => addItem()} className="text-xs bg-blue-100 dark:bg-[#0A84FF]/20 text-blue-600 dark:text-[#0A84FF] px-2.5 py-1.5 rounded-lg">+ {lang === 'zh' ? '条目' : 'Item'}</button>
@@ -215,6 +243,7 @@ export default function NewQuote() {
                   <div className="space-y-3">
                     {groupItems.map(item => {
                       const index = items.indexOf(item)
+                      const isFirst = index === 0
                       const sell = Number(item.quantity) * Number(item.unit_price) || 0
                       const cost = Number(item.quantity) * Number(item.cost_price) || 0
                       return (
@@ -223,7 +252,15 @@ export default function NewQuote() {
                             <span className="text-[#8E8E93] text-xs">#{index + 1} {item.item_group && <span className="bg-blue-100 dark:bg-[#0A84FF]/20 text-blue-600 dark:text-[#0A84FF] px-1 rounded text-xs">{item.item_group}</span>}</span>
                             {items.length > 1 && <button onClick={() => removeItem(index)} className="text-[#FF453A] text-xs">{lang === 'zh' ? '删除' : 'Remove'}</button>}
                           </div>
-                          <input className={inputCls} placeholder={lang === 'zh' ? '描述' : 'Description'} value={item.description} onChange={e => updateItem(index, 'description', e.target.value)} />
+                          <div>
+                            <input
+                              className={isFirst && errors.firstDesc ? inputErrCls : inputCls}
+                              placeholder={lang === 'zh' ? '描述' : 'Description'}
+                              value={item.description}
+                              onChange={e => { updateItem(index, 'description', e.target.value); if (isFirst && errors.firstDesc) setErrors(p => ({ ...p, firstDesc: '' })) }}
+                            />
+                            {isFirst && errors.firstDesc && <p className={errCls}>{errors.firstDesc}</p>}
+                          </div>
                           <div className="flex gap-2">
                             <select className={selectCls + ' flex-1'} value={item.area} onChange={e => updateItem(index, 'area', e.target.value)}>
                               <option value="">{lang === 'zh' ? '区域' : 'Area'}</option>
@@ -239,7 +276,15 @@ export default function NewQuote() {
                             <input className={selectCls + ' w-20'} placeholder="Unit" value={item.unit} onChange={e => updateItem(index, 'unit', e.target.value)} />
                           </div>
                           <div className="flex gap-2 items-center">
-                            <input className={inputCls + ' flex-1'} placeholder={lang === 'zh' ? '售价 $' : 'Rate $'} value={item.unit_price} onChange={e => updateItem(index, 'unit_price', e.target.value)} />
+                            <div className="flex-1">
+                              <input
+                                className={isFirst && errors.firstPrice ? inputErrCls : inputCls}
+                                placeholder={lang === 'zh' ? '售价 $' : 'Rate $'}
+                                value={item.unit_price}
+                                onChange={e => { updateItem(index, 'unit_price', e.target.value); if (isFirst && errors.firstPrice) setErrors(p => ({ ...p, firstPrice: '' })) }}
+                              />
+                              {isFirst && errors.firstPrice && <p className={errCls}>{errors.firstPrice}</p>}
+                            </div>
                             <input className="flex-1 border border-yellow-300 dark:border-yellow-700/60 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-2.5 text-gray-900 dark:text-gray-100 outline-none text-sm" placeholder={lang === 'zh' ? '成本 $' : 'Cost $'} value={item.cost_price} onChange={e => updateItem(index, 'cost_price', e.target.value)} />
                             {sell > 0 && <span className={`text-xs font-medium shrink-0 ${sell - cost >= 0 ? 'text-[#30D158]' : 'text-[#FF453A]'}`}>${sell.toFixed(0)}</span>}
                           </div>
