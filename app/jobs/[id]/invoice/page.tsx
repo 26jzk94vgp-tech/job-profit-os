@@ -174,7 +174,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
       <React.Fragment key={quote.id}>
         {/* 单1/单2 标题行 */}
         <tr>
-          <td colSpan={colSpan} className="border border-gray-400 px-3 py-2 text-sm font-bold" style={{backgroundColor:'#1F2937', color:'#FFFFFF'}}>
+          <td colSpan={colSpan} className="border border-gray-400 px-3 py-2 text-sm font-bold" style={{backgroundColor:'#E5E7EB', color:'#111827'}}>
             {lang === 'zh' ? `单${quoteNum}` : `Q${quoteNum}`} — {quote.quote_number}
             <span className="float-right font-semibold">${quoteTotal.toFixed(2)}</span>
           </td>
@@ -184,7 +184,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
             {groups.map(group => (
               <React.Fragment key={group}>
                 <tr>
-                  <td colSpan={colSpan} className="border border-gray-300 px-3 py-1.5 bg-gray-700 text-xs font-bold text-white uppercase tracking-wider">📁 {group}</td>
+                  <td colSpan={colSpan} className="border border-gray-300 px-3 py-1.5 text-xs font-bold uppercase tracking-wider" style={{backgroundColor:'#F3F4F6', color:'#374151'}}>📁 {group}</td>
                 </tr>
                 {quoteEntries.filter(e => e.item_group === group).map(renderRow)}
               </React.Fragment>
@@ -345,7 +345,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
                       <>
                         {groups.map(group => (
                           <React.Fragment key={group}>
-                            <tr><td colSpan={colSpan} className="border border-gray-300 px-3 py-1.5 bg-gray-700 text-xs font-bold text-white uppercase tracking-wider">📁 {group}</td></tr>
+                            <tr><td colSpan={colSpan} className="border border-gray-300 px-3 py-1.5 text-xs font-bold uppercase tracking-wider" style={{backgroundColor:'#F3F4F6', color:'#374151'}}>📁 {group}</td></tr>
                             {invoiceEntries.filter(e => e.item_group === group).map(renderRow)}
                           </React.Fragment>
                         ))}
