@@ -173,7 +173,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
       <React.Fragment key={quote.id}>
         {/* 单1/单2 标题行 */}
         <tr>
-          <td colSpan={colSpan} className="border border-gray-400 px-3 py-2 text-xs font-bold uppercase tracking-wider" style={{backgroundColor:'#D1D5DB', color:'#374151'}}>
+          <td colSpan={colSpan} className="border border-gray-400 px-3 py-2 text-sm font-bold" style={{backgroundColor:'#1F2937', color:'#FFFFFF'}}>
             {lang === 'zh' ? `单${quoteNum}` : `Q${quoteNum}`} — {quote.quote_number}
             <span className="float-right font-semibold">${quoteTotal.toFixed(2)}</span>
           </td>
@@ -373,9 +373,9 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
                 <td className="border border-gray-300 px-6 py-2 text-sm font-medium">GST (10%):</td>
                 <td className="border border-gray-300 px-6 py-2 text-sm text-right">${gst.toFixed(2)}</td>
               </tr>
-              <tr className="border border-gray-300 bg-gray-50">
-                <td className="border border-gray-300 px-6 py-2 text-sm font-bold">{lang === 'zh' ? '含GST总计' : 'Total Inc. GST'}:</td>
-                <td className="border border-gray-300 px-6 py-2 text-sm font-bold text-right">${total.toFixed(2)}</td>
+              <tr className="border border-gray-300" style={{backgroundColor:'#F9FAFB'}}>
+                <td className="border border-gray-300 px-6 py-2 text-sm font-bold" style={{color:'#111827'}}>{lang === 'zh' ? '含GST总计' : 'Total Inc. GST'}:</td>
+                <td className="border border-gray-300 px-6 py-2 text-sm font-bold text-right" style={{color:'#111827'}}>${total.toFixed(2)}</td>
               </tr>
             </tbody>
           </table>
