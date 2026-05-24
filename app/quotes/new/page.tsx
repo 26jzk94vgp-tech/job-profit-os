@@ -4,10 +4,8 @@ import { useState, useEffect } from 'react'
 import { use } from 'react'
 import { createClient } from '../../../utils/supabase/client'
 import Link from 'next/link'
-import JobStatusToggle from './JobStatusToggle'
-import DeleteEntry from './DeleteEntry'
 import { useLanguage } from '../../../lib/i18n/LanguageContext'
-import { formatDate } from '../../../lib/utils'
+
 
 export default function JobDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
