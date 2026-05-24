@@ -149,7 +149,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   const inputCls = "w-full bg-white dark:bg-[#2C2C2E] rounded-xl px-3 py-2.5 text-sm text-gray-900 dark:text-[#F2F2F7] outline-none focus:ring-2 focus:ring-[#0A84FF]/40 transition border-0"
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] dark:bg-gray-950">
+    <div className="min-h-screen bg-[#F2F2F7]">
 
       {/* ── 控制面板 print:hidden ── */}
       <div className="max-w-2xl mx-auto px-4 pt-6 pb-8 print:hidden">
@@ -157,7 +157,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
         {/* 顶部导航 */}
         <div className="flex items-center gap-3 mb-6">
           <Link href={"/jobs/" + id} className="text-[#0A84FF] text-sm font-medium">← {lang === 'zh' ? '返回' : 'Back'}</Link>
-          <h1 className="font-semibold text-gray-900 dark:text-white text-base">{lang === 'zh' ? '发票' : 'Invoice'}</h1>
+          <h1 className="font-semibold text-gray-900 text-base">{lang === 'zh' ? '发票' : 'Invoice'}</h1>
         </div>
 
         {importDone && (
@@ -167,42 +167,42 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
         )}
 
         {/* 发票信息卡片 */}
-        <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl shadow-sm overflow-hidden mb-4">
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-4">
 
           {/* 发票编号 + 到期日 */}
-          <div className="grid grid-cols-2 divide-x divide-gray-100 dark:divide-[#3A3A3C] border-b border-gray-100 dark:border-[#3A3A3C]">
+          <div className="grid grid-cols-2 divide-x divide-gray-100 border-b border-gray-100">
             <div className="px-4 py-3">
               <p className="text-[#8E8E93] text-xs mb-1">{lang === 'zh' ? '发票编号' : 'Invoice No.'}</p>
-              <input className={inputCls + ' px-0 font-semibold'} value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} />
+              <input className="w-full bg-transparent outline-none text-sm font-semibold text-gray-900 focus:ring-0" value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} />
             </div>
             <div className="px-4 py-3">
               <p className="text-[#8E8E93] text-xs mb-1">{lang === 'zh' ? '到期日' : 'Due Date'}</p>
-              <input type="date" className={inputCls + ' px-0'} value={dueDate} onChange={e => setDueDate(e.target.value)} />
+              <input type="date" className="w-full bg-transparent outline-none text-sm text-gray-900 focus:ring-0" value={dueDate} onChange={e => setDueDate(e.target.value)} />
             </div>
           </div>
 
           {/* 客户名称 */}
-          <div className="px-4 py-3 border-b border-gray-100 dark:border-[#3A3A3C]">
+          <div className="px-4 py-3 border-b border-gray-100">
             <p className="text-[#8E8E93] text-xs mb-1">{lang === 'zh' ? '账单送达' : 'Bill To'}</p>
-            <input className={inputCls + ' px-0 font-medium'} placeholder={lang === 'zh' ? '客户名称' : 'Client name'} value={toName} onChange={e => setToName(e.target.value)} />
+            <input className="w-full bg-transparent outline-none text-sm font-medium text-gray-900 focus:ring-0" placeholder={lang === 'zh' ? '客户名称' : 'Client name'} value={toName} onChange={e => setToName(e.target.value)} />
           </div>
 
           {/* 客户地址 */}
           <div className="px-4 py-3">
             <p className="text-[#8E8E93] text-xs mb-1">{lang === 'zh' ? '客户地址' : 'Address'}</p>
-            <input className={inputCls + ' px-0 text-gray-500 dark:text-[#8E8E93]'} placeholder="e.g. 123 Smith St, Perth WA" value={toAddress} onChange={e => setToAddress(e.target.value)} />
+            <input className="w-full bg-transparent outline-none text-sm text-gray-500 focus:ring-0" placeholder="e.g. 123 Smith St, Perth WA" value={toAddress} onChange={e => setToAddress(e.target.value)} />
           </div>
         </div>
 
         {/* 发送 + 备注卡片 */}
-        <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl shadow-sm overflow-hidden mb-4">
-          <div className="px-4 py-3 border-b border-gray-100 dark:border-[#3A3A3C]">
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-4">
+          <div className="px-4 py-3 border-b border-gray-100">
             <p className="text-[#8E8E93] text-xs mb-1">{lang === 'zh' ? '客户邮箱' : 'Client Email'}</p>
-            <input type="email" className={inputCls + ' px-0'} placeholder="client@email.com" value={toEmail} onChange={e => setToEmail(e.target.value)} />
+            <input type="email" className="w-full bg-transparent outline-none text-sm text-gray-900 focus:ring-0" placeholder="client@email.com" value={toEmail} onChange={e => setToEmail(e.target.value)} />
           </div>
           <div className="px-4 py-3">
             <p className="text-[#8E8E93] text-xs mb-1">{lang === 'zh' ? '备注 / 付款条款' : 'Notes / Payment Terms'}</p>
-            <textarea className={inputCls + ' px-0 resize-none'} rows={2} value={note} onChange={e => setNote(e.target.value)} />
+            <textarea className="w-full bg-transparent outline-none text-sm text-gray-900 resize-none focus:ring-0" rows={2} value={note} onChange={e => setNote(e.target.value)} />
           </div>
         </div>
 
@@ -222,7 +222,6 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
 
         {/* 操作按钮 */}
         <div className="space-y-3">
-          {/* 主操作：发送发票 */}
           <button
             onClick={handleSendEmail}
             disabled={sending}
@@ -230,19 +229,17 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
           >
             {sending ? (lang === 'zh' ? '发送中...' : 'Sending...') : '📧 ' + (lang === 'zh' ? '发送发票给客户' : 'Send Invoice to Client')}
           </button>
-
-          {/* 次要操作：两个并排 */}
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={generateAndCopyLink}
               disabled={copyingLink}
-              className="bg-white dark:bg-[#2C2C2E] border border-gray-200 dark:border-[#3A3A3C] text-gray-700 dark:text-[#F2F2F7] py-3 rounded-2xl text-sm font-medium disabled:opacity-50 transition-colors hover:bg-gray-50"
+              className="bg-white border border-gray-200 text-gray-700 py-3 rounded-2xl text-sm font-medium disabled:opacity-50 transition-colors hover:bg-gray-50"
             >
               {linkCopied ? '✅ ' + (lang === 'zh' ? '已复制' : 'Copied') : copyingLink ? '...' : '🔗 ' + (lang === 'zh' ? '复制链接' : 'Copy Link')}
             </button>
             <button
               onClick={() => window.print()}
-              className="bg-white dark:bg-[#2C2C2E] border border-gray-200 dark:border-[#3A3A3C] text-gray-700 dark:text-[#F2F2F7] py-3 rounded-2xl text-sm font-medium transition-colors hover:bg-gray-50"
+              className="bg-white border border-gray-200 text-gray-700 py-3 rounded-2xl text-sm font-medium transition-colors hover:bg-gray-50"
             >
               💾 {lang === 'zh' ? '存PDF' : 'Save PDF'}
             </button>
