@@ -110,8 +110,8 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   }
 
   if (!job || importing) return (
-    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',backgroundColor:'var(--inv-bg)'}}>
-      <div style={{color:'#8E8E93',fontSize:'14px'}}>{importing ? (lang === 'zh' ? '⏳ 正在导入报价单细分条目...' : '⏳ Importing quote items...') : 'Loading...'}</div>
+    <div className="invoice-page min-h-screen flex items-center justify-center">
+      <div className="invoice-label text-sm">{importing ? (lang === 'zh' ? '⏳ 正在导入报价单细分条目...' : '⏳ Importing quote items...') : 'Loading...'}</div>
     </div>
   )
 
@@ -146,101 +146,94 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
     )
   }
 
-  const css = `
-    .inv-wrap { --inv-bg: #F2F2F7; --inv-card: #FFFFFF; --inv-div: #E5E5EA; --inv-label: #8E8E93; --inv-text: #1C1C1E; --inv-ph: #C7C7CC; --inv-btn2-bg: #FFFFFF; --inv-btn2-border: #E5E5EA; --inv-btn2-text: #1C1C1E; }
-    @media (prefers-color-scheme: dark) {
-      .inv-wrap { --inv-bg: #1C1C1E; --inv-card: #2C2C2E; --inv-div: #3A3A3C; --inv-label: #8E8E93; --inv-text: #F2F2F7; --inv-ph: #636366; --inv-btn2-bg: #3A3A3C; --inv-btn2-border: #48484A; --inv-btn2-text: #F2F2F7; }
-    }
-    .inv-wrap { background-color: var(--inv-bg); }
-    .inv-card { background-color: var(--inv-card); border-radius: 16px; overflow: hidden; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-    .inv-row { padding: 12px 16px; border-bottom: 1px solid var(--inv-div); }
-    .inv-row:last-child { border-bottom: none; }
-    .inv-row-half { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--inv-div); }
-    .inv-half { padding: 12px 16px; }
-    .inv-half:first-child { border-right: 1px solid var(--inv-div); }
-    .inv-label { font-size: 11px; color: var(--inv-label); margin-bottom: 4px; }
-    .inv-input { width: 100%; background: transparent; border: none; outline: none; font-size: 14px; color: var(--inv-text); }
-    .inv-input::placeholder { color: var(--inv-ph); }
-    .inv-input-bold { font-weight: 600; }
-    .inv-title { font-size: 16px; font-weight: 600; color: var(--inv-text); }
-    .inv-back { font-size: 14px; font-weight: 500; color: #0A84FF; }
-    .inv-btn-primary { width: 100%; background: #0A84FF; color: white; border: none; border-radius: 16px; padding: 14px; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 12px; }
-    .inv-btn-primary:disabled { opacity: 0.5; }
-    .inv-btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .inv-btn-secondary { background: var(--inv-btn2-bg); color: var(--inv-btn2-text); border: 1px solid var(--inv-btn2-border); border-radius: 16px; padding: 12px; font-size: 14px; font-weight: 500; cursor: pointer; }
-    .inv-banner-green { background: rgba(48,209,88,0.12); border: 1px solid rgba(48,209,88,0.4); border-radius: 16px; padding: 12px 16px; margin-bottom: 12px; color: #30D158; font-size: 14px; font-weight: 500; }
-    .inv-banner-yellow { background: rgba(255,159,10,0.12); border: 1px solid rgba(255,159,10,0.4); border-radius: 16px; padding: 12px 16px; margin-bottom: 12px; color: #FF9F0A; font-size: 14px; }
-    .inv-textarea { width: 100%; background: transparent; border: none; outline: none; font-size: 14px; color: var(--inv-text); resize: none; font-family: inherit; }
-  `
-
   return (
-    <div className="inv-wrap" style={{minHeight: '100vh'}}>
-      <style>{css}</style>
+    <div className="invoice-page min-h-screen">
 
       {/* ── 控制面板 print:hidden ── */}
-      <div className="print:hidden" style={{maxWidth: '672px', margin: '0 auto', padding: '24px 16px 32px'}}>
+      <div className="max-w-2xl mx-auto px-4 pt-6 pb-8 print:hidden">
 
-        <div style={{display:'flex', alignItems:'center', gap:'12px', marginBottom:'24px'}}>
-          <Link href={"/jobs/" + id} className="inv-back">← {lang === 'zh' ? '返回' : 'Back'}</Link>
-          <span className="inv-title">{lang === 'zh' ? '发票' : 'Invoice'}</span>
+        <div className="flex items-center gap-3 mb-6">
+          <Link href={"/jobs/" + id} className="text-[#0A84FF] text-sm font-medium">← {lang === 'zh' ? '返回' : 'Back'}</Link>
+          <span className="invoice-value font-semibold text-base">{lang === 'zh' ? '发票' : 'Invoice'}</span>
         </div>
 
-        {importDone && <div className="inv-banner-green">✅ {lang === 'zh' ? '已自动从报价单导入细分条目' : 'Quote items imported automatically'}</div>}
+        {importDone && (
+          <div className="rounded-2xl px-4 py-3 mb-4" style={{backgroundColor:'rgba(48,209,88,0.12)',border:'1px solid rgba(48,209,88,0.4)'}}>
+            <p className="text-sm font-medium" style={{color:'#30D158'}}>✅ {lang === 'zh' ? '已自动从报价单导入细分条目' : 'Quote items imported automatically'}</p>
+          </div>
+        )}
 
-        <div className="inv-card">
-          <div className="inv-row-half">
-            <div className="inv-half">
-              <div className="inv-label">{lang === 'zh' ? '发票编号' : 'Invoice No.'}</div>
-              <input className="inv-input inv-input-bold" value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} />
+        {/* 发票信息卡片 */}
+        <div className="invoice-card rounded-2xl overflow-hidden mb-4" style={{boxShadow:'0 1px 3px rgba(0,0,0,0.08)'}}>
+          <div className="grid grid-cols-2">
+            <div className="px-4 py-3 invoice-divider" style={{borderRight:'1px solid',borderBottom:'1px solid'}}>
+              <p className="invoice-label mb-1">{lang === 'zh' ? '发票编号' : 'Invoice No.'}</p>
+              <input className="w-full bg-transparent outline-none text-sm font-semibold invoice-value" value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} />
             </div>
-            <div className="inv-half">
-              <div className="inv-label">{lang === 'zh' ? '到期日' : 'Due Date'}</div>
-              <input type="date" className="inv-input" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+            <div className="px-4 py-3" style={{borderBottom:'1px solid',borderColor:'inherit'}}>
+              <p className="invoice-label mb-1">{lang === 'zh' ? '到期日' : 'Due Date'}</p>
+              <input type="date" className="w-full bg-transparent outline-none text-sm invoice-value" value={dueDate} onChange={e => setDueDate(e.target.value)} />
             </div>
           </div>
-          <div className="inv-row">
-            <div className="inv-label">{lang === 'zh' ? '账单送达' : 'Bill To'}</div>
-            <input className="inv-input inv-input-bold" placeholder={lang === 'zh' ? '客户名称' : 'Client name'} value={toName} onChange={e => setToName(e.target.value)} />
+          <div className="px-4 py-3" style={{borderBottom:'1px solid var(--tw-border-opacity, #E5E5EA)'}}>
+            <p className="invoice-label mb-1">{lang === 'zh' ? '账单送达' : 'Bill To'}</p>
+            <input className="w-full bg-transparent outline-none text-sm font-medium invoice-value" placeholder={lang === 'zh' ? '客户名称' : 'Client name'} value={toName} onChange={e => setToName(e.target.value)} />
           </div>
-          <div className="inv-row">
-            <div className="inv-label">{lang === 'zh' ? '客户地址' : 'Address'}</div>
-            <input className="inv-input" placeholder="e.g. 123 Smith St, Perth WA" value={toAddress} onChange={e => setToAddress(e.target.value)} />
+          <div className="px-4 py-3">
+            <p className="invoice-label mb-1">{lang === 'zh' ? '客户地址' : 'Address'}</p>
+            <input className="w-full bg-transparent outline-none text-sm invoice-placeholder" placeholder="e.g. 123 Smith St, Perth WA" value={toAddress} onChange={e => setToAddress(e.target.value)} />
           </div>
         </div>
 
-        <div className="inv-card">
-          <div className="inv-row">
-            <div className="inv-label">{lang === 'zh' ? '客户邮箱' : 'Client Email'}</div>
-            <input type="email" className="inv-input" placeholder="client@email.com" value={toEmail} onChange={e => setToEmail(e.target.value)} />
+        {/* 邮箱 + 备注卡片 */}
+        <div className="invoice-card rounded-2xl overflow-hidden mb-4" style={{boxShadow:'0 1px 3px rgba(0,0,0,0.08)'}}>
+          <div className="px-4 py-3" style={{borderBottom:'1px solid'}}>
+            <p className="invoice-label mb-1">{lang === 'zh' ? '客户邮箱' : 'Client Email'}</p>
+            <input type="email" className="w-full bg-transparent outline-none text-sm invoice-value" placeholder="client@email.com" value={toEmail} onChange={e => setToEmail(e.target.value)} />
           </div>
-          <div className="inv-row">
-            <div className="inv-label">{lang === 'zh' ? '备注 / 付款条款' : 'Notes / Payment Terms'}</div>
-            <textarea className="inv-textarea" rows={2} value={note} onChange={e => setNote(e.target.value)} />
+          <div className="px-4 py-3">
+            <p className="invoice-label mb-1">{lang === 'zh' ? '备注 / 付款条款' : 'Notes / Payment Terms'}</p>
+            <textarea className="w-full bg-transparent outline-none text-sm resize-none invoice-value" rows={2} value={note} onChange={e => setNote(e.target.value)} />
           </div>
         </div>
 
         {!profile?.company_name && (
-          <div className="inv-banner-yellow">⚠️ {lang === 'zh' ? '还没有填写公司信息 · ' : 'Company info not set up · '}
-            <Link href="/settings" style={{textDecoration:'underline', fontWeight:500}}>{lang === 'zh' ? '前往设置' : 'Go to Settings'}</Link>
+          <div className="rounded-2xl px-4 py-3 mb-4" style={{backgroundColor:'rgba(255,159,10,0.12)',border:'1px solid rgba(255,159,10,0.4)'}}>
+            <p className="text-sm" style={{color:'#FF9F0A'}}>⚠️ {lang === 'zh' ? '还没有填写公司信息 · ' : 'Company info not set up · '}
+              <Link href="/settings" className="underline font-medium">{lang === 'zh' ? '前往设置' : 'Go to Settings'}</Link>
+            </p>
           </div>
         )}
 
-        {sent && <div className="inv-banner-green">✅ {lang === 'zh' ? '发票已发送！' : 'Invoice sent!'}</div>}
+        {sent && (
+          <div className="rounded-2xl px-4 py-3 mb-4" style={{backgroundColor:'rgba(48,209,88,0.12)',border:'1px solid rgba(48,209,88,0.4)'}}>
+            <p className="text-sm font-medium" style={{color:'#30D158'}}>✅ {lang === 'zh' ? '发票已发送！' : 'Invoice sent!'}</p>
+          </div>
+        )}
 
-        <button className="inv-btn-primary" onClick={handleSendEmail} disabled={sending}>
-          {sending ? (lang === 'zh' ? '发送中...' : 'Sending...') : '📧 ' + (lang === 'zh' ? '发送发票给客户' : 'Send Invoice to Client')}
-        </button>
-        <div className="inv-btn-grid">
-          <button className="inv-btn-secondary" onClick={generateAndCopyLink} disabled={copyingLink}>
-            {linkCopied ? '✅ ' + (lang === 'zh' ? '已复制' : 'Copied') : copyingLink ? '...' : '🔗 ' + (lang === 'zh' ? '复制链接' : 'Copy Link')}
+        {/* 操作按钮 */}
+        <div className="space-y-3">
+          <button onClick={handleSendEmail} disabled={sending}
+            className="w-full py-3.5 rounded-2xl text-sm font-semibold text-white disabled:opacity-50 transition-opacity"
+            style={{backgroundColor:'#0A84FF'}}>
+            {sending ? (lang === 'zh' ? '发送中...' : 'Sending...') : '📧 ' + (lang === 'zh' ? '发送发票给客户' : 'Send Invoice to Client')}
           </button>
-          <button className="inv-btn-secondary" onClick={() => window.print()}>
-            💾 {lang === 'zh' ? '存PDF' : 'Save PDF'}
-          </button>
+          <div className="grid grid-cols-2 gap-3">
+            <button onClick={generateAndCopyLink} disabled={copyingLink}
+              className="invoice-card py-3 rounded-2xl text-sm font-medium invoice-value disabled:opacity-50"
+              style={{border:'1px solid'}}>
+              {linkCopied ? '✅ ' + (lang === 'zh' ? '已复制' : 'Copied') : copyingLink ? '...' : '🔗 ' + (lang === 'zh' ? '复制链接' : 'Copy Link')}
+            </button>
+            <button onClick={() => window.print()}
+              className="invoice-card py-3 rounded-2xl text-sm font-medium invoice-value"
+              style={{border:'1px solid'}}>
+              💾 {lang === 'zh' ? '存PDF' : 'Save PDF'}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* ── 发票正文 ── */}
+      {/* ── 发票正文（打印区域）── */}
       <div className="max-w-4xl mx-auto bg-white p-10 print:p-8 shadow-sm">
         <div className="flex justify-between items-start mb-8">
           <div>
@@ -276,7 +269,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
         </div>
 
         <div className="overflow-x-auto mb-6">
-          <table className="w-full border-collapse" style={{minWidth: '400px'}}>
+          <table className="w-full border-collapse" style={{minWidth:'400px'}}>
             <thead>
               <tr className="border border-gray-400 bg-gray-100">
                 <th className="border border-gray-400 px-3 py-2 text-left text-sm font-bold">{lang === 'zh' ? '描述' : 'DESCRIPTION'}</th>
@@ -292,9 +285,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
                   <>
                     {groups.map(group => (
                       <React.Fragment key={'group-' + group}>
-                        <tr>
-                          <td colSpan={hasArea ? 5 : 4} className="border border-gray-300 px-3 py-1.5 bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider">📁 {group}</td>
-                        </tr>
+                        <tr><td colSpan={hasArea ? 5 : 4} className="border border-gray-300 px-3 py-1.5 bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider">📁 {group}</td></tr>
                         {invoiceEntries.filter(e => e.item_group === group).map(renderRow)}
                       </React.Fragment>
                     ))}
