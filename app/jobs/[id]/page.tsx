@@ -500,9 +500,15 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
 
                 {/* 按单1/单2分组 */}
                 <div className="divide-y divide-gray-100 dark:divide-[#3A3A3C]">
-                  {acceptedQuotes.map((quote) => {
+                  {acceptedQuotes.map((quote, acceptedIndex) => {
                     const quoteNum = quotes.indexOf(quote) + 1
-                    const quoteEntries = invoiceEntries.filter(e => e.quote_id === quote.id)
+                    // ✅ 兜底：quote_id 匹配优先，没有 quote_id 的条目归入第一张已成交报价单
+                    const hasLinkedEntries = invoiceEntries.some(e => e.quote_id === quote.id)
+                    const quoteEntries = hasLinkedEntries
+                      ? invoiceEntries.filter(e => e.quote_id === quote.id)
+                      : acceptedIndex === 0
+                        ? invoiceEntries.filter(e => !e.quote_id)
+                        : []
                     const quoteTotal = quoteEntries.reduce((sum, e) => sum + Number(e.amount), 0)
                     const unpaidAmt = quoteEntries.filter(e => e.payment_status !== 'paid').reduce((sum, e) => sum + Number(e.amount), 0)
 

@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { useState, useEffect } from 'react'
 import { use } from 'react'
 import { createClient } from '../../../../utils/supabase/client'
@@ -248,12 +249,12 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
                 hasGroups ? (
                   <>
                     {groups.map(group => (
-                      <>
-                        <tr key={'group-' + group}>
+                      <React.Fragment key={'group-' + group}>
+                        <tr>
                           <td colSpan={hasArea ? 5 : 4} className="border border-gray-300 px-3 py-1.5 bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider">📁 {group}</td>
                         </tr>
                         {invoiceEntries.filter(e => e.item_group === group).map(renderRow)}
-                      </>
+                      </React.Fragment>
                     ))}
                     {noGroup.map(renderRow)}
                   </>
