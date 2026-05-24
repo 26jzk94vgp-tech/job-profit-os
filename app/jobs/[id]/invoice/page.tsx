@@ -173,7 +173,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
       <React.Fragment key={quote.id}>
         {/* 单1/单2 标题行 */}
         <tr>
-          <td colSpan={colSpan} className="border border-gray-400 px-3 py-2 bg-gray-200 text-xs font-bold text-gray-700 uppercase tracking-wider">
+          <td colSpan={colSpan} className="border border-gray-400 px-3 py-2 text-xs font-bold uppercase tracking-wider" style={{backgroundColor:'#D1D5DB', color:'#374151'}}>
             {lang === 'zh' ? `单${quoteNum}` : `Q${quoteNum}`} — {quote.quote_number}
             <span className="float-right font-semibold">${quoteTotal.toFixed(2)}</span>
           </td>
