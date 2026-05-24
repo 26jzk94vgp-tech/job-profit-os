@@ -32,8 +32,6 @@ export default function NewQuote() {
       const allJobs = await supabase.from('jobs').select('*').eq('owner_id', user?.id)
       setJobs(allJobs.data || [])
       supabase.from('clients').select('*').eq('owner_id', user?.id).order('name').then(({ data }) => setClients(data || []))
-
-      // ✅ 读取 ?job_id 参数，自动填入工单和客户信息
       const params = new URLSearchParams(window.location.search)
       const presetJobId = params.get('job_id')
       if (presetJobId) {
@@ -50,7 +48,15 @@ export default function NewQuote() {
     load()
   }, [])
 
-  function addItem(group?: string) { setItems([...items, { description: '', area: '', item_type: '', item_group: group || '', quantity: '1', unit: '', unit_price: '', cost_price: '' }]) }
+  // ✅ 如果#1是空的，直接把分组填到#1，不新增#2
+  function addItem(group?: string) {
+    if (items.length === 1 && !items[0].description && !items[0].unit_price) {
+      setItems([{ ...items[0], item_group: group || '' }])
+    } else {
+      setItems([...items, { description: '', area: '', item_type: '', item_group: group || '', quantity: '1', unit: '', unit_price: '', cost_price: '' }])
+    }
+  }
+
   function updateItem(i: number, f: string, v: string) { const u = [...items]; u[i] = { ...u[i], [f]: v }; setItems(u) }
   function removeItem(i: number) { setItems(items.filter((_, idx) => idx !== i)) }
 
@@ -116,14 +122,13 @@ export default function NewQuote() {
     if (!validate()) return
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
-const { count } = await supabase
-  .from('quotes')
-  .select('*', { count: 'exact', head: true })
-  .eq('owner_id', user?.id)
-const quoteNumber = `Q-${String((count || 0) + 1).padStart(3, '0')}`  
-  const { data: quote, error } = await supabase.from('quotes').insert({
-quote_number: quoteNumber,
-
+    const { count } = await supabase
+      .from('quotes')
+      .select('*', { count: 'exact', head: true })
+      .eq('owner_id', user?.id)
+    const quoteNumber = `Q-${String((count || 0) + 1).padStart(3, '0')}`
+    const { data: quote, error } = await supabase.from('quotes').insert({
+      quote_number: quoteNumber,
       client_name: clientName || null,
       client_id: clientId || null,
       job_id: jobId || null,
@@ -140,8 +145,6 @@ quote_number: quoteNumber,
       unit_price: Number(i.unit_price), cost_price: Number(i.cost_price) || 0
     }))
     if (quoteItems.length > 0) await supabase.from('quote_items').insert(quoteItems)
-
-    // 如果从工单创建，返回工单发票tab；否则返回报价单列表
     if (fromJob && jobId) {
       window.location.href = '/jobs/' + jobId + '?tab=invoice'
     } else {
@@ -154,7 +157,6 @@ quote_number: quoteNumber,
   const inputErrCls = "w-full border border-[#FF453A] rounded-xl p-2.5 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none text-sm focus:ring-2 focus:ring-[#FF453A]/40 transition"
   const selectCls = "border border-gray-200 dark:border-gray-700 rounded-xl p-2.5 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none text-sm focus:ring-2 focus:ring-blue-500/40 transition"
   const errCls = "text-[#FF453A] text-xs mt-1"
-
   const backUrl = fromJob && jobId ? '/jobs/' + jobId : '/quotes'
 
   return (
@@ -167,9 +169,7 @@ quote_number: quoteNumber,
             <button onClick={() => window.location.href = backUrl} className="text-gray-400 dark:text-[#8E8E93] text-sm">← {lang === 'zh' ? '返回' : 'Back'}</button>
             <span className="text-gray-300 dark:text-[#3A3A3C]">/</span>
             <h1 className="font-semibold text-gray-900 dark:text-white">
-              {fromJob
-                ? (lang === 'zh' ? '新建报价单（追加）' : 'New Quote (Add-on)')
-                : (lang === 'zh' ? '新建报价单' : 'New Quote')}
+              {fromJob ? (lang === 'zh' ? '新建报价单（追加）' : 'New Quote (Add-on)') : (lang === 'zh' ? '新建报价单' : 'New Quote')}
             </h1>
           </div>
           <label htmlFor="ai-scan-input" className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium cursor-pointer transition-colors ${importLoading ? 'bg-gray-100 dark:bg-[#3A3A3C] text-[#8E8E93]' : 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 hover:bg-purple-100'}`}>
@@ -179,16 +179,10 @@ quote_number: quoteNumber,
       </nav>
 
       <main className="max-w-3xl mx-auto px-4 py-8">
-
-        {/* 从工单创建时显示提示 */}
         {fromJob && jobName && (
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-2xl p-4 mb-6">
-            <p className="text-blue-800 dark:text-blue-300 text-sm font-medium">
-              📋 {lang === 'zh' ? `为工单「${jobName}」新建追加报价单` : `Adding quote to job: ${jobName}`}
-            </p>
-            <p className="text-blue-600 dark:text-blue-400 text-xs mt-1">
-              {lang === 'zh' ? '成交后条目将自动加入该工单发票' : 'Items will be added to the job invoice when accepted'}
-            </p>
+            <p className="text-blue-800 dark:text-blue-300 text-sm font-medium">📋 {lang === 'zh' ? `为工单「${jobName}」新建追加报价单` : `Adding quote to job: ${jobName}`}</p>
+            <p className="text-blue-600 dark:text-blue-400 text-xs mt-1">{lang === 'zh' ? '成交后条目将自动加入该工单发票' : 'Items will be added to the job invoice when accepted'}</p>
           </div>
         )}
 
@@ -218,17 +212,9 @@ quote_number: quoteNumber,
 
         <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-6">
 
-          {/* 客户名称 — 必填 */}
           <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {lang === 'zh' ? '客户名称' : 'Client Name'} <span className="text-[#FF453A]">*</span>
-            </label>
-            <input
-              className={(errors.clientName ? inputErrCls : inputCls) + ' mt-1.5'}
-              placeholder={lang === 'zh' ? '例如：张先生' : 'e.g. John Smith'}
-              value={clientName}
-              onChange={e => { setClientName(e.target.value); if (errors.clientName) setErrors(p => ({ ...p, clientName: '' })) }}
-            />
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '客户名称' : 'Client Name'} <span className="text-[#FF453A]">*</span></label>
+            <input className={(errors.clientName ? inputErrCls : inputCls) + ' mt-1.5'} placeholder={lang === 'zh' ? '例如：张先生' : 'e.g. John Smith'} value={clientName} onChange={e => { setClientName(e.target.value); if (errors.clientName) setErrors(p => ({ ...p, clientName: '' })) }} />
             {errors.clientName && <p className={errCls}>{errors.clientName}</p>}
             {!fromJob && clients.length > 0 && (
               <select className={selectCls + ' w-full mt-1.5'} value={clientId} onChange={e => {
@@ -242,7 +228,6 @@ quote_number: quoteNumber,
             )}
           </div>
 
-          {/* 工单 — 从工单创建时只读显示 */}
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '关联工单' : 'Job'}</label>
             {fromJob ? (
@@ -251,11 +236,7 @@ quote_number: quoteNumber,
               <>
                 <input className={inputCls + ' mt-1.5'} placeholder={lang === 'zh' ? '例如：厨房翻新' : 'e.g. Kitchen Renovation'} value={jobName} onChange={e => { setJobName(e.target.value); setJobId('') }} />
                 {jobs.length > 0 && (
-                  <select className={selectCls + ' w-full mt-1.5'} value={jobId} onChange={e => {
-                    setJobId(e.target.value)
-                    const found = jobs.find(j => j.id === e.target.value)
-                    if (found) setJobName(found.name)
-                  }}>
+                  <select className={selectCls + ' w-full mt-1.5'} value={jobId} onChange={e => { setJobId(e.target.value); const found = jobs.find(j => j.id === e.target.value); if (found) setJobName(found.name) }}>
                     <option value="">{lang === 'zh' ? '或从已有工单选择...' : 'Or select from existing jobs...'}</option>
                     {jobs.map(j => <option key={j.id} value={j.id}>{j.name}</option>)}
                   </select>
@@ -264,7 +245,6 @@ quote_number: quoteNumber,
             )}
           </div>
 
-          {/* 工地地址 */}
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '工地地址' : 'Site Address'}</label>
             <input className={inputCls + ' mt-1.5'} placeholder={lang === 'zh' ? '例如：123 Smith St, Perth WA' : 'e.g. 123 Smith St, Perth WA'} value={siteAddress} onChange={e => setSiteAddress(e.target.value)} />
@@ -276,12 +256,9 @@ quote_number: quoteNumber,
             )}
           </div>
 
-          {/* 报价条目 */}
           <div>
             <div className="mb-4">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2.5 block">
-                {lang === 'zh' ? '报价条目' : 'Quote Items'} <span className="text-[#FF453A]">*</span>
-              </label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2.5 block">{lang === 'zh' ? '报价条目' : 'Quote Items'} <span className="text-[#FF453A]">*</span></label>
               <div className="flex flex-wrap gap-2">
                 {defaultGroups.map(g => <button key={g} onClick={() => addItem(g)} className="text-xs bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93] px-2.5 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-[#48484A] transition-colors">+ {g}</button>)}
                 <button onClick={() => addItem()} className="text-xs bg-blue-100 dark:bg-[#0A84FF]/20 text-blue-600 dark:text-[#0A84FF] px-2.5 py-1.5 rounded-lg">+ {lang === 'zh' ? '条目' : 'Item'}</button>
@@ -309,12 +286,7 @@ quote_number: quoteNumber,
                             {items.length > 1 && <button onClick={() => removeItem(index)} className="text-[#FF453A] text-xs">{lang === 'zh' ? '删除' : 'Remove'}</button>}
                           </div>
                           <div>
-                            <input
-                              className={isFirst && errors.firstDesc ? inputErrCls : inputCls}
-                              placeholder={lang === 'zh' ? '描述' : 'Description'}
-                              value={item.description}
-                              onChange={e => { updateItem(index, 'description', e.target.value); if (isFirst && errors.firstDesc) setErrors(p => ({ ...p, firstDesc: '' })) }}
-                            />
+                            <input className={isFirst && errors.firstDesc ? inputErrCls : inputCls} placeholder={lang === 'zh' ? '描述' : 'Description'} value={item.description} onChange={e => { updateItem(index, 'description', e.target.value); if (isFirst && errors.firstDesc) setErrors(p => ({ ...p, firstDesc: '' })) }} />
                             {isFirst && errors.firstDesc && <p className={errCls}>{errors.firstDesc}</p>}
                           </div>
                           <div className="flex gap-2">
@@ -333,12 +305,7 @@ quote_number: quoteNumber,
                           </div>
                           <div className="flex gap-2 items-center">
                             <div className="flex-1">
-                              <input
-                                className={isFirst && errors.firstPrice ? inputErrCls : inputCls}
-                                placeholder={lang === 'zh' ? '售价 $' : 'Rate $'}
-                                value={item.unit_price}
-                                onChange={e => { updateItem(index, 'unit_price', e.target.value); if (isFirst && errors.firstPrice) setErrors(p => ({ ...p, firstPrice: '' })) }}
-                              />
+                              <input className={isFirst && errors.firstPrice ? inputErrCls : inputCls} placeholder={lang === 'zh' ? '售价 $' : 'Rate $'} value={item.unit_price} onChange={e => { updateItem(index, 'unit_price', e.target.value); if (isFirst && errors.firstPrice) setErrors(p => ({ ...p, firstPrice: '' })) }} />
                               {isFirst && errors.firstPrice && <p className={errCls}>{errors.firstPrice}</p>}
                             </div>
                             <input className="flex-1 border border-yellow-300 dark:border-yellow-700/60 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-2.5 text-gray-900 dark:text-gray-100 outline-none text-sm" placeholder={lang === 'zh' ? '成本 $' : 'Cost $'} value={item.cost_price} onChange={e => updateItem(index, 'cost_price', e.target.value)} />
@@ -353,7 +320,6 @@ quote_number: quoteNumber,
             })}
           </div>
 
-          {/* 汇总 */}
           <div className="bg-gray-50 dark:bg-[#1C1C1E] rounded-2xl p-5 space-y-2">
             <div className="flex justify-between">
               <span className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '报价总额' : 'Quote Total'}</span>
