@@ -143,18 +143,19 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
     const qty = Number(e.quantity || 1)
     const unitPrice = e.unit_price ? Number(e.unit_price) : Number(e.amount) / qty
     const amount = Number(e.amount)
+    const cellStyle = {color:'#111827', backgroundColor:'#FFFFFF'}
     return (
-      <tr key={e.id} className="border border-gray-300">
-        <td className="border border-gray-300 px-3 py-2 text-sm">
+      <tr key={e.id} style={{borderColor:'#D1D5DB'}}>
+        <td className="px-3 py-2 text-sm" style={{...cellStyle, border:'1px solid #D1D5DB'}}>
           <div className="flex items-center justify-between gap-2">
             <span>{e.description || e.type}</span>
-            <a href={'/jobs/' + id + '/entry/' + e.id + '/edit'} className="print:hidden text-blue-400 hover:text-blue-600 text-xs shrink-0">✏️</a>
+            <a href={'/jobs/' + id + '/entry/' + e.id + '/edit'} className="print:hidden text-xs shrink-0" style={{color:'#60A5FA'}}>✏️</a>
           </div>
         </td>
-        {hasArea && <td className="border border-gray-300 px-3 py-2 text-sm text-center text-gray-500">{e.area || ''}</td>}
-        <td className="border border-gray-300 px-3 py-2 text-sm text-center">{qty}</td>
-        <td className="border border-gray-300 px-3 py-2 text-sm text-right">${unitPrice.toFixed(2)}</td>
-        <td className="border border-gray-300 px-3 py-2 text-sm text-right">${amount.toFixed(2)}</td>
+        {hasArea && <td className="px-3 py-2 text-sm text-center" style={{...cellStyle, border:'1px solid #D1D5DB', color:'#6B7280'}}>{e.area || ''}</td>}
+        <td className="px-3 py-2 text-sm text-center" style={{...cellStyle, border:'1px solid #D1D5DB'}}>{qty}</td>
+        <td className="px-3 py-2 text-sm text-right" style={{...cellStyle, border:'1px solid #D1D5DB'}}>${unitPrice.toFixed(2)}</td>
+        <td className="px-3 py-2 text-sm text-right" style={{...cellStyle, border:'1px solid #D1D5DB'}}>${amount.toFixed(2)}</td>
       </tr>
     )
   }
@@ -363,19 +364,19 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
         </div>
 
         <div className="flex justify-end mb-6">
-          <table className="border-collapse">
+          <table style={{borderCollapse:'collapse'}}>
             <tbody>
-              <tr className="border border-gray-300">
-                <td className="border border-gray-300 px-6 py-2 text-sm font-medium">{lang === 'zh' ? '小计' : 'Sub Total'}:</td>
-                <td className="border border-gray-300 px-6 py-2 text-sm text-right w-32">${subTotal.toFixed(2)}</td>
+              <tr>
+                <td style={{border:'1px solid #D1D5DB', padding:'8px 24px', fontSize:'14px', fontWeight:500, color:'#111827', backgroundColor:'#FFFFFF'}}>{lang === 'zh' ? '小计' : 'Sub Total'}:</td>
+                <td style={{border:'1px solid #D1D5DB', padding:'8px 24px', fontSize:'14px', textAlign:'right', width:'128px', color:'#111827', backgroundColor:'#FFFFFF'}}>${subTotal.toFixed(2)}</td>
               </tr>
-              <tr className="border border-gray-300">
-                <td className="border border-gray-300 px-6 py-2 text-sm font-medium">GST (10%):</td>
-                <td className="border border-gray-300 px-6 py-2 text-sm text-right">${gst.toFixed(2)}</td>
+              <tr>
+                <td style={{border:'1px solid #D1D5DB', padding:'8px 24px', fontSize:'14px', fontWeight:500, color:'#111827', backgroundColor:'#FFFFFF'}}>GST (10%):</td>
+                <td style={{border:'1px solid #D1D5DB', padding:'8px 24px', fontSize:'14px', textAlign:'right', color:'#111827', backgroundColor:'#FFFFFF'}}>${gst.toFixed(2)}</td>
               </tr>
-              <tr className="border border-gray-300" style={{backgroundColor:'#F9FAFB'}}>
-                <td className="border border-gray-300 px-6 py-2 text-sm font-bold" style={{color:'#111827'}}>{lang === 'zh' ? '含GST总计' : 'Total Inc. GST'}:</td>
-                <td className="border border-gray-300 px-6 py-2 text-sm font-bold text-right" style={{color:'#111827'}}>${total.toFixed(2)}</td>
+              <tr>
+                <td style={{border:'1px solid #D1D5DB', padding:'8px 24px', fontSize:'14px', fontWeight:700, color:'#111827', backgroundColor:'#F3F4F6'}}>{lang === 'zh' ? '含GST总计' : 'Total Inc. GST'}:</td>
+                <td style={{border:'1px solid #D1D5DB', padding:'8px 24px', fontSize:'14px', fontWeight:700, textAlign:'right', color:'#111827', backgroundColor:'#F3F4F6'}}>${total.toFixed(2)}</td>
               </tr>
             </tbody>
           </table>
