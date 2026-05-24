@@ -136,7 +136,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   const colSpan = hasArea ? 5 : 4
 
   // 按报价单分组：有 quote_id 的按报价单分，没有的归入第一组
-  const hasMultipleQuotes = quotes.length > 1
+  const hasMultipleQuotes = quotes.length > 0
   const getQuoteIndex = (quoteId: string) => quotes.findIndex(q => q.id === quoteId) + 1
 
   const renderRow = (e: any) => {
@@ -183,7 +183,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
             {groups.map(group => (
               <React.Fragment key={group}>
                 <tr>
-                  <td colSpan={colSpan} className="border border-gray-300 px-3 py-1.5 bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider">📁 {group}</td>
+                  <td colSpan={colSpan} className="border border-gray-300 px-3 py-1.5 bg-gray-700 text-xs font-bold text-white uppercase tracking-wider">📁 {group}</td>
                 </tr>
                 {quoteEntries.filter(e => e.item_group === group).map(renderRow)}
               </React.Fragment>
@@ -344,7 +344,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
                       <>
                         {groups.map(group => (
                           <React.Fragment key={group}>
-                            <tr><td colSpan={colSpan} className="border border-gray-300 px-3 py-1.5 bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider">📁 {group}</td></tr>
+                            <tr><td colSpan={colSpan} className="border border-gray-300 px-3 py-1.5 bg-gray-700 text-xs font-bold text-white uppercase tracking-wider">📁 {group}</td></tr>
                             {invoiceEntries.filter(e => e.item_group === group).map(renderRow)}
                           </React.Fragment>
                         ))}
