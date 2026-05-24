@@ -116,7 +116,14 @@ export default function NewQuote() {
     if (!validate()) return
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
-    const { data: quote, error } = await supabase.from('quotes').insert({
+const { count } = await supabase
+  .from('quotes')
+  .select('*', { count: 'exact', head: true })
+  .eq('owner_id', user?.id)
+const quoteNumber = `Q-${String((count || 0) + 1).padStart(3, '0')}`  
+  const { data: quote, error } = await supabase.from('quotes').insert({
+quote_number: quoteNumber,
+
       client_name: clientName || null,
       client_id: clientId || null,
       job_id: jobId || null,
