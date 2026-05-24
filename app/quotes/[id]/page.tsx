@@ -183,9 +183,6 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
           <button onClick={() => window.print()} className="px-4 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
             💾 {lang === 'zh' ? '存PDF' : 'Save PDF'}
           </button>
-          <button onClick={handleShare} className="px-4 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-            📤 {lang === 'zh' ? '分享' : 'Share'}
-          </button>
           <button onClick={() => setShowEmailPanel(!showEmailPanel)} className="px-4 py-1.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 transition-colors">
             📧 {lang === 'zh' ? '发送报价' : 'Send Quote'}
           </button>

@@ -194,9 +194,6 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
             <button onClick={() => window.print()} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium">
               💾 {lang === 'zh' ? '存PDF' : 'Save PDF'}
             </button>
-            <button onClick={handleShare} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium">
-              📤 {lang === 'zh' ? '分享' : 'Share'}
-            </button>
           </div>
         </div>
       </div>
