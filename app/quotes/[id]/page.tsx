@@ -53,7 +53,7 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
     setSending(false)
   }
 
-  async function handleShareOrPrint() {
+  async function handleShare() {
     if (typeof navigator !== 'undefined' && navigator.share) {
       try { await navigator.share({ title: (quote.quote_number || 'Quote') + ' - ' + (quote.client_name || ''), url: window.location.href }) } catch (e) {}
     } else { window.print() }
@@ -62,71 +62,42 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
   async function handleWon() {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
-
     try {
-      // ✅ 每次从数据库重新读取最新状态，防止重复执行
       const { data: freshQuote } = await supabase.from('quotes').select('*').eq('id', id).single()
       if (!freshQuote) throw new Error('Quote not found')
-
-      // ✅ 如果已经成交，直接跳转工单，不重复创建
       if (freshQuote.status === 'accepted' && freshQuote.job_id) {
         window.location.href = '/jobs/' + freshQuote.job_id
         return
       }
-
       let jobId = freshQuote.job_id
-
       if (!jobId) {
-        // 1. 创建或找到 Client
         let clientId = freshQuote.client_id
         if (!clientId && freshQuote.client_name) {
-          const { data: existingClient } = await supabase
-            .from('clients').select('id').eq('owner_id', user?.id)
-            .ilike('name', freshQuote.client_name.trim()).single()
-          if (existingClient) {
-            clientId = existingClient.id
-          } else {
-            const { data: newClient } = await supabase
-              .from('clients')
-              .insert({ name: freshQuote.client_name.trim(), owner_id: user?.id, address: freshQuote.site_address || null })
-              .select('id').single()
+          const { data: existingClient } = await supabase.from('clients').select('id').eq('owner_id', user?.id).ilike('name', freshQuote.client_name.trim()).single()
+          if (existingClient) { clientId = existingClient.id } else {
+            const { data: newClient } = await supabase.from('clients').insert({ name: freshQuote.client_name.trim(), owner_id: user?.id, address: freshQuote.site_address || null }).select('id').single()
             clientId = newClient?.id
           }
         }
-
-        // 2. 创建 Job
         const jobName = freshQuote.job_name || freshQuote.client_name || (lang === 'zh' ? '新工单' : 'New Job')
-        const { data: newJob, error: jobError } = await supabase
-          .from('jobs')
-          .insert({ name: jobName, client_id: clientId || null, client_name: freshQuote.client_name || null, site_address: freshQuote.site_address || null, owner_id: user?.id, status: 'active' })
-          .select('id').single()
+        const { data: newJob, error: jobError } = await supabase.from('jobs').insert({ name: jobName, client_id: clientId || null, client_name: freshQuote.client_name || null, site_address: freshQuote.site_address || null, owner_id: user?.id, status: 'active' }).select('id').single()
         if (jobError) throw new Error(jobError.message)
         jobId = newJob.id
-
-        // 3. ✅ 立即保存 job_id 到报价单（关键！）
         const { error: updateError } = await supabase.from('quotes').update({ job_id: jobId, client_id: clientId || null, status: 'accepted', deposit_status: 'pending' }).eq('id', id)
         if (updateError) throw new Error(updateError.message)
       }
-
-      // 4. 检查是否已有发票条目，避免重复插入
       const { data: existingInvoices } = await supabase.from('job_entries').select('id').eq('job_id', jobId).eq('type', 'invoice')
       if (!existingInvoices || existingInvoices.length === 0) {
-        // 插入 invoice 条目
         const invoiceItems = items.map(item => ({
           job_id: jobId, owner_id: user?.id, type: 'invoice',
           description: item.description + (item.area ? ' - ' + item.area : ''),
-          item_group: item.item_group || null,
-          area: item.area || null,
-          quantity: Number(item.quantity),
-          unit: item.item_unit || item.unit || null,
-          unit_price: Number(item.unit_price),
-          amount: Number(item.quantity) * Number(item.unit_price),
+          item_group: item.item_group || null, area: item.area || null,
+          quantity: Number(item.quantity), unit: item.item_unit || item.unit || null,
+          unit_price: Number(item.unit_price), amount: Number(item.quantity) * Number(item.unit_price),
           gst_status: 'exclusive', tax_category: 'other_income', payment_status: 'unpaid'
         }))
         const { error: invoiceError } = await supabase.from('job_entries').insert(invoiceItems)
         if (invoiceError) throw new Error(invoiceError.message)
-
-        // 插入材料估算条目
         const materialItems = items.filter(i => Number(i.cost_price) > 0).map(item => ({
           job_id: jobId, owner_id: user?.id, type: 'material',
           description: item.description + (item.area ? ' - ' + item.area : ''),
@@ -136,25 +107,17 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
         }))
         if (materialItems.length > 0) await supabase.from('job_entries').insert(materialItems)
       }
-
-      // 5. 更新状态（如果上面没更新过）
-      if (!freshQuote.job_id) {
-        // 已在步骤3更新过了
-      } else {
+      if (freshQuote.job_id) {
         await supabase.from('quotes').update({ status: 'accepted', deposit_status: 'pending' }).eq('id', id)
       }
-
       const subTotal = items.reduce((sum, item) => sum + Number(item.quantity) * Number(item.unit_price), 0)
       const deposit = subTotal * 0.2
       const msg = lang === 'zh' ? `已自动创建工单并导入 ${items.length} 个条目` : `Job created! ${items.length} item(s) added`
-
       setSuccessBanner({ jobId, deposit, msg })
       setQuote((q: any) => ({ ...q, status: 'accepted', job_id: jobId }))
-
     } catch (err: any) {
       alert('Error: ' + err.message)
     }
-
     setLoading(false)
   }
 
@@ -179,9 +142,7 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <div className="max-w-4xl mx-auto px-4 pt-5 pb-4 print:hidden">
         <div className="flex items-center gap-2 mb-4">
-          <a href="/quotes" className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-            ← {lang === 'zh' ? '返回' : 'Back'}
-          </a>
+          <a href="/quotes" className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">← {lang === 'zh' ? '返回' : 'Back'}</a>
           <span className="text-gray-300 dark:text-gray-600">/</span>
           <h1 className="text-sm font-semibold text-gray-800 dark:text-gray-100">{lang === 'zh' ? '报价单详情' : 'Quote Detail'}</h1>
         </div>
@@ -197,9 +158,7 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
                   <p className="font-bold text-[#FF9F0A] text-base">${successBanner.deposit.toFixed(2)}</p>
                 </div>
               </div>
-              <a href={'/jobs/' + successBanner.jobId} className="shrink-0 bg-green-600 hover:bg-green-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors">
-                {lang === 'zh' ? '查看工单 →' : 'View Job →'}
-              </a>
+              <a href={'/jobs/' + successBanner.jobId} className="shrink-0 bg-green-600 hover:bg-green-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors">{lang === 'zh' ? '查看工单 →' : 'View Job →'}</a>
             </div>
           </div>
         )}
@@ -220,17 +179,18 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
             ✏️ {lang === 'zh' ? '编辑' : 'Edit'}
           </a>
           <div className="flex-1" />
-          <button onClick={handleShareOrPrint} className="px-4 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-            📤 {lang === 'zh' ? '分享/PDF' : 'Share / PDF'}
+          {/* ✅ 存PDF 按钮 */}
+          <button onClick={() => window.print()} className="px-4 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+            💾 {lang === 'zh' ? '存PDF' : 'Save PDF'}
+          </button>
+          <button onClick={handleShare} className="px-4 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+            📤 {lang === 'zh' ? '分享' : 'Share'}
           </button>
           <button onClick={() => setShowEmailPanel(!showEmailPanel)} className="px-4 py-1.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 transition-colors">
             📧 {lang === 'zh' ? '发送报价' : 'Send Quote'}
           </button>
-
-          {/* ✅ 未成交显示成交按钮，已成交显示查看工单 */}
           {quote.status !== 'accepted' ? (
-            <button onClick={handleWon} disabled={loading}
-              className="px-4 py-1.5 rounded-full text-xs font-semibold bg-[#30D158] hover:bg-green-400 text-white disabled:opacity-50 transition-colors">
+            <button onClick={handleWon} disabled={loading} className="px-4 py-1.5 rounded-full text-xs font-semibold bg-[#30D158] hover:bg-green-400 text-white disabled:opacity-50 transition-colors">
               {loading ? (lang === 'zh' ? '处理中…' : 'Processing…') : (lang === 'zh' ? '🎉 成交！' : '🎉 Won!')}
             </button>
           ) : (

@@ -38,59 +38,29 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
           if (c?.email) setToEmail(c.email)
         })
       }
-
       const { data: entryData } = await supabase.from('job_entries').select('*').eq('job_id', id)
       const allEntries = entryData || []
       const invoiceEntries = allEntries.filter((e: any) => e.type === 'invoice')
-
-      // ✅ 自动检测：只有1条发票条目且描述像汇总（含「报价单」或「Quote」）→ 自动导入细分条目
-      const isSummaryOnly = invoiceEntries.length === 1 &&
-        /报价单|quote/i.test(invoiceEntries[0]?.description || '')
-
+      const isSummaryOnly = invoiceEntries.length === 1 && /报价单|quote/i.test(invoiceEntries[0]?.description || '')
       if (isSummaryOnly) {
         setImporting(true)
         try {
-          // 查找关联报价单
-          const { data: quote } = await supabase
-            .from('quotes')
-            .select('id, quote_number')
-            .eq('job_id', id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .single()
-
+          const { data: quote } = await supabase.from('quotes').select('id, quote_number').eq('job_id', id).order('created_at', { ascending: false }).limit(1).single()
           if (quote) {
-            const { data: quoteItems } = await supabase
-              .from('quote_items')
-              .select('*')
-              .eq('quote_id', quote.id)
-
+            const { data: quoteItems } = await supabase.from('quote_items').select('*').eq('quote_id', quote.id)
             if (quoteItems && quoteItems.length > 0) {
               const { data: { user } } = await supabase.auth.getUser()
-
-              // 删除原来的汇总条目
               await supabase.from('job_entries').delete().eq('id', invoiceEntries[0].id)
-
-              // 插入细分条目
               const newItems = quoteItems.map((item: any) => ({
-                job_id: id,
-                owner_id: user?.id,
-                type: 'invoice',
+                job_id: id, owner_id: user?.id, type: 'invoice',
                 description: item.description + (item.area ? ' - ' + item.area : ''),
-                item_group: item.item_group || null,
-                area: item.area || null,
-                quantity: Number(item.quantity) || 1,
-                unit: item.unit || null,
+                item_group: item.item_group || null, area: item.area || null,
+                quantity: Number(item.quantity) || 1, unit: item.unit || null,
                 unit_price: Number(item.unit_price),
                 amount: Number(item.quantity) * Number(item.unit_price),
-                gst_status: 'exclusive',
-                tax_category: 'other_income',
-                payment_status: 'unpaid'
+                gst_status: 'exclusive', tax_category: 'other_income', payment_status: 'unpaid'
               }))
-
               await supabase.from('job_entries').insert(newItems)
-
-              // 重新拉取条目
               const { data: refreshed } = await supabase.from('job_entries').select('*').eq('job_id', id)
               setEntries(refreshed || [])
               setImportDone(true)
@@ -101,13 +71,8 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
       } else {
         setEntries(allEntries)
       }
-
       supabase.auth.getUser().then(({ data: { user } }) => {
-        if (user) {
-          supabase.from('profiles').select('*').eq('id', user.id).single().then(({ data }: { data: any }) => {
-            if (data) setProfile(data)
-          })
-        }
+        if (user) supabase.from('profiles').select('*').eq('id', user.id).single().then(({ data }: { data: any }) => { if (data) setProfile(data) })
       })
     }
     load()
@@ -131,9 +96,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
     try {
       let token = null
       const { data: jobData } = await supabase.from('jobs').select('public_token').eq('id', id).single()
-      if (jobData?.public_token) {
-        token = jobData.public_token
-      } else {
+      if (jobData?.public_token) { token = jobData.public_token } else {
         token = Math.random().toString(36).substring(2) + Date.now().toString(36)
         await supabase.from('jobs').update({ public_token: token }).eq('id', id)
       }
@@ -145,36 +108,24 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
     setCopyingLink(false)
   }
 
-  async function handleShareOrPrint() {
+  async function handleShare() {
     if (typeof navigator !== 'undefined' && navigator.share) {
-      try {
-        await navigator.share({ title: (job?.name || 'Invoice') + ' - ' + invoiceNumber, url: window.location.href })
-      } catch (e) {}
-    } else {
-      window.print()
-    }
+      try { await navigator.share({ title: (job?.name || 'Invoice') + ' - ' + invoiceNumber, url: window.location.href }) } catch (e) {}
+    } else { window.print() }
   }
 
   if (!job || importing) return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="text-center">
-        <div className="text-gray-400 text-sm mb-2">
-          {importing ? (lang === 'zh' ? '⏳ 正在导入报价单细分条目...' : '⏳ Importing quote items...') : 'Loading...'}
-        </div>
-      </div>
+      <div className="text-gray-400 text-sm">{importing ? (lang === 'zh' ? '⏳ 正在导入报价单细分条目...' : '⏳ Importing quote items...') : 'Loading...'}</div>
     </div>
   )
 
   const invoiceEntries = entries.filter(e => e.type === 'invoice')
-
-  // GST 正确计算
   const exclusiveTotal = invoiceEntries.filter(e => e.gst_status === 'exclusive' || !e.gst_status).reduce((sum, e) => sum + Number(e.amount), 0)
   const inclusiveTotal = invoiceEntries.filter(e => e.gst_status === 'inclusive').reduce((sum, e) => sum + Number(e.amount), 0)
   const gst = exclusiveTotal * 0.1 + inclusiveTotal / 11
   const subTotal = exclusiveTotal + inclusiveTotal
   const total = exclusiveTotal + exclusiveTotal * 0.1 + inclusiveTotal
-
-  // 分组
   const groups = [...new Set(invoiceEntries.map(e => e.item_group || ''))].filter(Boolean)
   const noGroup = invoiceEntries.filter(e => !e.item_group)
   const hasGroups = groups.length > 0
@@ -202,7 +153,6 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Controls - hidden on print */}
       <div className="max-w-4xl mx-auto p-6 print:hidden">
         <div className="flex items-center gap-3 mb-6">
           <Link href={"/jobs/" + id} className="text-gray-500 hover:text-gray-700 text-sm">← {lang === 'zh' ? '返回' : 'Back'}</Link>
@@ -240,17 +190,18 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
             <button onClick={generateAndCopyLink} disabled={copyingLink} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium">
               {linkCopied ? '✅ ' + (lang === 'zh' ? '已复制!' : 'Copied!') : copyingLink ? '...' : '🔗 ' + (lang === 'zh' ? '复制链接' : 'Copy Link')}
             </button>
-            <button onClick={handleShareOrPrint} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium">
-              📤 {lang === 'zh' ? '分享/存PDF' : 'Share / Save PDF'}
+            {/* ✅ 存PDF 按钮 */}
+            <button onClick={() => window.print()} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium">
+              💾 {lang === 'zh' ? '存PDF' : 'Save PDF'}
+            </button>
+            <button onClick={handleShare} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium">
+              📤 {lang === 'zh' ? '分享' : 'Share'}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Invoice document */}
       <div className="max-w-4xl mx-auto bg-white p-10 print:p-8 shadow-sm">
-
-        {/* Header */}
         <div className="flex justify-between items-start mb-8">
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{lang === 'zh' ? '服务提供方' : 'From'}</p>
@@ -267,7 +218,6 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
           </div>
         </div>
 
-        {/* Payment Details */}
         {profile?.account_name && (
           <div className="mb-4 bg-blue-50 rounded-lg p-4">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{lang === 'zh' ? '付款信息' : 'Payment Details'}</p>
@@ -278,7 +228,6 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
           </div>
         )}
 
-        {/* Bill To */}
         <div className="mb-6 bg-gray-50 rounded-lg p-4">
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{lang === 'zh' ? '账单送达' : 'Bill To'}</p>
           {toName && <p className="text-sm text-gray-700"><span className="text-gray-400">{lang === 'zh' ? '客户名称: ' : 'Client Name: '}</span><span className="font-semibold text-gray-900">{toName}</span></p>}
@@ -286,7 +235,6 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
           {!toName && !toAddress && <p className="text-sm text-gray-400 italic">{lang === 'zh' ? '请在上方填写客户名称和地址' : 'Please fill in client name and address above'}</p>}
         </div>
 
-        {/* Items table */}
         <div className="overflow-x-auto mb-6">
           <table className="w-full border-collapse" style={{minWidth: '400px'}}>
             <thead>
@@ -305,30 +253,23 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
                     {groups.map(group => (
                       <>
                         <tr key={'group-' + group}>
-                          <td colSpan={hasArea ? 5 : 4} className="border border-gray-300 px-3 py-1.5 bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            📁 {group}
-                          </td>
+                          <td colSpan={hasArea ? 5 : 4} className="border border-gray-300 px-3 py-1.5 bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider">📁 {group}</td>
                         </tr>
                         {invoiceEntries.filter(e => e.item_group === group).map(renderRow)}
                       </>
                     ))}
                     {noGroup.map(renderRow)}
                   </>
-                ) : (
-                  invoiceEntries.map(renderRow)
-                )
+                ) : invoiceEntries.map(renderRow)
               ) : (
                 <tr className="border border-gray-300">
-                  <td className="border border-gray-300 px-3 py-2 text-sm text-gray-400 italic" colSpan={hasArea ? 5 : 4}>
-                    {lang === 'zh' ? '还没有发票条目' : 'No invoice items yet.'}
-                  </td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm text-gray-400 italic" colSpan={hasArea ? 5 : 4}>{lang === 'zh' ? '还没有发票条目' : 'No invoice items yet.'}</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
 
-        {/* Totals */}
         <div className="flex justify-end mb-6">
           <table className="border-collapse">
             <tbody>
@@ -348,7 +289,6 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
           </table>
         </div>
 
-        {/* Note */}
         {note && (
           <div className="mt-4 pt-4 border-t border-gray-300">
             <p className="text-xs font-medium text-gray-600 mb-1">{lang === 'zh' ? '备注' : 'Note'}:</p>
