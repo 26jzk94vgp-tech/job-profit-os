@@ -13,6 +13,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   const { lang } = useLanguage()
   const [job, setJob] = useState<any>(null)
   const [entries, setEntries] = useState<any[]>([])
+  const [quotes, setQuotes] = useState<any[]>([])
   const [profile, setProfile] = useState<any>(null)
   const [invoiceNumber, setInvoiceNumber] = useState('INV-001')
   const [dueDate, setDueDate] = useState('')
@@ -39,6 +40,16 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
           if (c?.email) setToEmail(c.email)
         })
       }
+
+      // 加载关联报价单
+      const { data: quotesData } = await supabase
+        .from('quotes')
+        .select('id, quote_number, status')
+        .eq('job_id', id)
+        .eq('status', 'accepted')
+        .order('created_at', { ascending: true })
+      setQuotes(quotesData || [])
+
       const { data: entryData } = await supabase.from('job_entries').select('*').eq('job_id', id)
       const allEntries = entryData || []
       const invoiceEntries = allEntries.filter((e: any) => e.type === 'invoice')
@@ -121,10 +132,12 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   const gst = exclusiveTotal * 0.1 + inclusiveTotal / 11
   const subTotal = exclusiveTotal + inclusiveTotal
   const total = exclusiveTotal + exclusiveTotal * 0.1 + inclusiveTotal
-  const groups = [...new Set(invoiceEntries.map(e => e.item_group || ''))].filter(Boolean)
-  const noGroup = invoiceEntries.filter(e => !e.item_group)
-  const hasGroups = groups.length > 0
   const hasArea = invoiceEntries.some(e => e.area)
+  const colSpan = hasArea ? 5 : 4
+
+  // 按报价单分组：有 quote_id 的按报价单分，没有的归入第一组
+  const hasMultipleQuotes = quotes.length > 1
+  const getQuoteIndex = (quoteId: string) => quotes.findIndex(q => q.id === quoteId) + 1
 
   const renderRow = (e: any) => {
     const qty = Number(e.quantity || 1)
@@ -143,6 +156,44 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
         <td className="border border-gray-300 px-3 py-2 text-sm text-right">${unitPrice.toFixed(2)}</td>
         <td className="border border-gray-300 px-3 py-2 text-sm text-right">${amount.toFixed(2)}</td>
       </tr>
+    )
+  }
+
+  const renderQuoteSection = (quote: any, quoteNum: number) => {
+    const quoteEntries = invoiceEntries.filter(e =>
+      e.quote_id === quote.id || (!e.quote_id && quoteNum === 1)
+    )
+    if (quoteEntries.length === 0) return null
+    const quoteTotal = quoteEntries.reduce((sum, e) => sum + Number(e.amount), 0)
+    const groups = [...new Set(quoteEntries.map(e => e.item_group || ''))].filter(Boolean)
+    const noGroup = quoteEntries.filter(e => !e.item_group)
+    const hasGroups = groups.length > 0
+
+    return (
+      <React.Fragment key={quote.id}>
+        {/* 单1/单2 标题行 */}
+        <tr>
+          <td colSpan={colSpan} className="border border-gray-400 px-3 py-2 bg-gray-200 text-xs font-bold text-gray-700 uppercase tracking-wider">
+            {lang === 'zh' ? `单${quoteNum}` : `Q${quoteNum}`} — {quote.quote_number}
+            <span className="float-right font-semibold">${quoteTotal.toFixed(2)}</span>
+          </td>
+        </tr>
+        {hasGroups ? (
+          <>
+            {groups.map(group => (
+              <React.Fragment key={group}>
+                <tr>
+                  <td colSpan={colSpan} className="border border-gray-300 px-3 py-1.5 bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider">📁 {group}</td>
+                </tr>
+                {quoteEntries.filter(e => e.item_group === group).map(renderRow)}
+              </React.Fragment>
+            ))}
+            {noGroup.map(renderRow)}
+          </>
+        ) : (
+          quoteEntries.map(renderRow)
+        )}
+      </React.Fragment>
     )
   }
 
@@ -211,7 +262,6 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
           </div>
         )}
 
-        {/* 操作按钮 */}
         <div className="space-y-3">
           <button onClick={handleSendEmail} disabled={sending}
             className="w-full py-3.5 rounded-2xl text-sm font-semibold text-white disabled:opacity-50 transition-opacity"
@@ -281,20 +331,31 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
             </thead>
             <tbody>
               {invoiceEntries.length > 0 ? (
-                hasGroups ? (
-                  <>
-                    {groups.map(group => (
-                      <React.Fragment key={'group-' + group}>
-                        <tr><td colSpan={hasArea ? 5 : 4} className="border border-gray-300 px-3 py-1.5 bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider">📁 {group}</td></tr>
-                        {invoiceEntries.filter(e => e.item_group === group).map(renderRow)}
-                      </React.Fragment>
-                    ))}
-                    {noGroup.map(renderRow)}
-                  </>
-                ) : invoiceEntries.map(renderRow)
+                hasMultipleQuotes && quotes.length > 0 ? (
+                  // 多报价单：按单1/单2分组
+                  quotes.map((quote, index) => renderQuoteSection(quote, index + 1))
+                ) : (
+                  // 单报价单：按 item_group 分组（原逻辑）
+                  (() => {
+                    const groups = [...new Set(invoiceEntries.map(e => e.item_group || ''))].filter(Boolean)
+                    const noGroup = invoiceEntries.filter(e => !e.item_group)
+                    const hasGroups = groups.length > 0
+                    return hasGroups ? (
+                      <>
+                        {groups.map(group => (
+                          <React.Fragment key={group}>
+                            <tr><td colSpan={colSpan} className="border border-gray-300 px-3 py-1.5 bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider">📁 {group}</td></tr>
+                            {invoiceEntries.filter(e => e.item_group === group).map(renderRow)}
+                          </React.Fragment>
+                        ))}
+                        {noGroup.map(renderRow)}
+                      </>
+                    ) : invoiceEntries.map(renderRow)
+                  })()
+                )
               ) : (
                 <tr className="border border-gray-300">
-                  <td className="border border-gray-300 px-3 py-2 text-sm text-gray-400 italic" colSpan={hasArea ? 5 : 4}>{lang === 'zh' ? '还没有发票条目' : 'No invoice items yet.'}</td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm text-gray-400 italic" colSpan={colSpan}>{lang === 'zh' ? '还没有发票条目' : 'No invoice items yet.'}</td>
                 </tr>
               )}
             </tbody>
