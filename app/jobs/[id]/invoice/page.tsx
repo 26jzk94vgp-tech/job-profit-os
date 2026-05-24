@@ -149,7 +149,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   const inputCls = "w-full bg-white dark:bg-[#2C2C2E] rounded-xl px-3 py-2.5 text-sm text-gray-900 dark:text-[#F2F2F7] outline-none focus:ring-2 focus:ring-[#0A84FF]/40 transition border-0"
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7]">
+    <div className="min-h-screen bg-[#F2F2F7]" style={{colorScheme: 'light'}}>
 
       {/* ── 控制面板 print:hidden ── */}
       <div className="max-w-2xl mx-auto px-4 pt-6 pb-8 print:hidden">
