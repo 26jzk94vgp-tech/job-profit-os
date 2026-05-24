@@ -42,9 +42,18 @@ export default function NewQuote() {
   const totalCost = items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.cost_price) || 0), 0)
   const totalProfit = totalSell - totalCost
   const margin = totalSell > 0 ? (totalProfit / totalSell * 100).toFixed(1) : '0'
-  const defaultGroups = ['Floors & Walls', 'Waterproofing', 'General Items', 'Labour']
-  const areaOptions = ['Bath', 'Ensuite', 'PWC', 'Kitchen', 'Laundry', 'Alfresco', 'Living', 'General']
-  const typeOptions = ['Tile', 'Floor', 'Wall', 'Floor&Wall', 'Waterproofing', 'General Items', 'Labour']
+
+  const defaultGroups = lang === 'zh'
+    ? ['地板与墙面', '防水', '杂项', '人工']
+    : ['Floors & Walls', 'Waterproofing', 'General Items', 'Labour']
+
+  const areaOptions = lang === 'zh'
+    ? ['浴室', '套间浴室', '独立卫生间', '厨房', '洗衣房', '户外区', '客厅', '通用']
+    : ['Bath', 'Ensuite', 'PWC', 'Kitchen', 'Laundry', 'Alfresco', 'Living', 'General']
+
+  const typeOptions = lang === 'zh'
+    ? ['瓷砖', '地板', '墙面', '地墙', '防水', '杂项', '人工']
+    : ['Tile', 'Floor', 'Wall', 'Floor&Wall', 'Waterproofing', 'General Items', 'Labour']
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -79,13 +88,10 @@ export default function NewQuote() {
   function validate(): boolean {
     const newErrors: Record<string, string> = {}
     const req = lang === 'zh' ? '此项为必填' : 'This field is required'
-
     if (!clientName.trim()) newErrors.clientName = req
-
     const firstItem = items[0]
     if (!firstItem.description.trim()) newErrors.firstDesc = lang === 'zh' ? '请填写第一个条目的描述' : 'First item description is required'
     if (!firstItem.unit_price.trim()) newErrors.firstPrice = lang === 'zh' ? '请填写第一个条目的售价' : 'First item price is required'
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -180,11 +186,7 @@ export default function NewQuote() {
               <select className={selectCls + ' w-full mt-1.5'} value={clientId} onChange={e => {
                 setClientId(e.target.value)
                 const found = clients.find(c => c.id === e.target.value)
-                if (found) {
-                  setClientName(found.name)
-                  if (found.address) setSiteAddress(found.address)
-                  if (errors.clientName) setErrors(p => ({ ...p, clientName: '' }))
-                }
+                if (found) { setClientName(found.name); if (found.address) setSiteAddress(found.address); if (errors.clientName) setErrors(p => ({ ...p, clientName: '' })) }
               }}>
                 <option value="">{lang === 'zh' ? '或从客户列表选择...' : 'Or select from client list...'}</option>
                 {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
