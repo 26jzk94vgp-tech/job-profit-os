@@ -1,1316 +1,652 @@
-"""
-Job Profit OS – Playwright Test Suite
-Run:  python test_job_profit_os.py
-Output: test_results.json  +  screenshots/  folder
-"""
-
-import json, time, re, os, traceback
-from datetime import datetime
-from playwright.sync_api import sync_playwright, expect, Page, Browser
-
-# ── Config ────────────────────────────────────────────────────────────────────
-BASE_URL  = "https://job-profit-os-git-main-26jzk94vgp-techs-projects.vercel.app"
-EMAIL     = "hanchao201010@yahoo.com"
-PASSWORD  = "SniperElite@4"
-TIMEOUT   = 15_000          # ms per action
-NAV_WAIT  = "networkidle"
-SS_DIR    = "screenshots"
-os.makedirs(SS_DIR, exist_ok=True)
-
-# ── Result store ──────────────────────────────────────────────────────────────
-results: list[dict] = []
-
-def record(tc_id: str, area: str, scenario: str, status: str,
-           expected: str, actual: str, notes: str = "", screenshot: str = ""):
-    results.append({
-        "tc_id": tc_id, "area": area, "scenario": scenario,
-        "status": status,           # PASS | FAIL | SKIP | ERROR
-        "expected": expected, "actual": actual,
-        "notes": notes, "screenshot": screenshot,
-        "timestamp": datetime.now().isoformat()
-    })
-    icon = {"PASS": "✅", "FAIL": "❌", "SKIP": "⏭ ", "ERROR": "💥"}.get(status, "?")
-    print(f"  {icon} [{tc_id}] {scenario[:70]}")
-    if status in ("FAIL", "ERROR"):
-        print(f"       Expected : {expected[:120]}")
-        print(f"       Actual   : {actual[:120]}")
-        if notes:
-            print(f"       Notes    : {notes[:120]}")
-
-
-def ss(page: Page, name: str) -> str:
-    path = f"{SS_DIR}/{name}.png"
-    try:
-        page.screenshot(path=path, full_page=True)
-    except Exception:
-        pass
-    return path
-
-
-def safe_text(page: Page, selector: str, default="") -> str:
-    try:
-        return page.locator(selector).first.inner_text(timeout=4000).strip()
-    except Exception:
-        return default
-
-
-def page_text(page: Page) -> str:
-    try:
-        return page.inner_text("body", timeout=5000)
-    except Exception:
-        return ""
-
-
-def click_text(page: Page, text: str, timeout=TIMEOUT):
-    """Click the first visible element containing text."""
-    page.get_by_text(text, exact=False).first.click(timeout=timeout)
-
-
-def fill_field(page: Page, label_or_placeholder: str, value: str):
-    """Fill an input by label text or placeholder."""
-    try:
-        page.get_by_label(label_or_placeholder, exact=False).first.fill(str(value), timeout=6000)
-        return
-    except Exception:
-        pass
-    try:
-        page.get_by_placeholder(label_or_placeholder, exact=False).first.fill(str(value), timeout=6000)
-        return
-    except Exception:
-        pass
-    # last resort – visible input
-    page.locator(f"input[placeholder*='{label_or_placeholder}']").first.fill(str(value), timeout=6000)
-
-
-def wait_nav(page: Page):
-    page.wait_for_load_state(NAV_WAIT, timeout=20_000)
-    time.sleep(0.8)
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# LOGIN HELPER
-# ═════════════════════════════════════════════════════════════════════════════
-def login(page: Page):
-    page.goto(f"{BASE_URL}/login", wait_until="domcontentloaded", timeout=30_000)
-    wait_nav(page)
-
-    # locate email / password fields flexibly
-    for sel in ["input[type='email']", "input[name='email']",
-                "input[placeholder*='mail' i]", "input[placeholder*='user' i]"]:
-        if page.locator(sel).count() > 0:
-            page.locator(sel).first.fill(EMAIL)
-            break
-
-    for sel in ["input[type='password']", "input[name='password']",
-                "input[placeholder*='pass' i]"]:
-        if page.locator(sel).count() > 0:
-            page.locator(sel).first.fill(PASSWORD)
-            break
-
-    for sel in ["button[type='submit']", "button:has-text('Sign')",
-                "button:has-text('Login')", "button:has-text('Log in')"]:
-        if page.locator(sel).count() > 0:
-            page.locator(sel).first.click()
-            break
-
-    wait_nav(page)
-    return page.url
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# SECTION 1 – AUTHENTICATION
-# ═════════════════════════════════════════════════════════════════════════════
-def test_auth(browser: Browser):
-    print("\n── AUTHENTICATION ──")
-
-    # TC-001 Valid login
-    page = browser.new_page()
-    page.set_default_timeout(TIMEOUT)
-    try:
-        url_after = login(page)
-        body = page_text(page)
-        shot = ss(page, "TC001_login_success")
-        if "/login" not in url_after and "Host not" not in body:
-            record("TC-001", "Authentication", "Valid credentials login",
-                   "PASS", "Redirect to dashboard", f"Redirected to: {url_after}", screenshot=shot)
-        else:
-            record("TC-001", "Authentication", "Valid credentials login",
-                   "FAIL", "Redirect to dashboard", f"Still at: {url_after} | body: {body[:200]}", screenshot=shot)
-    except Exception as e:
-        shot = ss(page, "TC001_error")
-        record("TC-001", "Authentication", "Valid credentials login",
-               "ERROR", "Redirect to dashboard", str(e)[:200], screenshot=shot)
-    page.close()
-
-    # TC-002 Invalid password
-    page = browser.new_page()
-    page.set_default_timeout(TIMEOUT)
-    try:
-        page.goto(f"{BASE_URL}/login", wait_until="domcontentloaded")
-        wait_nav(page)
-        for sel in ["input[type='email']", "input[name='email']"]:
-            if page.locator(sel).count():
-                page.locator(sel).first.fill(EMAIL); break
-        for sel in ["input[type='password']", "input[name='password']"]:
-            if page.locator(sel).count():
-                page.locator(sel).first.fill("WrongPass999!"); break
-        for sel in ["button[type='submit']", "button:has-text('Sign')"]:
-            if page.locator(sel).count():
-                page.locator(sel).first.click(); break
-        wait_nav(page)
-        body = page_text(page)
-        shot = ss(page, "TC002_invalid_password")
-        if "/login" in page.url or any(w in body.lower() for w in ["invalid", "incorrect", "error", "wrong", "failed"]):
-            record("TC-002", "Authentication", "Invalid password rejected",
-                   "PASS", "Error shown, stays on login", f"URL={page.url} | snippet={body[:150]}", screenshot=shot)
-        else:
-            record("TC-002", "Authentication", "Invalid password rejected",
-                   "FAIL", "Error shown, stays on login", f"URL={page.url} | body={body[:150]}", screenshot=shot)
-    except Exception as e:
-        shot = ss(page, "TC002_error")
-        record("TC-002", "Authentication", "Invalid password rejected",
-               "ERROR", "Error shown", str(e)[:200], screenshot=shot)
-    page.close()
-
-    # TC-003 Empty email
-    page = browser.new_page()
-    page.set_default_timeout(TIMEOUT)
-    try:
-        page.goto(f"{BASE_URL}/login", wait_until="domcontentloaded")
-        wait_nav(page)
-        for sel in ["button[type='submit']", "button:has-text('Sign')"]:
-            if page.locator(sel).count():
-                page.locator(sel).first.click(); break
-        time.sleep(1)
-        body = page_text(page)
-        shot = ss(page, "TC003_empty_email")
-        has_validation = any(w in body.lower() for w in ["required", "valid", "email", "empty"]) or "/login" in page.url
-        record("TC-003", "Authentication", "Empty email validation",
-               "PASS" if has_validation else "FAIL",
-               "Validation error shown", f"body={body[:150]}", screenshot=shot)
-    except Exception as e:
-        shot = ss(page, "TC003_error")
-        record("TC-003", "Authentication", "Empty email validation",
-               "ERROR", "Validation error", str(e)[:200], screenshot=shot)
-    page.close()
-
-    # TC-004 Invalid email format
-    page = browser.new_page()
-    page.set_default_timeout(TIMEOUT)
-    try:
-        page.goto(f"{BASE_URL}/login", wait_until="domcontentloaded")
-        wait_nav(page)
-        for sel in ["input[type='email']", "input[name='email']"]:
-            if page.locator(sel).count():
-                page.locator(sel).first.fill("notanemail"); break
-        for sel in ["input[type='password']", "input[name='password']"]:
-            if page.locator(sel).count():
-                page.locator(sel).first.fill(PASSWORD); break
-        for sel in ["button[type='submit']", "button:has-text('Sign')"]:
-            if page.locator(sel).count():
-                page.locator(sel).first.click(); break
-        time.sleep(1.5)
-        body = page_text(page)
-        shot = ss(page, "TC004_invalid_email")
-        stays = "/login" in page.url or any(w in body.lower() for w in ["valid", "email", "format", "invalid"])
-        record("TC-004", "Authentication", "Invalid email format rejected",
-               "PASS" if stays else "FAIL",
-               "Validation error or stays on login", f"URL={page.url} body={body[:150]}", screenshot=shot)
-    except Exception as e:
-        shot = ss(page, "TC004_error")
-        record("TC-004", "Authentication", "Invalid email format rejected",
-               "ERROR", "Validation error", str(e)[:200], screenshot=shot)
-    page.close()
-
-    # TC-005 Logout
-    page = browser.new_page()
-    page.set_default_timeout(TIMEOUT)
-    try:
-        login(page)
-        # Try common logout selectors
-        logged_out = False
-        for sel in ["button:has-text('Logout')", "button:has-text('Sign out')",
-                    "a:has-text('Logout')", "a:has-text('Sign out')",
-                    "[aria-label*='logout' i]", "[aria-label*='sign out' i]"]:
-            if page.locator(sel).count():
-                page.locator(sel).first.click()
-                wait_nav(page)
-                logged_out = True
-                break
-        if not logged_out:
-            # Try clicking avatar/profile first
-            for sel in ["button[aria-label*='profile' i]", "button[aria-label*='user' i]",
-                        "img[alt*='avatar' i]", "[data-testid*='user']", ".avatar", ".user-menu"]:
-                if page.locator(sel).count():
-                    page.locator(sel).first.click()
-                    time.sleep(0.5)
-                    for sel2 in ["text=Logout", "text=Sign out", "text=Log out"]:
-                        if page.locator(sel2).count():
-                            page.locator(sel2).first.click()
-                            wait_nav(page)
-                            logged_out = True
-                            break
-                    if logged_out:
-                        break
-        shot = ss(page, "TC005_logout")
-        if "/login" in page.url or not logged_out:
-            record("TC-005", "Authentication", "Logout redirects to login",
-                   "PASS" if "/login" in page.url else "FAIL",
-                   "Redirected to /login",
-                   f"URL={page.url} | logout_found={logged_out}", screenshot=shot)
-        else:
-            record("TC-005", "Authentication", "Logout redirects to login",
-                   "FAIL", "Redirected to /login", f"URL={page.url}", screenshot=shot)
-    except Exception as e:
-        shot = ss(page, "TC005_error")
-        record("TC-005", "Authentication", "Logout redirects to login",
-               "ERROR", "Redirected to /login", str(e)[:200], screenshot=shot)
-    page.close()
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# SECTION 2 – DASHBOARD
-# ═════════════════════════════════════════════════════════════════════════════
-def test_dashboard(browser: Browser):
-    print("\n── DASHBOARD ──")
-    page = browser.new_page()
-    page.set_default_timeout(TIMEOUT)
-    try:
-        login(page)
-
-        # TC-006 Dashboard loads
-        body = page_text(page)
-        shot = ss(page, "TC006_dashboard")
-        has_dashboard = any(w in body.lower() for w in
-                            ["dashboard", "job", "revenue", "profit", "quote", "invoice", "total"])
-        record("TC-006", "Dashboard", "Dashboard loads after login",
-               "PASS" if has_dashboard else "FAIL",
-               "Dashboard with summary widgets visible",
-               f"URL={page.url} keywords_found={has_dashboard}", screenshot=shot)
-
-        # TC-007 Navigation items
-        nav_items = []
-        for text in ["Job", "Quote", "Invoice", "Report", "Dashboard"]:
-            found = page.locator(f"a:has-text('{text}'), button:has-text('{text}'), nav >> text={text}").count() > 0
-            nav_items.append(f"{text}={'✓' if found else '✗'}")
-        shot2 = ss(page, "TC007_navigation")
-        found_count = sum(1 for n in nav_items if "✓" in n)
-        record("TC-007", "Dashboard", "Navigation menu items present",
-               "PASS" if found_count >= 2 else "FAIL",
-               "Nav links: Jobs, Quotes, Invoices, Reports",
-               " | ".join(nav_items), screenshot=shot2)
-
-        # TC-008 Currency format AUD
-        # Look for $ signs in monetary displays
-        dollar_matches = re.findall(r'\$[\d,]+\.?\d*', body)
-        shot3 = ss(page, "TC008_currency")
-        record("TC-008", "Dashboard", "Currency displayed in AUD ($)",
-               "PASS" if dollar_matches else "FAIL",
-               "Values shown with $ prefix",
-               f"Sample values: {dollar_matches[:5]}", screenshot=shot3)
-
-    except Exception as e:
-        ss(page, "dashboard_error")
-        for tc in ["TC-006","TC-007","TC-008"]:
-            record(tc, "Dashboard", tc, "ERROR", "", str(e)[:200])
-    finally:
-        page.close()
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# EXPLORE APP STRUCTURE – find nav links and page content
-# ═════════════════════════════════════════════════════════════════════════════
-def explore_app(browser: Browser) -> dict:
-    """Return a dict of {page_name: url} by clicking nav links."""
-    page = browser.new_page()
-    page.set_default_timeout(TIMEOUT)
-    pages = {}
-    try:
-        login(page)
-        time.sleep(1)
-
-        # Collect all nav/sidebar links
-        links = page.evaluate("""() => {
-            const links = [];
-            document.querySelectorAll('a[href], nav a, aside a, [role=navigation] a').forEach(a => {
-                if (a.href && !a.href.includes('#') && a.textContent.trim())
-                    links.push({text: a.textContent.trim(), href: a.href});
-            });
-            return links;
-        }""")
-
-        print(f"  Found {len(links)} nav links: {[(l['text'][:20], l['href'][-40:]) for l in links[:10]]}")
-        pages["_links"] = links
-
-        # Also grab all visible button texts
-        buttons = page.evaluate("""() =>
-            Array.from(document.querySelectorAll('button')).map(b => b.textContent.trim()).filter(t => t.length > 0)
-        """)
-        pages["_buttons"] = buttons
-        print(f"  Buttons: {buttons[:15]}")
-
-        # Screenshot each unique nav link
-        visited = set()
-        for link in links[:12]:
-            href = link["href"]
-            if href in visited or "logout" in href.lower() or "signout" in href.lower():
-                continue
-            visited.add(href)
-            try:
-                page.goto(href, wait_until="domcontentloaded", timeout=15000)
-                wait_nav(page)
-                name = re.sub(r'[^a-z0-9]', '_', link["text"].lower())[:20]
-                ss(page, f"explore_{name}")
-                body = page_text(page)
-                pages[link["text"]] = {"url": href, "body_snippet": body[:400]}
-                print(f"    → {link['text']} : {href[-50:]} | {body[:80]}")
-            except Exception as e:
-                print(f"    → {link['text']} ERROR: {e}")
-
-    except Exception as e:
-        print(f"  explore_app ERROR: {e}")
-    finally:
-        page.close()
-    return pages
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# SECTION 3 – JOB MANAGEMENT
-# ═════════════════════════════════════════════════════════════════════════════
-def find_and_click_new(page: Page, entity: str) -> bool:
-    """Try to click a New/Add/Create button for a given entity."""
-    patterns = [
-        f"button:has-text('New {entity}')", f"button:has-text('Add {entity}')",
-        f"button:has-text('Create {entity}')", "button:has-text('New')",
-        "button:has-text('Add')", "button:has-text('Create')",
-        "a:has-text('New')", "a:has-text('Add')", "[data-testid*='new']",
-        "[data-testid*='create']", "button:has-text('+')",
-    ]
-    for sel in patterns:
-        try:
-            if page.locator(sel).first.is_visible(timeout=2000):
-                page.locator(sel).first.click()
-                wait_nav(page)
-                return True
-        except Exception:
-            pass
-    return False
-
-
-def navigate_to(page: Page, section: str) -> bool:
-    """Navigate to a section by clicking its nav link."""
-    patterns = [
-        f"a:has-text('{section}')", f"nav >> text={section}",
-        f"aside >> text={section}", f"[role=navigation] >> text={section}",
-        f"button:has-text('{section}')",
-    ]
-    for sel in patterns:
-        try:
-            loc = page.locator(sel).first
-            if loc.is_visible(timeout=2000):
-                loc.click()
-                wait_nav(page)
-                return True
-        except Exception:
-            pass
-    return False
-
-
-def test_jobs(browser: Browser):
-    print("\n── JOB MANAGEMENT ──")
-    page = browser.new_page()
-    page.set_default_timeout(TIMEOUT)
-    job_name = f"TEST-JOB-{int(time.time())}"
-
-    try:
-        login(page)
-
-        # Navigate to jobs
-        nav_ok = navigate_to(page, "Job") or navigate_to(page, "Jobs")
-        shot = ss(page, "TC009_jobs_page")
-        body = page_text(page)
-
-        # TC-009 Create job
-        new_ok = find_and_click_new(page, "Job")
-        time.sleep(1)
-        shot2 = ss(page, "TC009_new_job_form")
-        form_body = page_text(page)
-
-        # Try to fill in job name
-        filled = False
-        for sel in ["input[name*='name' i]", "input[placeholder*='name' i]",
-                    "input[placeholder*='job' i]", "input[type='text']"]:
-            try:
-                if page.locator(sel).first.is_visible(timeout=2000):
-                    page.locator(sel).first.fill(job_name)
-                    filled = True
-                    break
-            except Exception:
-                pass
-
-        # Try to fill client / description fields
-        for label in ["Client", "Customer", "client name", "Description"]:
-            try:
-                fill_field(page, label, "Smith Family Test")
-                break
-            except Exception:
-                pass
-
-        # Save
-        saved = False
-        for sel in ["button:has-text('Save')", "button:has-text('Create')",
-                    "button:has-text('Submit')", "button[type='submit']",
-                    "button:has-text('Add')"]:
-            try:
-                if page.locator(sel).first.is_visible(timeout=2000):
-                    page.locator(sel).first.click()
-                    wait_nav(page)
-                    saved = True
-                    break
-            except Exception:
-                pass
-
-        shot3 = ss(page, "TC009_after_save")
-        body_after = page_text(page)
-        job_visible = job_name in body_after
-
-        record("TC-009", "Job Management", "Create new job",
-               "PASS" if (new_ok and saved and job_visible) else "FAIL",
-               "Job saved and appears in list",
-               f"nav_ok={nav_ok} new_ok={new_ok} filled={filled} saved={saved} visible={job_visible}",
-               screenshot=shot3)
-
-        # TC-010 Job appears in list
-        navigate_to(page, "Job") or navigate_to(page, "Jobs")
-        wait_nav(page)
-        body_list = page_text(page)
-        shot4 = ss(page, "TC010_job_in_list")
-        record("TC-010", "Job Management", "New job visible in jobs list",
-               "PASS" if job_name in body_list else "FAIL",
-               f"Job '{job_name}' in list",
-               f"Found: {job_name in body_list}", screenshot=shot4)
-
-    except Exception as e:
-        shot = ss(page, "jobs_error")
-        for tc in ["TC-009","TC-010"]:
-            record(tc, "Job Management", tc, "ERROR", "", str(e)[:300])
-    finally:
-        page.close()
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# SECTION 4 – CALCULATIONS (Labour, Materials, Margin, GST, Profit)
-# ═════════════════════════════════════════════════════════════════════════════
-def extract_number(text: str) -> float | None:
-    """Pull the first dollar amount or bare number from text."""
-    m = re.search(r'\$?\s*([\d,]+\.?\d*)', text.replace(',', ''))
-    if m:
-        try:
-            return float(m.group(1).replace(',', ''))
-        except Exception:
-            pass
-    return None
-
-
-def check_calc(page: Page, label: str, expected: float, tolerance: float = 0.02) -> tuple[str, str]:
-    """
-    Locate a field/display by label and return (status, actual_text).
-    Searches for text near the label.
-    """
-    body = page_text(page)
-    # Look for lines containing the label
-    for line in body.splitlines():
-        if label.lower() in line.lower():
-            val = extract_number(line)
-            if val is not None:
-                diff = abs(val - expected)
-                status = "PASS" if diff <= tolerance * max(abs(expected), 1) else "FAIL"
-                return status, f"Found '{line.strip()}' → {val} (expected {expected})"
-    return "FAIL", f"Label '{label}' not found in page. Body snippet: {body[:300]}"
-
-
-def open_or_create_job_with_lines(browser: Browser) -> tuple[Page, bool]:
-    """Login, go to a job (or create one), and return (page, success)."""
-    page = browser.new_page()
-    page.set_default_timeout(TIMEOUT)
-    try:
-        login(page)
-        navigate_to(page, "Job") or navigate_to(page, "Jobs")
-        wait_nav(page)
-        body = page_text(page)
-
-        # Click first existing job or create new
-        job_links = page.locator("table tbody tr, [data-testid*='job'], .job-item, .job-card").all()
-        if job_links:
-            job_links[0].click()
-            wait_nav(page)
-        else:
-            find_and_click_new(page, "Job")
-            time.sleep(1)
-            for sel in ["input[type='text']", "input[name*='name' i]"]:
-                if page.locator(sel).count():
-                    page.locator(sel).first.fill(f"CalcTest-{int(time.time())}")
-                    break
-            for sel in ["button:has-text('Save')", "button[type='submit']"]:
-                if page.locator(sel).count():
-                    page.locator(sel).first.click()
-                    wait_nav(page)
-                    break
-        return page, True
-    except Exception as e:
-        print(f"  open_or_create_job error: {e}")
-        return page, False
-
-
-def add_labour_entry(page: Page, hours: float, rate: float) -> bool:
-    """Try to add a labour line item on an open job."""
-    # Look for Add Labour / Labour tab / + button
-    for sel in ["button:has-text('Add Labour')", "button:has-text('Labour')",
-                "tab:has-text('Labour')", "[role='tab']:has-text('Labour')",
-                "button:has-text('Add Line')", "button:has-text('Add Item')",
-                "a:has-text('Labour')"]:
-        try:
-            if page.locator(sel).first.is_visible(timeout=2000):
-                page.locator(sel).first.click()
-                time.sleep(0.5)
-                break
-        except Exception:
-            pass
-
-    # Fill hours
-    for lbl in ["Hours", "hours", "Qty", "Quantity"]:
-        try:
-            fill_field(page, lbl, str(hours))
-            break
-        except Exception:
-            pass
-
-    # Fill rate
-    for lbl in ["Rate", "rate", "Cost", "Price", "Unit Price", "Hourly Rate"]:
-        try:
-            fill_field(page, lbl, str(rate))
-            break
-        except Exception:
-            pass
-
-    # Save / Add
-    for sel in ["button:has-text('Save')", "button:has-text('Add')",
-                "button:has-text('Submit')", "button[type='submit']"]:
-        try:
-            if page.locator(sel).first.is_visible(timeout=2000):
-                page.locator(sel).first.click()
-                wait_nav(page)
-                return True
-        except Exception:
-            pass
-    return False
-
-
-def add_material_entry(page: Page, qty: float, unit_cost: float, markup: float = 0) -> bool:
-    """Try to add a material line item on an open job."""
-    for sel in ["button:has-text('Add Material')", "button:has-text('Material')",
-                "[role='tab']:has-text('Material')", "button:has-text('Add Item')",
-                "a:has-text('Material')"]:
-        try:
-            if page.locator(sel).first.is_visible(timeout=2000):
-                page.locator(sel).first.click()
-                time.sleep(0.5)
-                break
-        except Exception:
-            pass
-
-    for lbl in ["Qty", "Quantity", "qty"]:
-        try:
-            fill_field(page, lbl, str(qty)); break
-        except Exception:
-            pass
-
-    for lbl in ["Unit Cost", "Cost", "Price", "Unit Price", "Rate"]:
-        try:
-            fill_field(page, lbl, str(unit_cost)); break
-        except Exception:
-            pass
-
-    if markup:
-        for lbl in ["Markup", "markup", "Margin"]:
-            try:
-                fill_field(page, lbl, str(markup)); break
-            except Exception:
-                pass
-
-    for sel in ["button:has-text('Save')", "button:has-text('Add')",
-                "button:has-text('Submit')", "button[type='submit']"]:
-        try:
-            if page.locator(sel).first.is_visible(timeout=2000):
-                page.locator(sel).first.click()
-                wait_nav(page)
-                return True
-        except Exception:
-            pass
-    return False
-
-
-def test_labour_calculations(browser: Browser):
-    print("\n── LABOUR CALCULATIONS ──")
-
-    # TC-013  8 hrs × $80 = $640
-    page, ok = open_or_create_job_with_lines(browser)
-    try:
-        if not ok:
-            for tc in ["TC-013","TC-014","TC-015","TC-016","TC-017","TC-018"]:
-                record(tc, "Labour", tc, "SKIP", "", "Could not open job"); page.close(); return
-
-        added = add_labour_entry(page, hours=8, rate=80)
-        time.sleep(1)
-        shot = ss(page, "TC013_labour_8h_80")
-        body = page_text(page)
-        expected = 640.0
-        # Search for 640 in page
-        found_640 = bool(re.search(r'640', body))
-        amounts = re.findall(r'\$[\d,]+\.?\d*', body)
-        record("TC-013", "Labour", "Labour cost: 8 hrs × $80 = $640",
-               "PASS" if found_640 else "FAIL",
-               "$640.00",
-               f"added={added} | amounts on page: {amounts[:8]}", screenshot=shot)
-
-        # TC-014  Multiple labour entries: $640 + $400 = $1,040
-        add_labour_entry(page, hours=4, rate=100)
-        time.sleep(1)
-        shot = ss(page, "TC014_multi_labour")
-        body = page_text(page)
-        found_1040 = bool(re.search(r'1[,.]?040', body))
-        amounts = re.findall(r'\$[\d,]+\.?\d*', body)
-        record("TC-014", "Labour", "Multiple labour totals: $640 + $400 = $1,040",
-               "PASS" if found_1040 else "FAIL",
-               "$1,040.00", f"amounts: {amounts[:10]}", screenshot=shot)
-
-        # TC-015  Zero hours → $0
-        add_labour_entry(page, hours=0, rate=80)
-        time.sleep(1)
-        shot = ss(page, "TC015_zero_hours")
-        body = page_text(page)
-        has_zero_err = any(w in body.lower() for w in ["error","invalid","required","cannot be zero","must be"])
-        # Zero hours is OK, either $0 appears or validation stops it
-        record("TC-015", "Labour", "Zero hours: no crash, $0.00 or validation",
-               "PASS",   # we consider either a valid outcome
-               "$0.00 or validation message",
-               f"error_msg={has_zero_err} | body snippet: {body[:200]}", screenshot=shot)
-
-        # TC-016  2.5 hrs × $90 = $225
-        add_labour_entry(page, hours=2.5, rate=90)
-        time.sleep(1)
-        shot = ss(page, "TC016_fractional_hours")
-        body = page_text(page)
-        found_225 = bool(re.search(r'225', body))
-        record("TC-016", "Labour", "Fractional hours: 2.5 × $90 = $225",
-               "PASS" if found_225 else "FAIL",
-               "$225.00", f"found_225={found_225}", screenshot=shot)
-
-        # TC-017  Large values: 1000 hrs × $50 = $50,000
-        add_labour_entry(page, hours=1000, rate=50)
-        time.sleep(1)
-        shot = ss(page, "TC017_large_hours")
-        body = page_text(page)
-        found_50k = bool(re.search(r'50[,.]?000', body))
-        record("TC-017", "Labour", "Large input: 1000 hrs × $50 = $50,000",
-               "PASS" if found_50k else "FAIL",
-               "$50,000.00", f"found_50k={found_50k}", screenshot=shot)
-
-        # TC-018  Negative hours → validation error
-        add_labour_entry(page, hours=-5, rate=80)
-        time.sleep(1)
-        shot = ss(page, "TC018_negative_hours")
-        body = page_text(page)
-        has_err = any(w in body.lower() for w in ["error","invalid","negative","cannot","must be positive"])
-        # HTML5 number inputs also prevent negative if min=0
-        record("TC-018", "Labour", "Negative hours → validation error",
-               "PASS" if has_err else "FAIL",
-               "Validation error for negative hours",
-               f"error_msg={has_err} | snippet: {body[:150]}", screenshot=shot)
-
-    except Exception as e:
-        ss(page, "labour_error")
-        record("TC-013~018", "Labour", "Labour tests", "ERROR", "", str(e)[:300])
-    finally:
-        page.close()
-
-
-def test_material_calculations(browser: Browser):
-    print("\n── MATERIAL CALCULATIONS ──")
-    page, ok = open_or_create_job_with_lines(browser)
-    try:
-        if not ok:
-            for tc in ["TC-019","TC-020","TC-021","TC-022","TC-023"]:
-                record(tc, "Materials", tc, "SKIP", "", "Could not open job")
-            page.close(); return
-
-        # TC-019  Qty 10 × $25 = $250
-        added = add_material_entry(page, qty=10, unit_cost=25)
-        time.sleep(1)
-        shot = ss(page, "TC019_material_basic")
-        body = page_text(page)
-        found_250 = bool(re.search(r'250', body))
-        amounts = re.findall(r'\$[\d,]+\.?\d*', body)
-        record("TC-019", "Materials", "Material cost: 10 × $25 = $250",
-               "PASS" if found_250 else "FAIL",
-               "$250.00", f"added={added} amounts={amounts[:8]}", screenshot=shot)
-
-        # TC-020  Multiple: $250 + $200 = $450
-        add_material_entry(page, qty=5, unit_cost=40)
-        time.sleep(1)
-        shot = ss(page, "TC020_multi_material")
-        body = page_text(page)
-        found_450 = bool(re.search(r'450', body))
-        record("TC-020", "Materials", "Multiple materials: $250 + $200 = $450",
-               "PASS" if found_450 else "FAIL",
-               "$450.00", f"found_450={found_450}", screenshot=shot)
-
-        # TC-021  Markup 20% on $100 → sell $120
-        add_material_entry(page, qty=1, unit_cost=100, markup=20)
-        time.sleep(1)
-        shot = ss(page, "TC021_markup")
-        body = page_text(page)
-        found_120 = bool(re.search(r'120', body))
-        record("TC-021", "Materials", "Material markup 20%: $100 → $120 sell",
-               "PASS" if found_120 else "FAIL",
-               "$120.00", f"found_120={found_120}", screenshot=shot)
-
-        # TC-022  Qty 0 → $0, no error
-        add_material_entry(page, qty=0, unit_cost=50)
-        time.sleep(1)
-        shot = ss(page, "TC022_zero_qty")
-        body = page_text(page)
-        has_err = any(w in body.lower() for w in ["error","invalid","required"])
-        record("TC-022", "Materials", "Zero qty material: $0.00 or validation",
-               "PASS",
-               "$0.00 or validation", f"error={has_err} | snippet={body[:150]}", screenshot=shot)
-
-        # TC-023  Qty 0.5 × $200 = $100
-        add_material_entry(page, qty=0.5, unit_cost=200)
-        time.sleep(1)
-        shot = ss(page, "TC023_fractional_qty")
-        body = page_text(page)
-        found_100 = bool(re.search(r'\b100\b', body))
-        record("TC-023", "Materials", "Fractional qty: 0.5 × $200 = $100",
-               "PASS" if found_100 else "FAIL",
-               "$100.00", f"found_100={found_100}", screenshot=shot)
-
-    except Exception as e:
-        ss(page, "materials_error")
-        record("TC-019~023", "Materials", "Material tests", "ERROR", "", str(e)[:300])
-    finally:
-        page.close()
-
-
-def test_gst_calculations(browser: Browser):
-    print("\n── GST CALCULATIONS ──")
-    page = browser.new_page()
-    page.set_default_timeout(TIMEOUT)
-    try:
-        login(page)
-        # Navigate to quotes or invoices where GST is visible
-        for section in ["Invoice", "Quote", "Job"]:
-            if navigate_to(page, section):
-                break
-        wait_nav(page)
-        shot = ss(page, "TC042_gst_page")
-        body = page_text(page)
-
-        # TC-042  GST 10% on $1,000 → GST=$100, Total=$1,100
-        # Look for any GST-related numbers or labels on page
-        gst_label = bool(re.search(r'gst|tax', body, re.I))
-        # Try to find a row with GST amount
-        gst_amount = re.findall(r'(?:gst|tax)[^\n]*\$([\d,]+\.?\d*)', body, re.I)
-
-        record("TC-042", "GST", "GST label/field present on relevant pages",
-               "PASS" if gst_label else "FAIL",
-               "GST field visible", f"gst_label={gst_label} amounts={gst_amount[:3]}", screenshot=shot)
-
-        # TC-043  GST rate is 10%
-        rate_10 = bool(re.search(r'10\s*%|gst.*10|10.*gst', body, re.I))
-        record("TC-043", "GST", "GST rate is 10%",
-               "PASS" if rate_10 else "FAIL",
-               "10% GST rate shown", f"found_10pct={rate_10}", screenshot=shot)
-
-        # TC-044  Check any invoice/quote for correct GST math
-        # Navigate to invoices and look at totals
-        navigate_to(page, "Invoice") or navigate_to(page, "Invoices")
-        wait_nav(page)
-        body2 = page_text(page)
-        shot2 = ss(page, "TC044_invoice_gst")
-
-        # Find any subtotal + GST + total pattern
-        numbers = re.findall(r'\$?([\d,]+\.?\d{2})', body2)
-        nums = []
-        for n in numbers:
-            try:
-                nums.append(float(n.replace(',', '')))
-            except Exception:
-                pass
-
-        gst_correct = False
-        for i, subtotal in enumerate(nums):
-            gst = subtotal * 0.1
-            total = subtotal + gst
-            for n in nums:
-                if abs(n - total) < 0.05:
-                    gst_correct = True
-                    break
-
-        record("TC-044", "GST", "GST calculation: subtotal × 10% = GST amount",
-               "PASS" if gst_correct else "FAIL",
-               "GST = Subtotal × 10%",
-               f"Numbers found: {nums[:10]}", screenshot=shot2)
-
-        # TC-045  Back-calc: inclusive ÷ 11 = GST
-        # If we have invoice totals, verify: total_incl / 11 ≈ GST
-        incl_gst_ok = False
-        for n in nums:
-            gst_back = round(n / 11, 2)
-            ex_gst = round(n - gst_back, 2)
-            # Check if either of these appears in page
-            if any(abs(m - gst_back) < 0.02 for m in nums):
-                incl_gst_ok = True
-                break
-        record("TC-045", "GST", "GST back-calc: total incl ÷ 11 = GST component",
-               "PASS" if incl_gst_ok else "FAIL",
-               "GST = Total_incl ÷ 11",
-               f"back_calc_verified={incl_gst_ok} numbers={nums[:8]}", screenshot=shot2)
-
-    except Exception as e:
-        ss(page, "gst_error")
-        for tc in ["TC-042","TC-043","TC-044","TC-045"]:
-            record(tc, "GST", tc, "ERROR", "", str(e)[:300])
-    finally:
-        page.close()
-
-
-def test_profit_calculations(browser: Browser):
-    print("\n── PROFIT & LOSS ──")
-    page = browser.new_page()
-    page.set_default_timeout(TIMEOUT)
-    try:
-        login(page)
-        # Navigate to Reports or a job P&L
-        for section in ["Report", "P&L", "Profit", "Summary"]:
-            if navigate_to(page, section):
-                break
-        wait_nav(page)
-        shot = ss(page, "TC037_pl_page")
-        body = page_text(page)
-
-        # TC-037  Profit = Revenue - Costs
-        numbers = []
-        for n in re.findall(r'\$?([\d,]+\.?\d{2})', body):
-            try:
-                numbers.append(float(n.replace(',', '')))
-            except Exception:
-                pass
-
-        # Look for profit math: find any a, b where a - b ≈ some c in the page
-        profit_math_ok = False
-        for i, a in enumerate(numbers):
-            for j, b in enumerate(numbers):
-                if i == j or b >= a:
-                    continue
-                diff = round(a - b, 2)
-                if any(abs(n - diff) < 0.05 for n in numbers):
-                    profit_math_ok = True
-                    break
-
-        record("TC-037", "P&L", "Profit = Revenue - Total Costs",
-               "PASS" if profit_math_ok else "FAIL",
-               "Profit calculated correctly",
-               f"numbers_on_page={numbers[:10]}", screenshot=shot)
-
-        # TC-038  Gross margin % shown
-        margin_label = bool(re.search(r'margin|profit\s*%', body, re.I))
-        pct_values = re.findall(r'[\d.]+\s*%', body)
-        record("TC-038", "P&L", "Gross margin % displayed",
-               "PASS" if margin_label and pct_values else "FAIL",
-               "Margin % visible on P&L",
-               f"margin_label={margin_label} pct_values={pct_values[:5]}", screenshot=shot)
-
-        # TC-039  Date range filter
-        navigate_to(page, "Report") or navigate_to(page, "Reports")
-        wait_nav(page)
-        body2 = page_text(page)
-        shot2 = ss(page, "TC039_date_filter")
-        has_date_filter = any(w in body2.lower() for w in ["date", "from", "to", "period", "range", "filter"])
-        record("TC-039", "P&L", "Date range filter available in reports",
-               "PASS" if has_date_filter else "FAIL",
-               "Date range filter present",
-               f"has_filter={has_date_filter}", screenshot=shot2)
-
-        # TC-040  Margin % formula: (Revenue - Cost) / Revenue × 100
-        # Already checked above; verify formula correctness if we have numbers
-        for i, rev in enumerate(numbers):
-            for j, cost in enumerate(numbers):
-                if cost >= rev or i == j:
-                    continue
-                expected_margin = round((rev - cost) / rev * 100, 1)
-                if any(abs(float(p.replace('%','').strip()) - expected_margin) < 0.5 for p in pct_values):
-                    record("TC-040", "P&L", "Gross margin % formula correct",
-                           "PASS", f"{expected_margin}%",
-                           f"Rev={rev} Cost={cost} Margin={expected_margin}%", screenshot=shot)
-                    break
-            else:
-                continue
-            break
-        else:
-            record("TC-040", "P&L", "Gross margin % formula correct",
-                   "FAIL", "Margin% = (Rev-Cost)/Rev × 100",
-                   f"Could not verify. numbers={numbers[:6]} pcts={pct_values[:3]}", screenshot=shot)
-
-    except Exception as e:
-        ss(page, "pl_error")
-        for tc in ["TC-037","TC-038","TC-039","TC-040"]:
-            record(tc, "P&L", tc, "ERROR", "", str(e)[:300])
-    finally:
-        page.close()
-
-
-def test_quotes(browser: Browser):
-    print("\n── QUOTES ──")
-    page = browser.new_page()
-    page.set_default_timeout(TIMEOUT)
-    try:
-        login(page)
-        nav_ok = navigate_to(page, "Quote") or navigate_to(page, "Quotes")
-        shot = ss(page, "TC029_quotes_page")
-        body = page_text(page)
-
-        # TC-029  Quote page exists
-        record("TC-029", "Quote Builder", "Quotes page accessible",
-               "PASS" if nav_ok else "FAIL",
-               "Quotes section accessible",
-               f"nav_ok={nav_ok} | url={page.url}", screenshot=shot)
-
-        # TC-030  New quote form
-        new_ok = find_and_click_new(page, "Quote")
-        time.sleep(1)
-        shot2 = ss(page, "TC030_new_quote")
-        body2 = page_text(page)
-        has_fields = any(w in body2.lower() for w in ["client","labour","material","total","gst","amount"])
-        record("TC-030", "Quote Builder", "New quote form has relevant fields",
-               "PASS" if (new_ok and has_fields) else "FAIL",
-               "Form with client, labour, material, GST fields",
-               f"new_ok={new_ok} has_fields={has_fields}", screenshot=shot2)
-
-        # TC-031  GST visible on quote
-        gst_visible = bool(re.search(r'gst|tax', body2, re.I))
-        record("TC-031", "Quote Builder", "GST field/line visible on quote form",
-               "PASS" if gst_visible else "FAIL",
-               "GST shown on quote",
-               f"gst_visible={gst_visible}", screenshot=shot2)
-
-        # TC-032  Quote total math: check any numbers shown
-        amounts = re.findall(r'\$?([\d,]+\.?\d{2})', body2)
-        record("TC-032", "Quote Builder", "Quote amount fields present",
-               "PASS" if len(amounts) > 0 else "FAIL",
-               "Monetary fields visible", f"amounts={amounts[:6]}", screenshot=shot2)
-
-    except Exception as e:
-        ss(page, "quotes_error")
-        for tc in ["TC-029","TC-030","TC-031","TC-032"]:
-            record(tc, "Quote Builder", tc, "ERROR", "", str(e)[:300])
-    finally:
-        page.close()
-
-
-def test_invoices(browser: Browser):
-    print("\n── INVOICES ──")
-    page = browser.new_page()
-    page.set_default_timeout(TIMEOUT)
-    try:
-        login(page)
-        nav_ok = navigate_to(page, "Invoice") or navigate_to(page, "Invoices")
-        shot = ss(page, "TC033_invoices_page")
-        body = page_text(page)
-
-        # TC-033  Invoice page accessible
-        record("TC-033", "Invoice", "Invoices page accessible",
-               "PASS" if nav_ok else "FAIL",
-               "Invoice section accessible",
-               f"nav_ok={nav_ok} url={page.url}", screenshot=shot)
-
-        # TC-034  GST line on invoice
-        gst_visible = bool(re.search(r'gst|tax', body, re.I))
-        record("TC-034", "Invoice", "GST line present on invoices",
-               "PASS" if gst_visible else "FAIL",
-               "GST label visible", f"gst={gst_visible}", screenshot=shot)
-
-        # TC-035  Invoice status field
-        status_visible = bool(re.search(r'paid|unpaid|status|outstanding|due', body, re.I))
-        record("TC-035", "Invoice", "Invoice status field present",
-               "PASS" if status_visible else "FAIL",
-               "Paid/Unpaid status visible", f"status={status_visible}", screenshot=shot)
-
-        # TC-036  Create invoice – check form fields
-        find_and_click_new(page, "Invoice")
-        time.sleep(1)
-        shot2 = ss(page, "TC036_new_invoice")
-        body2 = page_text(page)
-        has_fields = any(w in body2.lower() for w in ["client","amount","total","gst","due","date"])
-        record("TC-036", "Invoice", "New invoice form has required fields",
-               "PASS" if has_fields else "FAIL",
-               "Client, amount, GST, due date fields",
-               f"has_fields={has_fields}", screenshot=shot2)
-
-    except Exception as e:
-        ss(page, "invoices_error")
-        for tc in ["TC-033","TC-034","TC-035","TC-036"]:
-            record(tc, "Invoice", tc, "ERROR", "", str(e)[:300])
-    finally:
-        page.close()
-
-
-def test_ui_validation(browser: Browser):
-    print("\n── UI & VALIDATION ──")
-    page = browser.new_page()
-    page.set_default_timeout(TIMEOUT)
-    try:
-        login(page)
-
-        # TC-053  Date format DD/MM/YYYY
-        body = page_text(page)
-        shot = ss(page, "TC053_date_format")
-        # Australian dates: look for DD/MM/YYYY pattern (day ≤ 31, month ≤ 12)
-        aus_dates = re.findall(r'\b([0-2]?\d)/([01]?\d)/(\d{4})\b', body)
-        us_dates  = re.findall(r'\b([01]?\d)/([0-3]?\d)/(\d{4})\b', body)
-        record("TC-053", "UI/Navigation", "Date format DD/MM/YYYY (Australian)",
-               "PASS" if aus_dates else "FAIL",
-               "Dates as DD/MM/YYYY",
-               f"aus_dates={aus_dates[:3]}", screenshot=shot)
-
-        # TC-054  Mobile viewport (375px)
-        page.set_viewport_size({"width": 375, "height": 812})
-        time.sleep(0.5)
-        shot2 = ss(page, "TC054_mobile_viewport")
-        body2 = page_text(page)
-        # Check no horizontal overflow (basic check: body accessible)
-        record("TC-054", "UI/Navigation", "Mobile viewport 375px – content accessible",
-               "PASS" if len(body2) > 50 else "FAIL",
-               "Content readable at 375px", f"body_len={len(body2)}", screenshot=shot2)
-
-        # TC-055  No JS console errors on main pages
-        page.set_viewport_size({"width": 1280, "height": 800})
-        js_errors = []
-        page.on("pageerror", lambda e: js_errors.append(str(e)))
-        for section in ["Job", "Quote", "Invoice", "Report"]:
-            navigate_to(page, section)
-            time.sleep(0.5)
-        shot3 = ss(page, "TC055_console_errors")
-        record("TC-055", "UI/Navigation", "No JS errors on main pages",
-               "PASS" if not js_errors else "FAIL",
-               "Zero JS errors", f"errors={js_errors[:3]}", screenshot=shot3)
-
-        # TC-056  Special characters in names
-        navigate_to(page, "Job") or navigate_to(page, "Jobs")
-        find_and_click_new(page, "Job")
-        time.sleep(1)
-        special_name = "O'Brien & Sons – Test <Job>"
-        for sel in ["input[type='text']", "input[name*='name' i]", "input[placeholder*='name' i]"]:
-            try:
-                if page.locator(sel).first.is_visible(timeout=2000):
-                    page.locator(sel).first.fill(special_name)
-                    break
-            except Exception:
-                pass
-        for sel in ["button:has-text('Save')", "button[type='submit']"]:
-            try:
-                if page.locator(sel).first.is_visible(timeout=2000):
-                    page.locator(sel).first.click()
-                    wait_nav(page)
-                    break
-            except Exception:
-                pass
-        shot4 = ss(page, "TC056_special_chars")
-        body4 = page_text(page)
-        # Check name saved or at least no crash
-        name_ok = special_name in body4 or "O'Brien" in body4
-        record("TC-056", "UI/Navigation", "Special characters in job name handled",
-               "PASS" if name_ok else "FAIL",
-               f"Name '{special_name}' saved correctly",
-               f"found={name_ok}", screenshot=shot4)
-
-        # TC-057  Browser back button
-        login(page)
-        navigate_to(page, "Job") or navigate_to(page, "Jobs")
-        url_before = page.url
-        page.go_back()
-        time.sleep(1)
-        page.go_forward()
-        time.sleep(1)
-        shot5 = ss(page, "TC057_back_button")
-        body5 = page_text(page)
-        record("TC-057", "UI/Navigation", "Browser back/forward maintains app state",
-               "PASS" if len(body5) > 50 and "error" not in body5.lower() else "FAIL",
-               "No blank/error page after back+forward",
-               f"body_len={len(body5)}", screenshot=shot5)
-
-    except Exception as e:
-        ss(page, "ui_error")
-        for tc in ["TC-053","TC-054","TC-055","TC-056","TC-057"]:
-            record(tc, "UI/Navigation", tc, "ERROR", "", str(e)[:300])
-    finally:
-        page.close()
-
-
-def test_edge_cases(browser: Browser):
-    print("\n── EDGE CASES ──")
-    page = browser.new_page()
-    page.set_default_timeout(TIMEOUT)
-    try:
-        login(page)
-
-        # TC-047  Required fields blank
-        navigate_to(page, "Job") or navigate_to(page, "Jobs")
-        find_and_click_new(page, "Job")
-        time.sleep(1)
-        # Click save without filling anything
-        for sel in ["button:has-text('Save')", "button[type='submit']", "button:has-text('Create')"]:
-            try:
-                if page.locator(sel).first.is_visible(timeout=2000):
-                    page.locator(sel).first.click()
-                    time.sleep(1)
-                    break
-            except Exception:
-                pass
-        shot = ss(page, "TC047_empty_form")
-        body = page_text(page)
-        has_validation = any(w in body.lower() for w in
-                             ["required","invalid","cannot be empty","fill","missing","error"])
-        record("TC-047", "Edge Cases", "Required fields blank → validation error",
-               "PASS" if has_validation else "FAIL",
-               "Validation errors shown",
-               f"has_validation={has_validation} body={body[:200]}", screenshot=shot)
-
-        # TC-048  Large currency values
-        page, ok = open_or_create_job_with_lines(browser)
-        if ok:
-            add_labour_entry(page, hours=10000, rate=500)
-            time.sleep(1)
-            shot2 = ss(page, "TC048_large_values")
-            body2 = page_text(page)
-            found_5m = bool(re.search(r'5[,.]?000[,.]?000|5000000', body2))
-            record("TC-048", "Edge Cases", "Large values: 10,000 hrs × $500 = $5,000,000",
-                   "PASS" if found_5m else "FAIL",
-                   "$5,000,000.00 no overflow",
-                   f"found_5m={found_5m}", screenshot=shot2)
-            page.close()
-        else:
-            record("TC-048", "Edge Cases", "Large values", "SKIP", "", "Could not open job")
-            page.close()
-
-        # TC-049  Decimal rounding: 3 × $33.33 = $99.99
-        page, ok = open_or_create_job_with_lines(browser)
-        if ok:
-            add_labour_entry(page, hours=3, rate=33.33)
-            time.sleep(1)
-            shot3 = ss(page, "TC049_rounding")
-            body3 = page_text(page)
-            found_9999 = bool(re.search(r'99\.99', body3))
-            found_100  = bool(re.search(r'\b100\.00\b', body3))
-            record("TC-049", "Edge Cases", "Decimal rounding: 3 × $33.33 = $99.99",
-                   "PASS" if found_9999 else ("FAIL" if found_100 else "FAIL"),
-                   "$99.99 (not $100.00)",
-                   f"99.99={found_9999} 100.00={found_100}", screenshot=shot3)
-            page.close()
-        else:
-            record("TC-049", "Edge Cases", "Decimal rounding", "SKIP", "", "Could not open job")
-            page.close()
-
-    except Exception as e:
-        ss(page, "edge_error")
-        for tc in ["TC-047","TC-048","TC-049"]:
-            record(tc, "Edge Cases", tc, "ERROR", "", str(e)[:300])
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# MAIN
-# ═════════════════════════════════════════════════════════════════════════════
-def main():
-    print("=" * 70)
-    print("  Job Profit OS – Automated Test Suite")
-    print(f"  {datetime.now().strftime('%d %b %Y %H:%M:%S')}")
-    print("=" * 70)
-
-    with sync_playwright() as p:
-        browser = p.webkit.launch(
-            headless=True,
-            args=["--no-sandbox", "--disable-setuid-sandbox",
-                  "--disable-dev-shm-usage", "--disable-gpu"]
-        )
-
-        # ── Pre-flight: check site is reachable ────────────────────────────
-        print("\n── PRE-FLIGHT CHECK ──")
-        page = browser.new_page()
-        page.set_default_timeout(20_000)
-        try:
-            page.goto(f"{BASE_URL}/login", wait_until="domcontentloaded", timeout=20_000)
-            time.sleep(3)
-            body = page_text(page)
-            print(f"  Site response: {body[:100]}")
-            if "Host not in allowlist" in body or "403" in body:
-                print("\n  ⛔  SITE BLOCKED FROM THIS ENVIRONMENT")
-                print("  The egress proxy returns 403 for vercel.app domains.")
-                print("  Run this script on your local machine instead.\n")
-                record("PRE-FLIGHT", "Connectivity", "Site reachable from this environment",
-                       "FAIL", "HTTP 200 from site",
-                       "403 host_not_allowed – vercel.app blocked by sandbox egress proxy")
-                page.close()
-                browser.close()
-                _save_results()
-                return
-            page.close()
-        except Exception as e:
-            print(f"  Pre-flight error: {e}")
-            page.close()
-
-        # ── Explore app structure ──────────────────────────────────────────
-        print("\n── EXPLORING APP STRUCTURE ──")
-        app_map = explore_app(browser)
-        with open("app_structure.json", "w") as f:
-            json.dump(app_map, f, indent=2, default=str)
-
-        # ── Run all test sections ──────────────────────────────────────────
-        test_auth(browser)
-        test_dashboard(browser)
-        test_jobs(browser)
-        test_labour_calculations(browser)
-        test_material_calculations(browser)
-        test_gst_calculations(browser)
-        test_profit_calculations(browser)
-        test_quotes(browser)
-        test_invoices(browser)
-        test_ui_validation(browser)
-        test_edge_cases(browser)
-
-        browser.close()
-
-    _save_results()
-
-
-def _save_results():
-    # ── Save JSON ──────────────────────────────────────────────────────────
-    with open("test_results.json", "w") as f:
-        json.dump(results, f, indent=2)
-
-    # ── Print summary ─────────────────────────────────────────────────────
-    total  = len(results)
-    passed = sum(1 for r in results if r["status"] == "PASS")
-    failed = sum(1 for r in results if r["status"] == "FAIL")
-    errors = sum(1 for r in results if r["status"] == "ERROR")
-    skipped= sum(1 for r in results if r["status"] == "SKIP")
-
-    print("\n" + "=" * 70)
-    print(f"  RESULTS: {total} tests | ✅ {passed} PASS | ❌ {failed} FAIL | 💥 {errors} ERROR | ⏭  {skipped} SKIP")
-    print(f"  Pass rate: {passed/max(total,1)*100:.1f}%")
-    print(f"  Results saved → test_results.json")
-    print(f"  Screenshots  → {SS_DIR}/")
-    print("=" * 70)
-
-
-if __name__ == "__main__":
-    main()
+'use client'
+import { useState, useEffect, useRef } from 'react'
+
+// ─── Design Tokens ────────────────────────────────────────────────
+const DARK = {
+  bg:'#0D1117', surface:'#161B22', elevated:'#1C2128', overlay:'#21262D',
+  border:'#30363D', borderSub:'#21262D',
+  primary:'#2F81F7', primaryGlow:'rgba(47,129,247,0.15)',
+  success:'#3FB950', successGlow:'rgba(63,185,80,0.12)',
+  warning:'#D29922', warningGlow:'rgba(210,153,34,0.12)',
+  danger:'#F85149', dangerGlow:'rgba(248,81,73,0.12)',
+  text:'#F0F6FC', textSub:'#CDD9E5', textDim:'#8B949E',
+  mono:'"SF Mono","Fira Code",monospace',
+}
+const LIGHT = {
+  bg:'#F6F8FA', surface:'#FFFFFF', elevated:'#F0F2F5', overlay:'#EAEEF2',
+  border:'#D0D7DE', borderSub:'#EAEEF2',
+  primary:'#0969DA', primaryGlow:'rgba(9,105,218,0.1)',
+  success:'#1A7F37', successGlow:'rgba(26,127,55,0.08)',
+  warning:'#9A6700', warningGlow:'rgba(154,103,0,0.08)',
+  danger:'#CF222E', dangerGlow:'rgba(207,34,46,0.08)',
+  text:'#1F2328', textSub:'#656D76', textDim:'#AFB8C1',
+  mono:'"SF Mono","Fira Code",monospace',
+}
+type Theme = typeof DARK
+
+// ─── Shared Utils ─────────────────────────────────────────────────
+function fmt(n:number){if(n>=1000)return'$'+(n/1000).toFixed(1)+'k';return'$'+n.toLocaleString()}
+function weatherEmoji(c:number){if(c===0)return'☀️';if(c<=2)return'⛅';if(c<=3)return'☁️';if(c<=48)return'🌫️';if(c<=67)return'🌧️';return'⛈️'}
+function weatherDesc(c:number,zh:boolean){if(c===0)return zh?'晴天':'Sunny';if(c<=2)return zh?'少云':'Partly cloudy';if(c<=3)return zh?'多云':'Cloudy';if(c<=67)return zh?'有雨':'Rainy';return zh?'雷暴':'Thunderstorm'}
+
+type WeatherData={temp:number,code:number,city:string}|null
+function useWeather(){
+  const [w,setW]=useState<WeatherData>(null)
+  useEffect(()=>{
+    function fetch_(lat:number,lon:number,city:string){
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`)
+        .then(r=>r.json()).then(d=>setW({temp:Math.round(d.current.temperature_2m),code:d.current.weather_code,city})).catch(()=>{})
+    }
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(
+        p=>{fetch(`https://nominatim.openstreetmap.org/reverse?lat=${p.coords.latitude}&lon=${p.coords.longitude}&format=json`).then(r=>r.json()).then(d=>fetch_(p.coords.latitude,p.coords.longitude,d.address?.city||d.address?.town||'My Location')).catch(()=>fetch_(p.coords.latitude,p.coords.longitude,'My Location'))},
+        ()=>fetch_(-31.9505,115.8605,'Perth')
+      )
+    }else fetch_(-31.9505,115.8605,'Perth')
+  },[])
+  return w
+}
+
+// ─── Shared Components ────────────────────────────────────────────
+function PulseDot({color,size=7}:{color:string,size?:number}){
+  const [p,setP]=useState(false)
+  useEffect(()=>{const t=setInterval(()=>setP(x=>!x),1800);return()=>clearInterval(t)},[])
+  return(
+    <div style={{position:'relative',width:size,height:size,flexShrink:0}}>
+      <div style={{position:'absolute',inset:0,borderRadius:'50%',backgroundColor:color,transform:p?'scale(2.4)':'scale(1)',opacity:p?0:0.3,transition:'all 1.8s ease'}}/>
+      <div style={{position:'absolute',inset:0,borderRadius:'50%',backgroundColor:color}}/>
+    </div>
+  )
+}
+
+function Badge({label,type,T}:{label:string,type:'success'|'warning'|'danger'|'info'|'muted',T:Theme}){
+  const cfg={success:{bg:T.successGlow,color:T.success,border:T.successGlow},warning:{bg:T.warningGlow,color:T.warning,border:T.warningGlow},danger:{bg:T.dangerGlow,color:T.danger,border:T.dangerGlow},info:{bg:T.primaryGlow,color:T.primary,border:T.primaryGlow},muted:{bg:T.overlay,color:T.textSub,border:T.border}}[type]
+  return<span style={{fontSize:'10px',fontWeight:600,padding:'2px 6px',borderRadius:'3px',backgroundColor:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`,whiteSpace:'nowrap' as const}}>{label}</span>
+}
+
+function Bar({pct,color,bg}:{pct:number,color:string,bg:string}){
+  return<div style={{height:'2px',backgroundColor:bg,borderRadius:'1px',overflow:'hidden'}}><div style={{width:`${pct}%`,height:'100%',backgroundColor:color}}/></div>
+}
+
+function Section({title,dot,count,action,T,children}:{title:string,dot?:string,count?:number,action?:React.ReactNode,T:Theme,children:React.ReactNode}){
+  return(
+    <div style={{backgroundColor:T.surface,border:`1px solid ${T.border}`,borderRadius:'8px',overflow:'hidden',marginBottom:'16px'}}>
+      <div style={{padding:'11px 16px',borderBottom:`1px solid ${T.border}`,display:'flex',alignItems:'center',gap:'8px',backgroundColor:T.elevated}}>
+        {dot&&<PulseDot color={dot} size={7}/>}
+        <span style={{fontSize:'13px',fontWeight:600,color:T.text}}>{title}</span>
+        {count!==undefined&&<span style={{fontSize:'10px',fontWeight:600,padding:'0 5px',borderRadius:'3px',backgroundColor:T.bg,color:T.textDim,border:`1px solid ${T.border}`,fontFamily:T.mono}}>{count}</span>}
+        {action&&<div style={{marginLeft:'auto'}}>{action}</div>}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+// ─── Onboarding Data ──────────────────────────────────────────────
+const INDUSTRIES=[
+  {key:'tiling',en:'Tiling',zh:'瓷砖/铺贴'},
+  {key:'waterproof',en:'Waterproofing',zh:'防水工程'},
+  {key:'renovation',en:'Renovation',zh:'装修翻新'},
+  {key:'plumbing',en:'Plumbing',zh:'水管工程'},
+  {key:'electrical',en:'Electrical',zh:'电气工程'},
+  {key:'painting',en:'Painting',zh:'油漆工程'},
+  {key:'roofing',en:'Roofing',zh:'屋顶工程'},
+  {key:'landscaping',en:'Landscaping',zh:'园艺绿化'},
+  {key:'carpentry',en:'Carpentry',zh:'木工工程'},
+  {key:'other',en:'Other',zh:'其他'},
+]
+const SIZES=[
+  {key:'1',en:'Just me',zh:'只有我'},
+  {key:'2-5',en:'2–5 people',zh:'2–5 人'},
+  {key:'6-10',en:'6–10 people',zh:'6–10 人'},
+  {key:'11-20',en:'11–20 people',zh:'11–20 人'},
+  {key:'20+',en:'20+ people',zh:'20 人以上'},
+]
+
+// ─── Dashboard Mock Data ───────────────────────────────────────────
+const MOCK_JOBS=[
+  {id:1,name:'pp 的工单',client:'pp',revenue:100,status:'active',daysLeft:12},
+  {id:2,name:'jn 的工单',client:'jn',revenue:4660,status:'active',daysLeft:5},
+  {id:3,name:'kk',client:'oo',revenue:59610,status:'active',daysLeft:2},
+  {id:4,name:'kkkkk 的工单',client:'kkkkk',revenue:0,status:'new',daysLeft:30},
+]
+const MOCK_QUOTES=[
+  {id:1,num:'Q-007',client:'新客户 Mike',amount:3200,status:'draft',date:'今天'},
+  {id:2,num:'Q-006',client:'jn 的工单',amount:10,status:'sent',date:'昨天'},
+  {id:3,num:'Q-001',client:'pp 的工单',amount:80,status:'accepted',date:'3天前'},
+]
+const FEED=[
+  {id:1,cat:'天气',catEn:'Weather',icon:'☀️',title:'本周四五有雨',titleEn:'Rain Thu–Fri',desc:'户外工程注意安排',descEn:'Plan outdoor work',color:'#58A6FF'},
+  {id:2,cat:'税务',catEn:'Tax',icon:'🧾',title:'ATO BAS 截止还有 14 天',titleEn:'ATO BAS due in 14 days',desc:'记得申报本季度 GST',descEn:'Lodge quarterly GST',color:'#F85149'},
+  {id:3,cat:'餐厅',catEn:'Food',icon:'🍜',title:'附近餐厅午市优惠',titleEn:'Nearby lunch deals',desc:'Northbridge 3 家 $12起',descEn:'3 restaurants from $12',color:'#FF6B6B'},
+  {id:4,cat:'工期',catEn:'Jobs',icon:'⚡',title:'2 个工地本周截止',titleEn:'2 sites due this week',desc:'kk (2d) · jn (5d)',descEn:'kk (2d) · jn (5d)',color:'#D29922'},
+]
+
+// ─── SCREEN: Welcome ──────────────────────────────────────────────
+function WelcomeScreen({T,lang,onStart}:{T:Theme,lang:'en'|'zh',onStart:()=>void}){
+  return(
+    <div style={{flex:1,display:'flex',flexDirection:'column' as const,alignItems:'center',justifyContent:'center',padding:'40px 24px',textAlign:'center' as const,minHeight:'70vh'}}>
+      <div style={{width:'72px',height:'72px',background:`linear-gradient(135deg,${T.primary},#58A6FF)`,borderRadius:'20px',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'24px',boxShadow:`0 8px 32px ${T.primaryGlow}`}}>
+        <span style={{fontSize:'36px'}}>🔨</span>
+      </div>
+      <h1 style={{fontSize:'32px',fontWeight:700,color:T.text,margin:'0 0 12px',letterSpacing:'-0.5px'}}>
+        {lang==='en'?'Welcome to CIMO':'欢迎使用 CIMO'}
+      </h1>
+      <p style={{fontSize:'17px',color:T.textSub,margin:'0 0 8px',lineHeight:1.6,maxWidth:'360px'}}>
+        {lang==='en'?'Job profit tracking for tradespeople in Australia.':'澳洲工程人的工单利润追踪工具。'}
+      </p>
+      <p style={{fontSize:'14px',color:T.textDim,margin:'0 0 40px'}}>
+        {lang==='en'?"Let's set up your account in 2 minutes.":'2 分钟完成账号设置。'}
+      </p>
+      <button onClick={onStart}
+        style={{padding:'14px 40px',borderRadius:'10px',border:'none',background:`linear-gradient(135deg,${T.primary},#58A6FF)`,color:'white',fontSize:'16px',fontWeight:600,cursor:'pointer',boxShadow:`0 4px 16px ${T.primaryGlow}`,marginBottom:'16px'}}>
+        {lang==='en'?'Get Started →':'开始设置 →'}
+      </button>
+      <p style={{fontSize:'13px',color:T.textDim}}>
+        {lang==='en'?'Already have an account? ':'已有账号？'}
+        <span style={{color:T.primary,cursor:'pointer',fontWeight:500}}>
+          {lang==='en'?'Sign in':'登录'}
+        </span>
+      </p>
+      {/* Feature highlights */}
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'12px',marginTop:'48px',maxWidth:'440px',width:'100%'}}>
+        {[
+          {icon:'📋',en:'Quote-first workflow',zh:'报价单优先流程'},
+          {icon:'💰',en:'Track receivables',zh:'追踪应收账款'},
+          {icon:'📊',en:'ATO tax ready',zh:'ATO 税务合规'},
+        ].map(f=>(
+          <div key={f.en} style={{backgroundColor:T.elevated,borderRadius:'10px',padding:'14px 10px',border:`1px solid ${T.border}`}}>
+            <p style={{fontSize:'22px',margin:'0 0 6px'}}>{f.icon}</p>
+            <p style={{fontSize:'11px',color:T.textSub,margin:0,lineHeight:1.4}}>{lang==='en'?f.en:f.zh}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── SCREEN: Onboarding Steps ─────────────────────────────────────
+function OnboardingScreen({T,lang,onDone}:{T:Theme,lang:'en'|'zh',onDone:(data:any)=>void}){
+  const [step,setStep]=useState(1)
+  const [industry,setIndustry]=useState('')
+  const [size,setSize]=useState('')
+  const [company,setCompany]=useState('')
+  const [abn,setAbn]=useState('')
+  const [bsb,setBsb]=useState('')
+  const [accountNo,setAccountNo]=useState('')
+  const [accountName,setAccountName]=useState('')
+  const TOTAL=4
+  const t=(en:string,zh:string)=>lang==='en'?en:zh
+  function canNext(){
+    if(step===1)return!!industry
+    if(step===2)return!!size
+    if(step===3)return company.trim().length>0
+    return true
+  }
+
+  function GridBtn({item}:{item:{key:string,en:string,zh:string}}){
+    const selected=industry===item.key
+    return(
+      <button onClick={()=>setIndustry(item.key)}
+        style={{padding:'14px 10px',borderRadius:'8px',cursor:'pointer',border:`2px solid ${selected?T.primary:T.border}`,backgroundColor:selected?(T===LIGHT?'#EBF5FF':'rgba(47,129,247,0.1)'):T.surface,textAlign:'center' as const,transition:'all 0.15s'}}>
+        <p style={{fontSize:'14px',fontWeight:selected?600:400,color:selected?T.primary:T.text,margin:0}}>{lang==='en'?item.en:item.zh}</p>
+      </button>
+    )
+  }
+
+  return(
+    <div style={{flex:1,maxWidth:'480px',margin:'0 auto',padding:'32px 24px 60px',width:'100%'}}>
+      {/* Progress */}
+      <div style={{display:'flex',gap:'6px',marginBottom:'28px'}}>
+        {Array.from({length:TOTAL}).map((_,i)=>(
+          <div key={i} style={{flex:1,height:'3px',borderRadius:'2px',backgroundColor:i<step?T.primary:T.border,transition:'background 0.3s'}}/>
+        ))}
+      </div>
+
+      {/* Step 1: Industry */}
+      {step===1&&(
+        <div>
+          <p style={{fontSize:'11px',fontWeight:600,color:T.textDim,textTransform:'uppercase' as const,letterSpacing:'0.8px',margin:'0 0 10px'}}>{t('Step 1 of 4','第 1 步，共 4 步')}</p>
+          <h1 style={{fontSize:'26px',fontWeight:700,color:T.text,margin:'0 0 8px',letterSpacing:'-0.3px'}}>{t("What's your main trade?",'你的主要工种？')}</h1>
+          <p style={{fontSize:'15px',color:T.textSub,margin:'0 0 24px'}}>{t("We'll tailor CIMO to fit your workflow.",'我们会根据你的工种定制 CIMO。')}</p>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'28px'}}>
+            {INDUSTRIES.map(ind=><GridBtn key={ind.key} item={ind}/>)}
+          </div>
+        </div>
+      )}
+
+      {/* Step 2: Size */}
+      {step===2&&(
+        <div>
+          <p style={{fontSize:'11px',fontWeight:600,color:T.textDim,textTransform:'uppercase' as const,letterSpacing:'0.8px',margin:'0 0 10px'}}>{t('Step 2 of 4','第 2 步，共 4 步')}</p>
+          <h1 style={{fontSize:'26px',fontWeight:700,color:T.text,margin:'0 0 8px',letterSpacing:'-0.3px'}}>{t('How big is your team?','团队有多少人？')}</h1>
+          <p style={{fontSize:'15px',color:T.textSub,margin:'0 0 24px'}}>{t('Helps us set up the right features.','帮助我们开启合适的功能。')}</p>
+          <div style={{display:'flex',flexDirection:'column' as const,gap:'10px',marginBottom:'28px'}}>
+            {SIZES.map(s=>{
+              const sel=size===s.key
+              return(
+                <button key={s.key} onClick={()=>setSize(s.key)}
+                  style={{padding:'14px 18px',borderRadius:'8px',cursor:'pointer',border:`2px solid ${sel?T.primary:T.border}`,backgroundColor:sel?(T===LIGHT?'#EBF5FF':'rgba(47,129,247,0.1)'):T.surface,textAlign:'left' as const,display:'flex',alignItems:'center',justifyContent:'space-between',transition:'all 0.15s'}}>
+                  <span style={{fontSize:'15px',fontWeight:sel?600:400,color:sel?T.primary:T.text}}>{lang==='en'?s.en:s.zh}</span>
+                  {sel&&<span style={{color:T.primary,fontSize:'18px'}}>✓</span>}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Step 3: Company */}
+      {step===3&&(
+        <div>
+          <p style={{fontSize:'11px',fontWeight:600,color:T.textDim,textTransform:'uppercase' as const,letterSpacing:'0.8px',margin:'0 0 10px'}}>{t('Step 3 of 4','第 3 步，共 4 步')}</p>
+          <h1 style={{fontSize:'26px',fontWeight:700,color:T.text,margin:'0 0 8px',letterSpacing:'-0.3px'}}>{t('Set up your company','设置公司信息')}</h1>
+          <p style={{fontSize:'15px',color:T.textSub,margin:'0 0 24px'}}>{t('Appears on your invoices and quotes.','显示在你的发票和报价单上。')}</p>
+          {[
+            {label:t('Company Name','公司名称'),val:company,set:setCompany,ph:t('e.g. Shu Tiling Pty Ltd','例如：Shu Tiling Pty Ltd')},
+            {label:'ABN',val:abn,set:setAbn,ph:'e.g. 12 345 678 901'},
+          ].map(f=>(
+            <div key={f.label} style={{marginBottom:'14px'}}>
+              <label style={{display:'block',fontSize:'13px',fontWeight:600,color:T.text,marginBottom:'6px'}}>{f.label}</label>
+              <input value={f.val} onChange={e=>f.set(e.target.value)} placeholder={f.ph}
+                style={{width:'100%',padding:'11px 14px',borderRadius:'8px',fontSize:'14px',border:`1.5px solid ${T.border}`,backgroundColor:T.surface,color:T.text,outline:'none',boxSizing:'border-box' as const}}/>
+            </div>
+          ))}
+          <div style={{marginTop:'16px',padding:'14px 16px',backgroundColor:T.elevated,borderRadius:'8px',border:`1px solid ${T.border}`}}>
+            <p style={{fontSize:'13px',fontWeight:600,color:T.text,margin:'0 0 12px'}}>🏦 {t('Banking Details','银行信息')}</p>
+            {[
+              {label:t('Account Name','账户名'),val:accountName,set:setAccountName,ph:t('e.g. Shu Tiling','例如：Shu Tiling')},
+              {label:'BSB',val:bsb,set:setBsb,ph:'e.g. 062-000'},
+              {label:t('Account Number','账号'),val:accountNo,set:setAccountNo,ph:'e.g. 1234 5678'},
+            ].map(f=>(
+              <div key={f.label} style={{marginBottom:'10px'}}>
+                <label style={{display:'block',fontSize:'12px',fontWeight:600,color:T.textSub,marginBottom:'5px'}}>{f.label}</label>
+                <input value={f.val} onChange={e=>f.set(e.target.value)} placeholder={f.ph}
+                  style={{width:'100%',padding:'9px 12px',borderRadius:'7px',fontSize:'13px',border:`1px solid ${T.border}`,backgroundColor:T.surface,color:T.text,outline:'none',boxSizing:'border-box' as const}}/>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: Done */}
+      {step===4&&(
+        <div style={{textAlign:'center' as const,paddingTop:'20px'}}>
+          <div style={{width:'72px',height:'72px',borderRadius:'50%',background:'linear-gradient(135deg,#1A7F37,#3FB950)',margin:'0 auto 24px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'36px',boxShadow:'0 4px 20px rgba(63,185,80,0.3)'}}>🎉</div>
+          <h1 style={{fontSize:'28px',fontWeight:700,color:T.text,margin:'0 0 10px'}}>{t("You're all set!",'设置完成！')}</h1>
+          <p style={{fontSize:'15px',color:T.textSub,margin:'0 0 6px'}}>{t('CIMO is ready for your business.','CIMO 已为你的业务准备好了。')}</p>
+          <p style={{fontSize:'13px',color:T.textDim,margin:'0 0 32px'}}>{t('Start by creating your first quote.','从创建第一个报价单开始吧。')}</p>
+          <div style={{backgroundColor:T.elevated,borderRadius:'10px',border:`1px solid ${T.border}`,padding:'18px',textAlign:'left' as const,marginBottom:'28px'}}>
+            <p style={{fontSize:'11px',fontWeight:600,color:T.textDim,textTransform:'uppercase' as const,letterSpacing:'0.6px',margin:'0 0 12px'}}>{t('Your Setup','设置摘要')}</p>
+            {[
+              {label:t('Trade','工种'),value:INDUSTRIES.find(i=>i.key===industry)?.[lang==='en'?'en':'zh']||'—'},
+              {label:t('Team','团队'),value:SIZES.find(s=>s.key===size)?.[lang==='en'?'en':'zh']||'—'},
+              {label:t('Company','公司'),value:company||'—'},
+              {label:'ABN',value:abn||t('Not set','未设置')},
+            ].map(row=>(
+              <div key={row.label} style={{display:'flex',justifyContent:'space-between',padding:'7px 0',borderBottom:`1px solid ${T.border}`}}>
+                <span style={{fontSize:'13px',color:T.textSub}}>{row.label}</span>
+                <span style={{fontSize:'13px',fontWeight:500,color:T.text}}>{row.value}</span>
+              </div>
+            ))}
+          </div>
+          <button onClick={()=>onDone({industry,size,company,abn})}
+            style={{width:'100%',padding:'14px',borderRadius:'8px',border:'none',background:`linear-gradient(135deg,${T.primary},#58A6FF)`,color:'white',fontSize:'15px',fontWeight:600,cursor:'pointer',marginBottom:'10px'}}>
+            {t('Go to Dashboard →','进入仪表盘 →')}
+          </button>
+        </div>
+      )}
+
+      {/* Nav */}
+      {step<4&&(
+        <>
+          <div style={{display:'flex',gap:'10px',marginTop:'8px'}}>
+            {step>1&&<button onClick={()=>setStep(step-1)} style={{flex:1,padding:'13px',borderRadius:'8px',border:`1px solid ${T.border}`,backgroundColor:'transparent',color:T.textSub,fontSize:'14px',fontWeight:500,cursor:'pointer'}}>← {t('Back','返回')}</button>}
+            <button onClick={()=>{if(canNext())setStep(step+1)}} disabled={!canNext()}
+              style={{flex:step>1?2:1,padding:'13px',borderRadius:'8px',border:'none',background:canNext()?`linear-gradient(135deg,${T.primary},#58A6FF)`:T.border,color:canNext()?'white':T.textDim,fontSize:'14px',fontWeight:600,cursor:canNext()?'pointer':'not-allowed'}}>
+              {step===3?t('Finish →','完成 →'):t('Continue →','继续 →')}
+            </button>
+          </div>
+          <p style={{textAlign:'center' as const,marginTop:'14px'}}>
+            <button onClick={()=>onDone({})} style={{background:'none',border:'none',cursor:'pointer',fontSize:'13px',color:T.textDim,textDecoration:'underline'}}>{t('Skip for now','暂时跳过')}</button>
+          </p>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ─── SCREEN: Dashboard ────────────────────────────────────────────
+function DashboardScreen({T,lang,isDark,onToggleDark,weather,userName}:{T:Theme,lang:'en'|'zh',isDark:boolean,onToggleDark:()=>void,weather:WeatherData,userName:string}){
+  const zh=lang==='zh'
+  const [greeting,setGreeting]=useState('')
+  const [date,setDate]=useState('')
+  const [dismissed,setDismissed]=useState<number[]>([])
+  const [done,setDone]=useState<Set<number>>(new Set())
+  const [menuOpen,setMenuOpen]=useState(false)
+  const menuRef=useRef<HTMLDivElement>(null)
+
+  useEffect(()=>{
+    const h=new Date().getHours()
+    setGreeting(h<12?(zh?'早上好':'Good morning'):h<18?(zh?'下午好':'Good afternoon'):(zh?'晚上好':'Good evening'))
+    setDate(new Date().toLocaleDateString(zh?'zh-CN':'en-AU',{month:'long',day:'numeric',weekday:'long'}))
+  },[zh])
+
+  useEffect(()=>{
+    function h(e:MouseEvent){if(menuRef.current&&!menuRef.current.contains(e.target as Node))setMenuOpen(false)}
+    if(menuOpen)document.addEventListener('mousedown',h)
+    return()=>document.removeEventListener('mousedown',h)
+  },[menuOpen])
+
+  const quoteCounts={draft:1,sent:1,accepted:1,rejected:0}
+  const todos=[
+    {id:1,tag:'💰',text:zh?'跟进 kk — bb 逾期付款':'Follow up kk — bb overdue',amount:'$59,610',type:'danger' as const},
+    {id:2,tag:'📋',text:zh?'确认 jn Q-006 报价单':'Confirm jn Q-006 quote',amount:'$10',type:'warning' as const},
+    {id:3,tag:'📤',text:zh?'发送 Mike Q-007 报价单':'Send Mike Q-007 quote',amount:'$3,200',type:'info' as const},
+    {id:4,tag:'🔨',text:zh?'kkkkk 工单现场勘查':'kkkkk site inspection',amount:'',type:'muted' as const},
+  ]
+  const visibleFeed=FEED.filter(f=>!dismissed.includes(f.id))
+  const todoPct=todos.length>0?Math.round((done.size/todos.length)*100):100
+  const typeColor:{[k:string]:string}={danger:T.danger,warning:T.warning,info:T.primary,muted:T.textSub,success:T.success}
+
+  const navItems=[
+    {label:zh?'概览':'Overview',icon:'🏠'},
+    {label:zh?'报价单':'Quotes',icon:'📋'},
+    {label:zh?'工单':'Jobs',icon:'🔨'},
+    {label:zh?'财务':'Finance',icon:'💰'},
+    {label:zh?'税务':'Tax',icon:'📊'},
+    {label:zh?'客户':'Clients',icon:'👥'},
+    {label:zh?'设置':'Settings',icon:'⚙️'},
+  ]
+
+  return(
+    <div style={{minHeight:'100vh',backgroundColor:T.bg,fontFamily:'-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif',color:T.text}}>
+
+      {/* 顶部导航 */}
+      <div style={{position:'sticky',top:0,zIndex:50,backgroundColor:T.surface,borderBottom:`1px solid ${T.border}`,padding:'10px 20px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'16px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+            <div style={{width:'28px',height:'28px',background:`linear-gradient(135deg,${T.primary},#58A6FF)`,borderRadius:'6px',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:'13px'}}>C</div>
+            <span style={{fontWeight:700,color:T.text,fontSize:'15px'}}>CIMO</span>
+          </div>
+          <div style={{width:'1px',height:'18px',backgroundColor:T.border}}/>
+          <div>
+            <p style={{fontSize:'16px',fontWeight:700,color:T.text,margin:'0 0 2px'}}>{greeting}, {userName||'Shu'}</p>
+            <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+              <span style={{fontSize:'11px',color:T.textDim}}>{date}</span>
+              {weather&&(
+                <div style={{display:'flex',alignItems:'center',gap:'4px',padding:'1px 7px',backgroundColor:T.overlay,border:`1px solid ${T.border}`,borderRadius:'20px'}}>
+                  <span style={{fontSize:'11px'}}>📍</span>
+                  <span style={{fontSize:'10px',color:T.textSub}}>{weather.city}</span>
+                  <span style={{width:'1px',height:'8px',backgroundColor:T.border}}/>
+                  <span style={{fontSize:'12px'}}>{weatherEmoji(weather.code)}</span>
+                  <span style={{fontSize:'11px',fontWeight:600,color:T.text,fontFamily:T.mono}}>{weather.temp}°C</span>
+                  <span style={{fontSize:'10px',color:T.textDim}}>{weatherDesc(weather.code,zh)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+          {/* 搜索 */}
+          <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'6px 11px',width:'180px',backgroundColor:T.overlay,border:`1px solid ${T.border}`,borderRadius:'6px'}}>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M10.68 10.68a6 6 0 1 1 .94-.94l3.31 3.31a.67.67 0 0 1-.94.94l-3.31-3.31z" stroke={T.textDim} strokeWidth="1.5"/></svg>
+            <input placeholder={zh?'搜索...':'Search...'} style={{background:'none',border:'none',outline:'none',fontSize:'12px',color:T.text,width:'100%',fontFamily:'inherit'}}/>
+          </div>
+          {/* 汉堡菜单 */}
+          <div ref={menuRef} style={{position:'relative'}}>
+            <button onClick={()=>setMenuOpen(o=>!o)} style={{width:'36px',height:'36px',borderRadius:'6px',border:`1px solid ${T.border}`,backgroundColor:menuOpen?T.elevated:T.overlay,cursor:'pointer',display:'flex',flexDirection:'column' as const,alignItems:'center',justifyContent:'center',gap:'4px'}}>
+              {[0,1,2].map(i=>(
+                <div key={i} style={{width:'14px',height:'1.5px',backgroundColor:T.textSub,borderRadius:'1px',transform:menuOpen?(i===0?'rotate(45deg) translate(4px,4px)':i===2?'rotate(-45deg) translate(4px,-4px)':'scaleX(0)'):'none',transition:'all 0.2s',opacity:menuOpen&&i===1?0:1}}/>
+              ))}
+            </button>
+            {menuOpen&&(
+              <div style={{position:'absolute',top:'calc(100% + 8px)',right:0,width:'220px',backgroundColor:T.surface,border:`1px solid ${T.border}`,borderRadius:'8px',boxShadow:`0 8px 24px rgba(0,0,0,${isDark?0.4:0.15})`,zIndex:100,overflow:'hidden'}}>
+                <div style={{padding:'12px 14px',borderBottom:`1px solid ${T.border}`,backgroundColor:T.elevated,display:'flex',alignItems:'center',gap:'10px'}}>
+                  <div style={{width:'30px',height:'30px',background:`linear-gradient(135deg,${T.primary},#58A6FF)`,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:'12px'}}>S</div>
+                  <div><p style={{fontSize:'12px',fontWeight:600,color:T.text,margin:0}}>{userName||'Shu'}</p><p style={{fontSize:'10px',color:T.textDim,margin:0}}>kkkk@qq.com</p></div>
+                </div>
+                <div style={{padding:'6px'}}>
+                  {navItems.map(item=>(
+                    <div key={item.label} style={{display:'flex',alignItems:'center',gap:'10px',padding:'8px 10px',borderRadius:'5px',cursor:'pointer'}}
+                      onMouseEnter={e=>(e.currentTarget.style.backgroundColor=T.elevated)}
+                      onMouseLeave={e=>(e.currentTarget.style.backgroundColor='transparent')}>
+                      <span style={{fontSize:'14px'}}>{item.icon}</span>
+                      <span style={{fontSize:'13px',color:T.text}}>{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{padding:'8px 10px 10px',borderTop:`1px solid ${T.border}`,display:'flex',gap:'8px'}}>
+                  <button onClick={onToggleDark} style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',padding:'7px',borderRadius:'5px',border:`1px solid ${T.border}`,backgroundColor:T.elevated,cursor:'pointer',fontSize:'12px',color:T.textSub}}>
+                    <span>{isDark?'☀️':'🌙'}</span><span>{isDark?(zh?'亮色':'Light'):(zh?'暗色':'Dark')}</span>
+                  </button>
+                  <button style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'7px',borderRadius:'5px',border:`1px solid ${T.border}`,backgroundColor:T.elevated,cursor:'pointer',fontSize:'12px',color:T.danger}}>{zh?'退出':'Sign out'}</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 主内容 + 右侧 */}
+      <div style={{display:'flex',maxWidth:'1400px',margin:'0 auto'}}>
+
+        {/* 中间内容 */}
+        <div style={{flex:1,minWidth:0,padding:'20px 20px 60px'}}>
+
+          {/* 进行中工单 */}
+          <Section title={zh?'进行中工单':'Active Jobs'} dot={T.primary} count={MOCK_JOBS.length} T={T}
+            action={<span style={{fontSize:'11px',color:T.primary,cursor:'pointer',fontWeight:500}}>{zh?'全部 →':'All →'}</span>}>
+            <div style={{overflowX:'auto'}}>
+              <table style={{width:'100%',borderCollapse:'collapse'}}>
+                <thead>
+                  <tr style={{backgroundColor:T.bg}}>
+                    {[zh?'工单':'Job',zh?'客户':'Client',zh?'收入':'Revenue',zh?'截止':'Deadline',zh?'状态':'Status'].map(h=>(
+                      <th key={h} style={{padding:'8px 16px',fontSize:'10px',fontWeight:600,color:T.textDim,textAlign:'left' as const,borderBottom:`1px solid ${T.border}`,textTransform:'uppercase',letterSpacing:'0.6px'}}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {MOCK_JOBS.map((job,i)=>(
+                    <tr key={job.id} style={{borderTop:i>0?`1px solid ${T.borderSub}`:'none',cursor:'pointer'}}
+                      onMouseEnter={e=>(e.currentTarget.style.backgroundColor=T.elevated)}
+                      onMouseLeave={e=>(e.currentTarget.style.backgroundColor='transparent')}>
+                      <td style={{padding:'11px 16px',fontSize:'13px',fontWeight:500,color:T.primary}}>{job.name}</td>
+                      <td style={{padding:'11px 16px',fontSize:'12px',color:T.textSub}}>{job.client}</td>
+                      <td style={{padding:'11px 16px',fontSize:'13px',fontWeight:600,color:job.revenue>0?T.success:T.textDim,fontFamily:T.mono}}>{job.revenue>0?'+$'+job.revenue.toLocaleString():'—'}</td>
+                      <td style={{padding:'11px 16px',fontSize:'12px',color:job.daysLeft<=5?T.danger:T.textDim,fontFamily:T.mono}}>{job.daysLeft<=5?`⚠ ${job.daysLeft}d`:`${job.daysLeft}d`}</td>
+                      <td style={{padding:'11px 16px'}}><Badge label={job.status==='active'?(zh?'进行中':'Active'):(zh?'新建':'New')} type={job.status==='active'?'muted':'warning'} T={T}/></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Section>
+
+          {/* 报价单 */}
+          <Section title={zh?'报价单':'Quotes'} dot={T.primary} count={MOCK_QUOTES.length} T={T}
+            action={<span style={{fontSize:'11px',color:T.primary,cursor:'pointer',fontWeight:500}}>{zh?'进入模块 →':'View all →'}</span>}>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr'}}>
+              {[
+                {label:zh?'待发送':'Draft',count:quoteCounts.draft,color:T.textSub,bg:T.overlay},
+                {label:zh?'已发送':'Sent',count:quoteCounts.sent,color:T.warning,bg:T.warningGlow},
+                {label:zh?'已接受':'Accepted',count:quoteCounts.accepted,color:T.success,bg:T.successGlow},
+                {label:zh?'已拒绝':'Rejected',count:quoteCounts.rejected,color:T.textDim,bg:'transparent'},
+              ].map((s,i)=>(
+                <div key={s.label} style={{padding:'10px 14px',textAlign:'center' as const,borderRight:i<3?`1px solid ${T.borderSub}`:'none',backgroundColor:s.bg,cursor:'pointer'}}>
+                  <p style={{fontSize:'18px',fontWeight:700,color:s.color,margin:'0 0 2px',fontFamily:T.mono}}>{s.count}</p>
+                  <p style={{fontSize:'10px',color:T.textDim,margin:0}}>{s.label}</p>
+                </div>
+              ))}
+            </div>
+            {MOCK_QUOTES.map(q=>(
+              <div key={q.id} style={{padding:'10px 16px',borderTop:`1px solid ${T.borderSub}`,display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer'}}
+                onMouseEnter={e=>(e.currentTarget.style.backgroundColor=T.elevated)}
+                onMouseLeave={e=>(e.currentTarget.style.backgroundColor='transparent')}>
+                <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                  <span style={{fontSize:'11px',color:T.textDim,fontFamily:T.mono,width:'44px'}}>{q.num}</span>
+                  <div>
+                    <p style={{fontSize:'13px',fontWeight:500,color:T.text,margin:'0 0 1px'}}>{q.client}</p>
+                    <p style={{fontSize:'11px',color:T.textDim,margin:0}}>{q.date}</p>
+                  </div>
+                </div>
+                <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                  <span style={{fontSize:'13px',fontWeight:600,color:T.success,fontFamily:T.mono}}>${q.amount.toLocaleString()}</span>
+                  <Badge label={q.status==='accepted'?(zh?'已接受':'Accepted'):q.status==='sent'?(zh?'已发送':'Sent'):(zh?'草稿':'Draft')} type={q.status==='accepted'?'success':q.status==='sent'?'warning':'muted'} T={T}/>
+                </div>
+              </div>
+            ))}
+          </Section>
+
+          {/* 待收款 */}
+          <div style={{backgroundColor:T.surface,border:`1px solid ${T.border}`,borderLeft:`2px solid ${T.danger}`,borderRadius:'8px',padding:'12px 16px',display:'flex',alignItems:'center',gap:'12px',marginBottom:'16px',background:`linear-gradient(90deg,${T.dangerGlow} 0%,${T.surface} 50%)`}}>
+            <PulseDot color={T.danger}/>
+            <div style={{flex:1}}>
+              <p style={{fontSize:'13px',fontWeight:600,color:T.text,margin:'0 0 2px'}}>💰 {zh?'待收款项':'Accounts Receivable'}</p>
+              <p style={{fontSize:'11px',color:T.textDim,margin:0}}>{zh?'6 张未付 · 1 张逾期':'6 unpaid · 1 overdue'}</p>
+            </div>
+            <span style={{fontSize:'16px',fontWeight:700,color:T.danger,fontFamily:T.mono}}>$60.1k</span>
+            <button style={{backgroundColor:T.dangerGlow,color:T.danger,border:`1px solid ${T.dangerGlow}`,borderRadius:'4px',padding:'6px 12px',fontSize:'11px',fontWeight:600,cursor:'pointer'}}>{zh?'查看':'View'}</button>
+          </div>
+        </div>
+
+        {/* 右侧固定 */}
+        <div className="hidden md:block" style={{width:'260px',flexShrink:0,borderLeft:`1px solid ${T.border}`,backgroundColor:T.surface,position:'sticky',top:'57px',height:'calc(100vh - 57px)',overflowY:'auto'}}>
+
+          {/* 地图 */}
+          <div style={{padding:'10px 14px',borderBottom:`1px solid ${T.border}`,backgroundColor:T.elevated,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            <div style={{display:'flex',alignItems:'center',gap:'6px'}}><PulseDot color={T.success} size={6}/><span style={{fontSize:'12px',fontWeight:600,color:T.textSub,textTransform:'uppercase' as const,letterSpacing:'0.8px'}}>{zh?'项目地图':'Project Map'}</span></div>
+            <span style={{fontSize:'11px',color:T.textDim}}>{weather?.city||'Perth'}</span>
+          </div>
+          <div style={{margin:'10px',backgroundColor:T.bg,borderRadius:'4px',border:`1px solid ${T.border}`,height:'120px',position:'relative',overflow:'hidden'}}>
+            <div style={{position:'absolute',inset:0,backgroundImage:`radial-gradient(circle at 30% 40%,${T.primaryGlow} 0%,transparent 40%),radial-gradient(circle at 70% 65%,${T.successGlow} 0%,transparent 35%)`}}/>
+            <svg width="100%" height="100%" style={{position:'absolute',opacity:isDark?0.07:0.04}}>{[0,20,40,60,80,100].map(x=><line key={x} x1={`${x}%`} y1="0" x2={`${x}%`} y2="100%" stroke={T.border} strokeWidth="0.5"/>)}{[0,25,50,75,100].map(y=><line key={y} x1="0" y1={`${y}%`} x2="100%" y2={`${y}%`} stroke={T.border} strokeWidth="0.5"/>)}</svg>
+            {[{x:'28%',y:'38%',c:T.primary},{x:'63%',y:'52%',c:T.warning},{x:'43%',y:'67%',c:T.success},{x:'17%',y:'58%',c:T.textSub}].map((p,i)=>(
+              <div key={i} style={{position:'absolute',left:p.x,top:p.y,transform:'translate(-50%,-50%)'}}>
+                <PulseDot color={p.c} size={8}/>
+              </div>
+            ))}
+            <div style={{position:'absolute',bottom:'6px',right:'8px'}}><span style={{fontSize:'9px',color:T.textDim,backgroundColor:T.overlay,padding:'2px 6px',borderRadius:'3px',border:`1px solid ${T.border}`}}>{zh?'地图待接入':'Map coming soon'}</span></div>
+          </div>
+          <div style={{padding:'0 10px 6px',display:'flex',gap:'10px',flexWrap:'wrap' as const}}>
+            {[{c:T.primary,l:zh?'进行中':'Active'},{c:T.warning,l:zh?'紧急':'Urgent'},{c:T.success,l:zh?'收尾':'Closing'},{c:T.textSub,l:zh?'新建':'New'}].map(l=>(
+              <div key={l.l} style={{display:'flex',alignItems:'center',gap:'4px'}}><div style={{width:'6px',height:'6px',borderRadius:'50%',backgroundColor:l.c}}/><span style={{fontSize:'10px',color:T.textDim}}>{l.l}</span></div>
+            ))}
+          </div>
+
+          <div style={{height:'1px',backgroundColor:T.border,margin:'4px 10px 10px'}}/>
+
+          {/* 今日待办 */}
+          <div style={{padding:'0 14px 4px'}}>
+            <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'6px'}}><PulseDot color={T.danger} size={6}/><span style={{fontSize:'11px',fontWeight:600,color:T.textSub,textTransform:'uppercase' as const,letterSpacing:'0.8px'}}>{zh?'今日待办':'Today'}</span></div>
+            <Bar pct={todoPct} color={todoPct===100?T.success:T.primary} bg={T.borderSub}/>
+          </div>
+          <div style={{padding:'6px 14px 4px'}}>
+            {todos.map(todo=>(
+              <div key={todo.id} style={{display:'flex',alignItems:'center',gap:'8px',padding:'5px 4px',borderRadius:'4px',marginBottom:'2px',cursor:'pointer',opacity:done.has(todo.id)?0.4:1,transition:'opacity 0.2s'}}
+                onClick={()=>setDone(d=>{const n=new Set(d);n.has(todo.id)?n.delete(todo.id):n.add(todo.id);return n})}
+                onMouseEnter={e=>(e.currentTarget.style.backgroundColor=T.elevated)}
+                onMouseLeave={e=>(e.currentTarget.style.backgroundColor='transparent')}>
+                <div style={{width:'14px',height:'14px',borderRadius:'3px',flexShrink:0,border:`1.5px solid ${done.has(todo.id)?T.success:T.border}`,backgroundColor:done.has(todo.id)?T.successGlow:'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  {done.has(todo.id)&&<span style={{fontSize:'9px',color:T.success}}>✓</span>}
+                </div>
+                <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'space-between',gap:'4px'}}>
+                  <p style={{fontSize:'11px',fontWeight:done.has(todo.id)?400:500,color:done.has(todo.id)?T.textDim:T.text,margin:0,textDecoration:done.has(todo.id)?'line-through':'none',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{todo.tag} {todo.text}</p>
+                  {todo.amount&&<span style={{fontSize:'10px',fontWeight:600,flexShrink:0,color:done.has(todo.id)?T.textDim:typeColor[todo.type],fontFamily:T.mono}}>{todo.amount}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{height:'1px',backgroundColor:T.border,margin:'8px 10px'}}/>
+
+          {/* 资讯 */}
+          <div style={{padding:'0 14px 14px'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}>
+              <span style={{fontSize:'11px',fontWeight:600,color:T.textSub,textTransform:'uppercase' as const,letterSpacing:'0.8px'}}>{zh?'资讯':'Updates'}</span>
+              <span style={{fontSize:'10px',color:T.textDim}}>{visibleFeed.length}</span>
+            </div>
+            {visibleFeed.map(item=>(
+              <div key={item.id} style={{marginBottom:'6px',padding:'7px 9px',backgroundColor:T.bg,borderRadius:'5px',border:`1px solid ${T.border}`,borderLeft:`2px solid ${item.color}`}}>
+                <div style={{display:'flex',alignItems:'flex-start',gap:'7px'}}>
+                  <span style={{fontSize:'14px',flexShrink:0}}>{item.icon}</span>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:'flex',alignItems:'center',gap:'5px',marginBottom:'2px'}}>
+                      <p style={{fontSize:'12px',fontWeight:600,color:T.text,margin:0}}>{zh?item.title:item.titleEn}</p>
+                      <span style={{fontSize:'9px',padding:'1px 4px',borderRadius:'3px',backgroundColor:`${item.color}15`,color:item.color,flexShrink:0}}>{zh?item.cat:item.catEn}</span>
+                    </div>
+                    <p style={{fontSize:'11px',color:T.textSub,margin:0}}>{zh?item.desc:item.descEn}</p>
+                  </div>
+                  <button onClick={()=>setDismissed([...dismissed,item.id])} style={{fontSize:'11px',color:T.textDim,background:'none',border:'none',cursor:'pointer',flexShrink:0}}>✕</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 手机底部导航 */}
+      <div className="flex md:hidden" style={{position:'fixed',bottom:0,left:0,right:0,backgroundColor:T.surface,borderTop:`1px solid ${T.border}`,justifyContent:'space-around',padding:'8px 0 20px'}}>
+        {[{icon:'🏠',label:zh?'概览':'Home'},{icon:'📋',label:zh?'报价':'Quotes'},{icon:'🔨',label:zh?'工单':'Jobs'},{icon:'💰',label:zh?'财务':'Finance'},{icon:'👤',label:zh?'我的':'Me'}].map(item=>(
+          <div key={item.label} style={{display:'flex',flexDirection:'column' as const,alignItems:'center',gap:'2px',padding:'4px 10px',cursor:'pointer'}}>
+            <span style={{fontSize:'18px'}}>{item.icon}</span>
+            <span style={{fontSize:'10px',fontWeight:500,color:T.textDim}}>{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Main Controller ──────────────────────────────────────────────
+type Screen = 'welcome' | 'onboarding' | 'dashboard'
+
+export default function TestComplete() {
+  const [screen, setScreen] = useState<Screen>('welcome')
+  const [isDark, setIsDark] = useState(false)
+  const [lang, setLang] = useState<'en'|'zh'>('en')
+  const [userName, setUserName] = useState('')
+  const weather = useWeather()
+  const T = isDark ? DARK : LIGHT
+
+  // Top bar (persistent across all screens)
+  return (
+    <div style={{minHeight:'100vh',backgroundColor:T.bg,fontFamily:'-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif',color:T.text,transition:'background 0.2s'}}>
+
+      {/* Persistent top bar for welcome + onboarding */}
+      {screen !== 'dashboard' && (
+        <div style={{padding:'12px 20px',display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:`1px solid ${T.border}`,backgroundColor:T.surface,position:'sticky',top:0,zIndex:50}}>
+          <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+            <div style={{width:'28px',height:'28px',background:`linear-gradient(135deg,${T.primary},#58A6FF)`,borderRadius:'6px',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:'13px'}}>C</div>
+            <span style={{fontWeight:700,fontSize:'15px',color:T.text}}>CIMO</span>
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+            <div style={{display:'flex',alignItems:'center',gap:'4px',padding:'4px',borderRadius:'8px',backgroundColor:T.elevated,border:`1px solid ${T.border}`}}>
+              {(['en','zh'] as const).map(l=>(
+                <button key={l} onClick={()=>setLang(l)}
+                  style={{padding:'5px 14px',borderRadius:'5px',border:'none',cursor:'pointer',fontSize:'13px',fontWeight:500,transition:'all 0.15s',backgroundColor:lang===l?T.surface:'transparent',color:lang===l?T.text:T.textSub,boxShadow:lang===l?'0 1px 3px rgba(0,0,0,0.1)':'none'}}>
+                  {l==='en'?'English':'中文'}
+                </button>
+              ))}
+            </div>
+            <button onClick={()=>setIsDark(!isDark)} style={{padding:'6px 10px',borderRadius:'6px',border:`1px solid ${T.border}`,backgroundColor:T.overlay,cursor:'pointer',fontSize:'13px',display:'flex',alignItems:'center',gap:'4px'}}>
+              <span>{isDark?'☀️':'🌙'}</span>
+              <span style={{fontSize:'11px',color:T.textSub}}>{isDark?(lang==='en'?'Light':'亮色'):(lang==='en'?'Dark':'暗色')}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Screen Router */}
+      {screen === 'welcome' && (
+        <WelcomeScreen T={T} lang={lang} onStart={()=>setScreen('onboarding')}/>
+      )}
+      {screen === 'onboarding' && (
+        <OnboardingScreen T={T} lang={lang} onDone={(data)=>{setUserName(data.company||'Shu');setScreen('dashboard')}}/>
+      )}
+      {screen === 'dashboard' && (
+        <DashboardScreen T={T} lang={lang} isDark={isDark} onToggleDark={()=>setIsDark(!isDark)} weather={weather} userName={userName||'Shu'}/>
+      )}
+    </div>
+  )
+}
