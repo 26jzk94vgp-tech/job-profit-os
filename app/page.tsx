@@ -74,7 +74,7 @@ function PulseDot({color,size=7}:{color:string,size?:number}){
   )
 }
 
-function Badge({label,type,T}:{label:string,type:'success'|'warning'|'danger'|'info'|'muted',T:Theme}){
+function Badge({label,type,T}:{label:string,type:'success'|'warning'|'danger'|'info'|'muted',T:Theme,isZh?:boolean}){
   const cfg={success:{bg:T.successGlow,color:T.success,border:T.successGlow},warning:{bg:T.warningGlow,color:T.warning,border:T.warningGlow},danger:{bg:T.dangerGlow,color:T.danger,border:T.dangerGlow},info:{bg:T.primaryGlow,color:T.primary,border:T.primaryGlow},muted:{bg:T.overlay,color:T.textSub,border:T.border}}[type]
   return<span style={{fontSize:'13px',fontWeight:600,padding:'3px 8px',borderRadius:'3px',backgroundColor:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`,whiteSpace:'nowrap' as const}}>{label}</span>
 }
@@ -381,7 +381,7 @@ export default function Dashboard(){
                             {Number(job.revenue)>0?'+$'+Number(job.revenue).toLocaleString():'—'}
                           </td>
                           <td style={{padding:'11px 16px'}}>
-                            <Badge label={job.status==='active'?(zh?'进行中':'Active'):(zh?'新建':'New')} type={job.status==='active'?'muted':'warning'} T={T}/>
+                            <Badge label={job.status==='active'?(zh?'进行中':'Active'):(zh?'新建':'New')} type={job.status==='active'?'muted':'warning'} T={T} isZh={zh}/>
                           </td>
                         </tr>
                       )
@@ -417,7 +417,7 @@ export default function Dashboard(){
                   </div>
                   <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                     {q.total&&<span style={{fontSize:'15px',fontWeight:600,color:T.success,fontFamily:T.mono}}>${Number(q.total).toLocaleString()}</span>}
-                    <Badge label={q.status==='accepted'?(zh?'已接受':'Accepted'):q.status==='sent'?(zh?'已发送':'Sent'):q.status==='rejected'?(zh?'已拒绝':'Rejected'):(zh?'草稿':'Draft')} type={q.status==='accepted'?'success':q.status==='sent'?'warning':q.status==='rejected'?'danger':'muted'} T={T}/>
+                    <Badge label={q.status==='accepted'?(zh?'已接受':'Accepted'):q.status==='sent'?(zh?'已发送':'Sent'):q.status==='rejected'?(zh?'已拒绝':'Rejected'):(zh?'草稿':'Draft')} type={q.status==='accepted'?'success':q.status==='sent'?'warning':q.status==='rejected'?'danger':'muted'} T={T} isZh={zh}/>
                   </div>
                 </div>
               ))
