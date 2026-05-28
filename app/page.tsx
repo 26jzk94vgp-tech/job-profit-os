@@ -484,19 +484,8 @@ export default function Dashboard(){
             </div>
             <span style={{fontSize:'11px',color:T.textDim}}>{weather?.city||'Perth'}</span>
           </div>
-          <div style={{margin:'10px',backgroundColor:T.bg,borderRadius:'4px',border:`1px solid ${T.border}`,height:'120px',position:'relative',overflow:'hidden'}}>
-            <div style={{position:'absolute',inset:0,backgroundImage:`radial-gradient(circle at 30% 40%,${T.primaryGlow} 0%,transparent 40%),radial-gradient(circle at 70% 65%,${T.successGlow} 0%,transparent 35%)`}}/>
-            <svg width="100%" height="100%" style={{position:'absolute',opacity:isDark?0.07:0.04}}>
-              {[0,20,40,60,80,100].map(x=><line key={x} x1={`${x}%`} y1="0" x2={`${x}%`} y2="100%" stroke={T.border} strokeWidth="0.5"/>)}
-              {[0,25,50,75,100].map(y=><line key={y} x1="0" y1={`${y}%`} x2="100%" y2={`${y}%`} stroke={T.border} strokeWidth="0.5"/>)}
-            </svg>
-            {activeJobs.slice(0,4).map((job,i)=>{
-              const positions=[{x:'28%',y:'38%'},{x:'63%',y:'52%'},{x:'43%',y:'67%'},{x:'17%',y:'58%'}]
-              const colors=[T.primary,T.warning,T.success,T.textSub]
-              const pos=positions[i]||{x:'50%',y:'50%'}
-              return<div key={job.id} style={{position:'absolute',left:pos.x,top:pos.y,transform:'translate(-50%,-50%)'}}><PulseDot color={colors[i]||T.textSub} size={8}/></div>
-            })}
-            <div style={{position:'absolute',bottom:'6px',right:'8px'}}><span style={{fontSize:'9px',color:T.textDim,backgroundColor:T.overlay,padding:'2px 6px',borderRadius:'3px',border:`1px solid ${T.border}`}}>{zh?'地图待接入':'Map coming soon'}</span></div>
+          <div style={{margin:'10px',height:'150px',borderRadius:'4px',overflow:'hidden',border:`1px solid ${T.border}`}}>
+            <JobMap jobs={activeJobs} isDark={isDark}/>
           </div>
           <div style={{padding:'0 10px 6px',display:'flex',gap:'10px',flexWrap:'wrap' as const}}>
             {[{c:T.primary,l:zh?'进行中':'Active'},{c:T.warning,l:zh?'紧急':'Urgent'},{c:T.success,l:zh?'收尾':'Closing'},{c:T.textSub,l:zh?'新建':'New'}].map(l=>(
