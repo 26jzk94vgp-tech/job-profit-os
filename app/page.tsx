@@ -171,17 +171,20 @@ export default function Dashboard(){
 
   useEffect(()=>{
     async function load(){
-      const {data:{user}}=await supabase.auth.getUser()
-      if(user){
-        const {data:profile}=await supabase.from('profiles').select('company_name').eq('id',user.id).single()
-        if(profile?.company_name)setUserName(profile.company_name)
-        else if(user.email)setUserName(user.email.split('@')[0])
-      }
-      const [{data:jobData},{data:quoteData},{data:entryData}]=await Promise.all([
-        supabase.from('job_summary').select('*'),
-        supabase.from('quotes').select('*').order('created_at',{ascending:false}),
-        supabase.from('job_entries').select('*,jobs(name)').in('type',['invoice','material','subcontract','labor','fuel']),
+      const [{data:{user}},[{data:jobData},{data:quoteData},{data:entryData}]]=await Promise.all([
+        supabase.auth.getUser(),
+        Promise.all([
+          supabase.from('job_summary').select('id,name,client_name,status,revenue,profit,site_address,due_date'),
+          supabase.from('quotes').select('id,quote_number,client_name,status,total,created_at,deposit_paid').order('created_at',{ascending:false}).limit(10),
+          supabase.from('job_entries').select('id,job_id,type,amount,hours,hourly_rate,payment_status,payment_due_date,jobs(name)').in('type',['invoice']).limit(50),
+        ])
       ])
+      if(user){
+        supabase.from('profiles').select('company_name').eq('id',user.id).single().then(({data:profile})=>{
+          if(profile?.company_name)setUserName(profile.company_name)
+          else if(user.email)setUserName(user.email.split('@')[0])
+        })
+      }
       setJobs(jobData||[])
       setQuotes(quoteData||[])
       setEntries(entryData||[])
