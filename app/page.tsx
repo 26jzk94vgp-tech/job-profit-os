@@ -104,7 +104,7 @@ function StatusDropdown<K extends string>({value,options,onChange,T,isZh=false}:
   return(
     <div style={{position:'relative'}}>
       <button onClick={()=>setOpen(o=>!o)} style={{fontSize:'11px',fontWeight:600,padding:'3px 7px',borderRadius:'4px',backgroundColor:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`,cursor:'pointer',display:'flex',alignItems:'center',gap:'4px',whiteSpace:'nowrap' as const}}>
-        <span>{opt.emoji}</span><span>{lang==='zh'?opt.label:opt.labelEn}</span><span style={{fontSize:'8px',opacity:0.6}}>▾</span>
+        <span>{opt.emoji}</span><span>{isZh?opt.label:opt.labelEn}</span><span style={{fontSize:'8px',opacity:0.6}}>▾</span>
       </button>
       {open&&(<>
         <div style={{position:'fixed',inset:0,zIndex:40}} onClick={()=>setOpen(false)}/>
