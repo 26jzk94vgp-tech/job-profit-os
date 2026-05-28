@@ -97,7 +97,7 @@ function Section({title,dot,count,action,T,children}:{title:string,dot?:string,c
   )
 }
 
-function StatusDropdown<K extends string>({value,options,onChange,T,lang}:{value:K,options:{key:K,label:string,labelEn:string,emoji:string,type:'success'|'muted'|'warning'|'danger'}[],onChange:(v:K)=>void,T:Theme,lang:string}:{value:K,options:{key:K,label:string,labelEn:string,emoji:string,type:'success'|'muted'|'warning'|'danger'}[],onChange:(v:K)=>void,T:Theme}){
+function StatusDropdown<K extends string>({value,options,onChange,T,isZh=false}:{value:K,options:{key:K,label:string,labelEn:string,emoji:string,type:'success'|'muted'|'warning'|'danger'}[],onChange:(v:K)=>void,T:Theme,isZh?:boolean}){
   const [open,setOpen]=useState(false)
   const opt=options.find(o=>o.key===value)!
   const cfg={success:{bg:T.successGlow,color:T.success,border:T.successGlow},muted:{bg:T.overlay,color:T.textSub,border:T.border},warning:{bg:T.warningGlow,color:T.warning,border:T.warningGlow},danger:{bg:T.dangerGlow,color:T.danger,border:T.dangerGlow}}[opt.type]
