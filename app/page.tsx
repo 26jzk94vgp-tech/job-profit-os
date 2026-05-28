@@ -604,8 +604,8 @@ export default function Dashboard(){
                 </div>
                 {expanded===item.id&&<div style={{padding:'6px 9px 9px 9px',borderTop:`1px solid ${T.borderSub}`}}>
                   {(item.id>=1000)&&<div>
-                    {(zh?(item as any).desc:(item as any).descEn||'').split('\n').filter(Boolean).map((r:string,i:number)=>(
-                      <p key={i} style={{fontSize:'11px',color:T.textSub,margin:'3px 0'}}>{item.cat==='咖啡'||item.catEn==='Coffee'?'☕':'🍽'} {r}</p>
+                    {(zh?(item as any).desc:(item as any).descEn||'').split(/\n|(?<=\$\d+)\s+(?=[A-Z]|[\u4e00-\u9fa5])/).filter(Boolean).map((r:string,i:number)=>(
+                      <p key={i} style={{fontSize:'11px',color:T.textSub,margin:'4px 0',paddingBottom:'4px',borderBottom:i<2?`1px solid ${T.borderSub}`:'none'}}>{item.cat==='咖啡'||item.catEn==='Coffee'?'☕':'🍽'} {r.trim()}</p>
                     ))}
                   </div>}
                   {(item as any).link&&<a href={(item as any).link} target="_blank" rel="noreferrer" style={{fontSize:'11px',color:T.primary,textDecoration:'none',display:'block',marginTop:'4px'}}>阅读原文 →</a>}
