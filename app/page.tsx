@@ -424,7 +424,7 @@ export default function Dashboard(){
                   <tbody>
                     {filteredJobs.map((job,i)=>{
                       const meta=jobMeta[job.id]||{mat:'pending',pay:'unpaid'}
-                      const daysLeft=job.due_date?Math.ceil((new Date(job.due_date).getTime()-Date.now())/(1000*60*60*24)):null
+                      const daysLeft=job.earliest_due_date?Math.ceil((new Date(job.earliest_due_date).getTime()-Date.now())/(1000*60*60*24)):null
                       const isUrgent=daysLeft!==null&&daysLeft<=5
                       return(
                         <tr key={job.id} style={{borderTop:i>0?`1px solid ${T.borderSub}`:'none',cursor:'pointer'}}
