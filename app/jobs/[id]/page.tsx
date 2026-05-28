@@ -25,6 +25,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   const [draftStart, setDraftStart] = useState('')
   const [draftEnd, setDraftEnd] = useState('')
   const [convertingQuote, setConvertingQuote] = useState<string | null>(null)
+  const [filterMatStatus, setFilterMatStatus] = useState<string>('all')
 
   useEffect(() => {
     supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }) => setJob(data))
@@ -364,12 +365,24 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
         {/* ── 条目 ── */}
         {activeTab === 'entries' && (
           <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent">
-            <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C]">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C] flex items-center justify-between flex-wrap gap-2">
               <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '条目' : 'Entries'}</h2>
+              <select value={filterMatStatus} onChange={e=>setFilterMatStatus(e.target.value)} className="text-xs border border-gray-200 dark:border-[#3A3A3C] rounded-lg px-2 py-1 bg-white dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93]">
+                <option value="all">{lang==='zh'?'全部条目':'All Entries'}</option>
+                <option value="material_pending">{lang==='zh'?'材料：待到货':'Material: Pending'}</option>
+                <option value="material_received">{lang==='zh'?'材料：已到货':'Material: Received'}</option>
+                <option value="invoice">{lang==='zh'?'发票':'Invoice'}</option>
+                <option value="labor">{lang==='zh'?'人工':'Labour'}</option>
+              </select>
             </div>
             {!entries.length && <div className="px-6 py-8 text-center text-gray-400">{lang === 'zh' ? '还没有条目。' : 'No entries yet.'}</div>}
             <div className="divide-y divide-gray-100 dark:divide-[#3A3A3C]">
-              {entries.map((entry: any) => (
+              {entries.filter((entry: any) => {
+                if(filterMatStatus==='all') return true
+                if(filterMatStatus==='material_pending') return entry.type==='material'&&!entry.material_received
+                if(filterMatStatus==='material_received') return entry.type==='material'&&entry.material_received
+                return entry.type===filterMatStatus
+              }).map((entry: any) => (
                 <div key={entry.id} className="px-6 py-4 flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
