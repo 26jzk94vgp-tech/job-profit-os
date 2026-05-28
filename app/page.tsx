@@ -371,11 +371,11 @@ export default function Dashboard(){
                           </td>
                           <td style={{padding:'11px 16px'}}>
                             <StatusDropdown value={meta.mat} options={MAT_OPTIONS}
-                              onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],mat:s}}))} T={T} lang={lang}/>
+                              onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],mat:s}}))} T={T} lang={lang} isZh={zh}/>
                           </td>
                           <td style={{padding:'11px 16px'}}>
                             <StatusDropdown value={meta.pay} options={PAY_OPTIONS}
-                              onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],pay:s}}))} T={T} lang={lang}/>
+                              onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],pay:s}}))} T={T} lang={lang} isZh={zh}/>
                           </td>
                           <td style={{padding:'11px 16px',fontSize:'15px',fontWeight:600,color:Number(job.revenue)>0?T.success:T.textDim,fontFamily:T.mono}}>
                             {Number(job.revenue)>0?'+$'+Number(job.revenue).toLocaleString():'—'}
