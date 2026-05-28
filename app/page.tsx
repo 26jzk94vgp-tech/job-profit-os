@@ -346,7 +346,13 @@ export default function Dashboard(){
                   ))}
                 </div>
                 <div style={{padding:'8px 10px 10px',borderTop:`1px solid ${T.border}`,display:'flex',gap:'8px'}}>
-                  <button onClick={()=>setIsDark(!isDark)} style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',padding:'7px',borderRadius:'5px',border:`1px solid ${T.border}`,backgroundColor:T.elevated,cursor:'pointer',fontSize:'12px',color:T.textSub}}>
+                  <button onClick={()=>{
+                    const next=!isDark
+                    setIsDark(next)
+                    localStorage.setItem('darkMode',String(next))
+                    if(next) document.documentElement.classList.add('dark')
+                    else document.documentElement.classList.remove('dark')
+                  }} style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',padding:'7px',borderRadius:'5px',border:`1px solid ${T.border}`,backgroundColor:T.elevated,cursor:'pointer',fontSize:'12px',color:T.textSub}}>
                     <span>{isDark?'☀️':'🌙'}</span><span>{isDark?(zh?'亮色':'Light'):(zh?'暗色':'Dark')}</span>
                   </button>
                   <Link href="/auth/signout" style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'7px',borderRadius:'5px',border:`1px solid ${T.border}`,backgroundColor:T.elevated,textDecoration:'none',fontSize:'12px',color:T.danger}}>
