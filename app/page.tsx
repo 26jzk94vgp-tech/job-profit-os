@@ -113,7 +113,7 @@ function StatusDropdown<K extends string>({value,options,onChange,T,isZh=false}:
             const c={success:{color:T.success},muted:{color:T.textSub},warning:{color:T.warning},danger:{color:T.danger}}[o.type]
             return<button key={o.key} onClick={()=>{onChange(o.key);setOpen(false)}} style={{width:'100%',display:'flex',alignItems:'center',gap:'8px',padding:'8px 12px',border:'none',backgroundColor:o.key===value?T.overlay:'transparent',cursor:'pointer',textAlign:'left' as const,borderBottom:`1px solid ${T.borderSub}`}}>
               <span style={{fontSize:'13px'}}>{o.emoji}</span>
-              <span style={{fontSize:'12px',fontWeight:o.key===value?600:400,color:c.color}}>{lang==='zh'?o.label:o.labelEn}</span>
+              <span style={{fontSize:'12px',fontWeight:o.key===value?600:400,color:c.color}}>{isZh?o.label:o.labelEn}</span>
               {o.key===value&&<span style={{marginLeft:'auto',fontSize:'10px',color:T.textDim}}>✓</span>}
             </button>
           })}
