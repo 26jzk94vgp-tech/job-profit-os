@@ -147,7 +147,6 @@ export default function Dashboard(){
   const [userName,setUserName]=useState('Shu')
   const [date,setDate]=useState('')
   const [dismissed,setDismissed]=useState<number[]>([])
-  const [expanded,setExpanded]=useState<number[]>([])
   const [newsItems,setNewsItems]=useState<any[]>([])
   const [done,setDone]=useState<Set<string>>(new Set())
   const [menuOpen,setMenuOpen]=useState(false)
@@ -577,9 +576,7 @@ export default function Dashboard(){
               <span style={{fontSize:'10px',color:T.textDim}}>{visibleFeed.length}</span>
             </div>
             {visibleFeed.map(item=>(
-              <div key={item.id} style={{marginBottom:'6px',backgroundColor:T.bg,borderRadius:'5px',border:`1px solid ${T.border}`,borderLeft:`2px solid ${item.color}`,overflow:'hidden'}}>
-                <div onClick={()=>setExpanded(e=>e.includes(item.id)?e.filter(x=>x!==item.id):[...e,item.id])} style={{padding:'7px 9px',cursor:'pointer',display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'4px'}}>
-                <div style={{flex:1}}>
+              <div key={item.id} onClick={()=>{const link=(item as any).link;if(link)window.open(link,'_blank')}} style={{marginBottom:'6px',padding:'7px 9px',backgroundColor:T.bg,borderRadius:'5px',border:`1px solid ${T.border}`,borderLeft:`2px solid ${item.color}`,cursor:(item as any).link?'pointer':'default'}}>
                 <div style={{display:'flex',alignItems:'flex-start',gap:'7px'}}>
                   <span style={{fontSize:'14px',flexShrink:0}}>{item.icon}</span>
                   <div style={{flex:1,minWidth:0}}>
