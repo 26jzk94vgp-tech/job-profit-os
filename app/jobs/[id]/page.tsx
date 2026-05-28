@@ -317,7 +317,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
                 </div>
                 <button onClick={saveDates} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">{lang === 'zh' ? '保存日期' : 'Save Dates'}</button>
               </div>
-            ) : jobDates.start && jobDates.end && timelineProgress ? (
+            ) : jobDates.end && timelineProgress ? (
               <div>
                 <div className="flex justify-between text-xs text-[#8E8E93] mb-2">
                   <span>{jobDates.start}</span>
