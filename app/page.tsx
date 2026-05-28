@@ -147,6 +147,7 @@ export default function Dashboard(){
   const [userName,setUserName]=useState('Shu')
   const [date,setDate]=useState('')
   const [dismissed,setDismissed]=useState<number[]>([])
+  const [expanded,setExpanded]=useState<number|null>(null)
   const [newsItems,setNewsItems]=useState<any[]>([])
   const [done,setDone]=useState<Set<string>>(new Set())
   const [menuOpen,setMenuOpen]=useState(false)
@@ -576,8 +577,8 @@ export default function Dashboard(){
               <span style={{fontSize:'10px',color:T.textDim}}>{visibleFeed.length}</span>
             </div>
             {visibleFeed.map(item=>(
-              <div key={item.id} onClick={()=>{const link=(item as any).link;if(link)window.open(link,'_blank')}} style={{marginBottom:'6px',padding:'7px 9px',backgroundColor:T.bg,borderRadius:'5px',border:`1px solid ${T.border}`,borderLeft:`2px solid ${item.color}`,cursor:(item as any).link?'pointer':'default'}}>
-                <div style={{display:'flex',alignItems:'flex-start',gap:'7px'}}>
+              <div key={item.id} style={{marginBottom:'6px',backgroundColor:T.bg,borderRadius:'5px',border:`1px solid ${T.border}`,borderLeft:`2px solid ${item.color}`}}>
+                <div onClick={()=>setExpanded(expanded===item.id?null:item.id)} style={{padding:'7px 9px',cursor:'pointer',display:'flex',alignItems:'flex-start',gap:'7px'}}>
                   <span style={{fontSize:'14px',flexShrink:0}}>{item.icon}</span>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:'flex',alignItems:'center',gap:'5px',marginBottom:'2px'}}>
@@ -586,8 +587,14 @@ export default function Dashboard(){
                     </div>
                     <p style={{fontSize:'11px',color:T.textSub,margin:0}}>{zh?item.desc:item.descEn}</p>
                   </div>
-                  <button onClick={()=>setDismissed([...dismissed,item.id])} style={{fontSize:'11px',color:T.textDim,background:'none',border:'none',cursor:'pointer',flexShrink:0}}>✕</button>
+                  <div style={{display:'flex',flexDirection:'column' as const,alignItems:'center',gap:'2px'}}>
+                    <button onClick={e=>{e.stopPropagation();setDismissed([...dismissed,item.id])}} style={{fontSize:'11px',color:T.textDim,background:'none',border:'none',cursor:'pointer'}}>✕</button>
+                    <span style={{fontSize:'9px',color:T.textDim}}>{expanded===item.id?'▲':'▼'}</span>
+                  </div>
                 </div>
+                {expanded===item.id&&<div style={{padding:'4px 9px 9px 9px',borderTop:`1px solid ${T.borderSub}`}}>
+                  {(item as any).link&&<a href={(item as any).link} target="_blank" rel="noreferrer" style={{fontSize:'11px',color:T.primary,textDecoration:'none'}}>阅读原文 →</a>}
+                </div>}
               </div>
             ))}
           </div>
