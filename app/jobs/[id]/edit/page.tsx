@@ -15,6 +15,7 @@ export default function EditJob({ params }: { params: Promise<{ id: string }> })
   const [siteAddress, setSiteAddress] = useState('')
   const [suggestions, setSuggestions] = useState<any[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const debounceRef = useRef<any>(null)
 
   async function fetchSuggestions(query: string) {
     if (query.length < 3) { setSuggestions([]); return }
@@ -79,7 +80,11 @@ export default function EditJob({ params }: { params: Promise<{ id: string }> })
               <input
                 className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none focus:ring-2 focus:ring-blue-500"
                 value={siteAddress}
-                onChange={(e) => { setSiteAddress(e.target.value); fetchSuggestions(e.target.value) }}
+                onChange={(e) => {
+                  setSiteAddress(e.target.value)
+                  if (debounceRef.current) clearTimeout(debounceRef.current)
+                  debounceRef.current = setTimeout(() => fetchSuggestions(e.target.value), 300)
+                }}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 placeholder="e.g. 123 Murray St, Perth WA 6000"
               />
