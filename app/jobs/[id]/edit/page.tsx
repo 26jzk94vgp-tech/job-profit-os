@@ -13,6 +13,16 @@ export default function EditJob({ params }: { params: Promise<{ id: string }> })
   const [clientName, setClientName] = useState('')
   const [notes, setNotes] = useState('')
   const [siteAddress, setSiteAddress] = useState('')
+  const [suggestions, setSuggestions] = useState<any[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+
+  async function fetchSuggestions(query: string) {
+    if (query.length < 3) { setSuggestions([]); return }
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&addressdetails=1`)
+    const data = await res.json()
+    setSuggestions(data)
+    setShowSuggestions(true)
+  }
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -65,7 +75,26 @@ export default function EditJob({ params }: { params: Promise<{ id: string }> })
           </div>
           <div>
             <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '工地地址' : 'Site Address'}</label>
-            <input className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none focus:ring-2 focus:ring-blue-500" value={siteAddress} onChange={(e) => setSiteAddress(e.target.value)} placeholder="e.g. 123 Murray St, Perth WA 6000" />
+            <div className="relative">
+              <input
+                className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none focus:ring-2 focus:ring-blue-500"
+                value={siteAddress}
+                onChange={(e) => { setSiteAddress(e.target.value); fetchSuggestions(e.target.value) }}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                placeholder="e.g. 123 Murray St, Perth WA 6000"
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-[#2C2C2E] border border-gray-200 dark:border-[#3A3A3C] rounded-lg shadow-lg overflow-hidden">
+                  {suggestions.map((s, i) => (
+                    <button key={i} type="button"
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-[#F2F2F7] hover:bg-gray-50 dark:hover:bg-[#3A3A3C] border-b border-gray-100 dark:border-[#3A3A3C]"
+                      onClick={() => { setSiteAddress(s.display_name); setShowSuggestions(false) }}>
+                      📍 {s.display_name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <div>
             <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '备注' : 'Notes'}</label>
