@@ -19,17 +19,28 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user && !request.nextUrl.pathname.startsWith('/login') && !request.nextUrl.pathname.startsWith('/landing') && !request.nextUrl.pathname.startsWith('/invoice/')) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/landing'
-    return NextResponse.redirect(url)
+    if (!user && 
+      !request.nextUrl.pathname.startsWith('/login') && 
+      !request.nextUrl.pathname.startsWith('/landing') && 
+      !request.nextUrl.pathname.startsWith('/invoice/') &&
+      !request.nextUrl.pathname.startsWith('/auth/')) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/landing'
+      return NextResponse.redirect(url)
+    }
+  } catch (e) {
+    // If auth check fails, allow request to continue
+    console.error('Auth check failed:', e)
   }
 
   return supabaseResponse
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api).*)'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|api|.*\.png|.*\.jpg|.*\.svg|.*\.ico).*)',
+  ],
 }
