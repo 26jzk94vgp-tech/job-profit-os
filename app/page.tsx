@@ -199,7 +199,7 @@ export default function Dashboard(){
       placesLoaded.current=true
       navigator.geolocation.getCurrentPosition(pos=>{
         const {latitude:lat,longitude:lng}=pos.coords
-        // placeholder
+
       },()=>{})
     }
   },[])
