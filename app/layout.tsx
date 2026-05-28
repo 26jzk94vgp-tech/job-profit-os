@@ -5,6 +5,7 @@ import BottomNav from "./components/BottomNav";
 import MobileHeader from "./components/MobileHeader";
 import InstallBanner from "./components/InstallBanner";
 import ServiceWorkerRegistrar from './components/ServiceWorkerRegistrar';
+import DarkModeProvider from './components/DarkModeProvider';
 
 export const metadata: Metadata = {
   title: "CIMO",
