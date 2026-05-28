@@ -97,7 +97,7 @@ function Section({title,dot,count,action,T,children}:{title:string,dot?:string,c
   )
 }
 
-function StatusDropdown<K extends string>({value,options,onChange,T}:{value:K,options:{key:K,label:string,labelEn:string,emoji:string,type:'success'|'muted'|'warning'|'danger'}[],onChange:(v:K)=>void,T:Theme}){
+function StatusDropdown<K extends string>({value,options,onChange,T,lang}:{value:K,options:{key:K,label:string,labelEn:string,emoji:string,type:'success'|'muted'|'warning'|'danger'}[],onChange:(v:K)=>void,T:Theme,lang:string}:{value:K,options:{key:K,label:string,labelEn:string,emoji:string,type:'success'|'muted'|'warning'|'danger'}[],onChange:(v:K)=>void,T:Theme}){
   const [open,setOpen]=useState(false)
   const opt=options.find(o=>o.key===value)!
   const cfg={success:{bg:T.successGlow,color:T.success,border:T.successGlow},muted:{bg:T.overlay,color:T.textSub,border:T.border},warning:{bg:T.warningGlow,color:T.warning,border:T.warningGlow},danger:{bg:T.dangerGlow,color:T.danger,border:T.dangerGlow}}[opt.type]
@@ -371,11 +371,11 @@ export default function Dashboard(){
                           </td>
                           <td style={{padding:'11px 16px'}}>
                             <StatusDropdown value={meta.mat} options={MAT_OPTIONS}
-                              onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],mat:s}}))} T={T}/>
+                              onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],mat:s}}))} T={T} lang={lang}/>
                           </td>
                           <td style={{padding:'11px 16px'}}>
                             <StatusDropdown value={meta.pay} options={PAY_OPTIONS}
-                              onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],pay:s}}))} T={T}/>
+                              onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],pay:s}}))} T={T} lang={lang}/>
                           </td>
                           <td style={{padding:'11px 16px',fontSize:'15px',fontWeight:600,color:Number(job.revenue)>0?T.success:T.textDim,fontFamily:T.mono}}>
                             {Number(job.revenue)>0?'+$'+Number(job.revenue).toLocaleString():'—'}
