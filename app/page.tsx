@@ -186,7 +186,7 @@ export default function Dashboard(){
           color:f.color||'#6E7681',
           link:f.link||null
         }))
-        setNewsItems(prev=>[...prev,...items])
+        setNewsItems(items)
       }
     })
   },[])
