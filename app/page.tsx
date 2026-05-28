@@ -171,6 +171,43 @@ export default function Dashboard(){
   },[menuOpen])
 
   useEffect(()=>{
+    // Fetch nearby restaurants and cafes
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(pos=>{
+        const {latitude:lat,longitude:lng}=pos.coords
+        // Restaurants
+        fetch(`/api/places?lat=${lat}&lng=${lng}&query=restaurant`)
+          .then(r=>r.json()).then(d=>{
+            if(d.results?.length>0){
+              const items=d.results.slice(0,2).map((p:any,i:number)=>({
+                id:200+i,cat:'餐厅',catEn:'Food',icon:'🍜',
+                title:`附近: ${p.name}`,titleEn:`Nearby: ${p.name}`,
+                desc:p.location?.address||p.location?.locality||'附近餐厅',
+                descEn:p.location?.address||p.location?.locality||'Nearby restaurant',
+                color:'#FF6B6B'
+              }))
+              setNewsItems(prev=>[...prev,...items])
+            }
+          }).catch(()=>{})
+        // Cafes  
+        fetch(`/api/places?lat=${lat}&lng=${lng}&query=cafe`)
+          .then(r=>r.json()).then(d=>{
+            if(d.results?.length>0){
+              const item=d.results[0]
+              setNewsItems(prev=>[...prev,{
+                id:300,cat:'咖啡',catEn:'Coffee',icon:'☕',
+                title:`附近: ${item.name}`,titleEn:`Nearby: ${item.name}`,
+                desc:item.location?.address||'附近咖啡',
+                descEn:item.location?.address||'Nearby cafe',
+                color:'#A0522D'
+              }])
+            }
+          }).catch(()=>{})
+      },()=>{})
+    }
+  },[])
+
+  useEffect(()=>{
     fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.abc.net.au/news/feed/51120/rss.xml')
       .then(r=>r.json())
       .then(d=>{
