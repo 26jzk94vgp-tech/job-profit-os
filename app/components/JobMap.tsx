@@ -35,8 +35,8 @@ export default function JobMap({ jobs, isDark }: Props) {
       })
 
       map = L.map(mapRef.current, {
-        center: [-31.9505, 115.8605],
-        zoom: 12,
+        center: [-25.2744, 133.7751],
+        zoom: 5,
         zoomControl: true,
       })
 
@@ -46,7 +46,7 @@ export default function JobMap({ jobs, isDark }: Props) {
 
       jobs.forEach(job => {
         if (!job.site_address) return
-        fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(job.site_address + ', Perth, WA')}&format=json&limit=1`)
+        fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(job.site_address)}&format=json&limit=1`)
           .then(r => r.json())
           .then(data => {
             if (data && data[0]) {
