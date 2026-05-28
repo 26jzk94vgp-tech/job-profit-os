@@ -43,6 +43,21 @@ export default function JobMap({ jobs, isDark }: Props) {
         zoomControl: true,
       })
 
+      // Show user location
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          const { latitude, longitude } = pos.coords
+          const userIcon = L.divIcon({
+            html: '<div style="width:14px;height:14px;background:#2F81F7;border:2px solid white;border-radius:50%;box-shadow:0 0 0 4px rgba(47,129,247,0.3)"></div>',
+            iconSize: [14, 14],
+            iconAnchor: [7, 7],
+            className: ''
+          })
+          L.marker([latitude, longitude], { icon: userIcon }).addTo(map)
+            .bindPopup('📍 You are here')
+        }, () => {})
+      }
+
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap'
       }).addTo(map)
