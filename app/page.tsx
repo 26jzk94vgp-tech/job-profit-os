@@ -603,14 +603,9 @@ export default function Dashboard(){
                   </div>
                 </div>
                 {expanded===item.id&&<div style={{padding:'6px 9px 9px 9px',borderTop:`1px solid ${T.borderSub}`}}>
-                  {item.id===6&&<div>
-                    {['Northbridge 餐厅特惠 $12起','Leederville 午餐 $15','Subiaco 新开泰国餐厅'].map((r,i)=>(
-                      <p key={i} style={{fontSize:'11px',color:T.textSub,margin:'3px 0'}}>🍽 {r}</p>
-                    ))}
-                  </div>}
-                  {item.id===7&&<div>
-                    {['Northbridge 咖啡 $4.5','CBD Single Origin 咖啡','Subiaco 精品咖啡馆'].map((r,i)=>(
-                      <p key={i} style={{fontSize:'11px',color:T.textSub,margin:'3px 0'}}>☕ {r}</p>
+                  {(item.id>=1000)&&<div>
+                    {(zh?(item as any).desc:(item as any).descEn||'').split('\n').filter(Boolean).map((r:string,i:number)=>(
+                      <p key={i} style={{fontSize:'11px',color:T.textSub,margin:'3px 0'}}>{item.cat==='咖啡'||item.catEn==='Coffee'?'☕':'🍽'} {r}</p>
                     ))}
                   </div>}
                   {(item as any).link&&<a href={(item as any).link} target="_blank" rel="noreferrer" style={{fontSize:'11px',color:T.primary,textDecoration:'none',display:'block',marginTop:'4px'}}>阅读原文 →</a>}
