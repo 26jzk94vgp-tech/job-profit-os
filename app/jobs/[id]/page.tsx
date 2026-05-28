@@ -42,7 +42,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   }, [id])
 
   
-  async function toggleMaterialReceived(entryId, current){
+  async function toggleMaterialReceived(entryId: string, current: boolean){
     await supabase.from('job_entries').update({material_received:!current}).eq('id',entryId)
     setEntries(prev=>prev.map(e=>e.id===entryId?{...e,material_received:!current}:e))
   }
