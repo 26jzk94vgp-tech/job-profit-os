@@ -267,7 +267,9 @@ export default function Dashboard(){
   ]
   const todoPct=todos.length>0?Math.round((done.size/todos.length)*100):100
   const typeColor:{[k:string]:string}={danger:T.danger,warning:T.warning,info:T.primary,muted:T.textSub,success:T.success}
-  const allFeed=[...FEED,...newsItems]
+  const placeItems=newsItems.filter((f:any)=>f.cat==='餐厅'||f.cat==='咖啡'||f.catEn==='Food'||f.catEn==='Coffee')
+  const newsOnlyItems=newsItems.filter((f:any)=>f.cat==='新闻'||f.catEn==='News')
+  const allFeed=[...FEED,...placeItems,...newsOnlyItems]
   const visibleFeed=allFeed.filter((f:any)=>!dismissed.includes(f.id))
 
   const navItems=[
