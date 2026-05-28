@@ -29,7 +29,8 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
 
   useEffect(() => {
     supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }) => setJob(data))
-    supabase.from('jobs').select('notes, start_date, end_date').eq('id', id).single().then(({ data }: { data: any }) => {
+    supabase.from('jobs').select('notes, start_date, end_date').eq('id', id).single().then(({ data, error }: { data: any, error: any }) => {
+      console.log('jobs data:', data, 'error:', error)
       if (data) {
         setNotes(data.notes || '')
         setJobDates({ start: data.start_date, end: data.end_date })
