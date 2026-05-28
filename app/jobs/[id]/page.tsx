@@ -40,6 +40,11 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
     loadQuotes()
   }, [id])
 
+  
+  async function toggleMaterialReceived(entryId, current){
+    await supabase.from('job_entries').update({material_received:!current}).eq('id',entryId)
+    setEntries(prev=>prev.map(e=>e.id===entryId?{...e,material_received:!current}:e))
+  }
   async function loadQuotes() {
     const { data } = await supabase
       .from('quotes')
@@ -382,7 +387,8 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
                         <button onClick={() => { const amt = prompt(lang === 'zh' ? '输入已收金额：' : 'Enter amount received:'); if (amt) updatePaymentStatus(entry.id, 'partial', Number(amt)) }} className="text-xs bg-blue-100 dark:bg-[#0A84FF]/20 text-blue-700 dark:text-[#0A84FF] px-2 py-0.5 rounded-full hover:bg-blue-200">{lang === 'zh' ? '部分付款' : 'Partial'}</button>
                       </div>
                     )}
-                    {entry.notes === 'QUOTE_ESTIMATE' && <p className="text-yellow-600 text-xs mt-1">⚠️ {lang === 'zh' ? '报价估算，请确认实际采购价格' : 'Quote estimate — update with actual purchase price'}</p>}
+                    {entry.type==='material'&&(<div className="flex gap-2 mt-1"><button onClick={()=>toggleMaterialReceived(entry.id,entry.material_received)} className={entry.material_received?'text-xs bg-green-100 dark:bg-[#30D158]/20 text-green-700 dark:text-[#30D158] px-2 py-0.5 rounded-full':'text-xs bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93] px-2 py-0.5 rounded-full'}>{entry.material_received?(lang==='zh'?'✓ 已到货':'✓ Received'):(lang==='zh'?'待到货':'Pending')}</button></div>)}
+{entry.notes === 'QUOTE_ESTIMATE' && <p className="text-yellow-600 text-xs mt-1">⚠️ {lang === 'zh' ? '报价估算，请确认实际采购价格' : 'Quote estimate — update with actual purchase price'}</p>}
                     <p className="text-gray-400 text-sm">{formatDate(entry.entry_date)}</p>
                   </div>
                   <div className="flex items-center gap-3">
