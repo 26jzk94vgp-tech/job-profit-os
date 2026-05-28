@@ -3,6 +3,9 @@ import { useState, useEffect, useRef } from 'react'
 import { createClient } from '../utils/supabase/client'
 import Link from 'next/link'
 import { useLanguage } from '../lib/i18n/LanguageContext'
+import dynamic from 'next/dynamic'
+const JobMap = dynamic(() => import('./components/JobMap'), { ssr: false })
+
 
 const DARK = {
   bg:'#0D1117', surface:'#161B22', elevated:'#1C2128', overlay:'#21262D',
