@@ -190,19 +190,21 @@ export default function Dashboard(){
             }
           }).catch(()=>{})
         // Cafes  
-        fetch(`/api/places?lat=${lat}&lng=${lng}&query=cafe`)
-          .then(r=>r.json()).then(d=>{
-            if(d.results?.length>0){
-              const item=d.results[0]
-              setNewsItems(prev=>[...prev,{
-                id:300,cat:'咖啡',catEn:'Coffee',icon:'☕',
-                title:`附近: ${item.name}`,titleEn:`Nearby: ${item.name}`,
-                desc:item.location?.address||'附近咖啡',
-                descEn:item.location?.address||'Nearby cafe',
-                color:'#A0522D'
-              }])
-            }
-          }).catch(()=>{})
+        setTimeout(()=>{
+          fetch(`/api/places?lat=${lat}&lng=${lng}&query=cafe`)
+            .then(r=>r.json()).then(d=>{
+              if(d.results?.length>0){
+                const item=d.results[0]
+                setNewsItems(prev=>[...prev,{
+                  id:300,cat:'咖啡',catEn:'Coffee',icon:'☕',
+                  title:`附近: ${item.name}`,titleEn:`Nearby: ${item.name}`,
+                  desc:item.location?.address||'附近咖啡',
+                  descEn:item.location?.address||'Nearby cafe',
+                  color:'#A0522D'
+                }])
+              }
+            }).catch(()=>{})
+        },500)
       },()=>{})
     }
   },[])
@@ -589,7 +591,7 @@ export default function Dashboard(){
               <span style={{fontSize:'10px',color:T.textDim}}>{visibleFeed.length}</span>
             </div>
             {visibleFeed.map(item=>(
-              <div key={item.id} onClick={()=>(item as any).link&&window.open((item as any).link,'_blank')} style={{marginBottom:'6px',padding:'7px 9px',backgroundColor:T.bg,borderRadius:'5px',border:`1px solid ${T.border}`,borderLeft:`2px solid ${item.color}`,cursor:(item as any).link?'pointer':'default'}}>
+              <div key={item.id} onClick={()=>{const link=(item as any).link;if(link)window.open(link,'_blank')}} style={{marginBottom:'6px',padding:'7px 9px',backgroundColor:T.bg,borderRadius:'5px',border:`1px solid ${T.border}`,borderLeft:`2px solid ${item.color}`,cursor:(item as any).link?'pointer':'default'}}>
                 <div style={{display:'flex',alignItems:'flex-start',gap:'7px'}}>
                   <span style={{fontSize:'14px',flexShrink:0}}>{item.icon}</span>
                   <div style={{flex:1,minWidth:0}}>
