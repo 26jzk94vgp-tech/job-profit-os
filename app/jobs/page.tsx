@@ -98,6 +98,7 @@ export default function Jobs() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20">
       <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700/60 px-6 py-4 hidden md:block">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <Link href="/" className="text-sm text-blue-600 hover:underline">← {lang==="zh"?"返回主页":"Back"}</Link>
           <h1 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '工单列表' : 'Jobs'}</h1>
           <div className="flex items-center gap-2">
             <button
