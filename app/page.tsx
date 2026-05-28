@@ -174,20 +174,13 @@ export default function Dashboard(){
     if(navigator.geolocation){
       navigator.geolocation.getCurrentPosition(pos=>{
         const {latitude:lat,longitude:lng}=pos.coords
-        // Restaurants
-        fetch(`/api/places?lat=${lat}&lng=${lng}&query=restaurant`)
-          .then(r=>r.json()).then(d=>{
-            if(d.results?.length>0){
-              const items=d.results.slice(0,2).map((p:any,i:number)=>({
-                id:200+i,cat:'餐厅',catEn:'Food',icon:'🍜',
-                title:`附近: ${p.name}`,titleEn:`Nearby: ${p.name}`,
-                desc:p.location?.address||p.location?.locality||'附近餐厅',
-                descEn:p.location?.address||p.location?.locality||'Nearby restaurant',
-                color:'#FF6B6B'
-              }))
-              setNewsItems(prev=>[...prev,...items])
-            }
-          }).catch(()=>{})
+        // Restaurant mock
+        setNewsItems(prev=>[...prev,{
+          id:200,cat:'餐厅',catEn:'Food',icon:'🍜',
+          title:'附近餐厅午市优惠',titleEn:'Nearby lunch deals',
+          desc:'Northbridge 3 家餐厅今日特惠 $12起',descEn:'3 restaurants from $12 today',
+          color:'#FF6B6B'
+        }])
         // Cafes
         setNewsItems(prev=>[...prev,{
           id:300,cat:'咖啡',catEn:'Coffee',icon:'☕',
