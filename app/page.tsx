@@ -219,7 +219,6 @@ export default function Dashboard(){
   useEffect(()=>{
     const saved=localStorage.getItem('darkMode')==='true'
     setIsDark(saved)
-    setDarkInited(true)
   },[])
 
   useEffect(()=>{
