@@ -595,7 +595,7 @@ export default function Dashboard(){
                       <p style={{fontSize:'12px',fontWeight:600,color:T.text,margin:0}}>{zh?item.title:item.titleEn}</p>
                       <span style={{fontSize:'9px',padding:'1px 4px',borderRadius:'3px',backgroundColor:`${item.color}15`,color:item.color,flexShrink:0}}>{zh?item.cat:item.catEn}</span>
                     </div>
-                    <p style={{fontSize:'11px',color:T.textSub,margin:0}}>{zh?item.desc:item.descEn}</p>
+                    <p style={{fontSize:'11px',color:T.textSub,margin:0}}>{item.id<1000?(zh?item.desc:item.descEn):''}</p>
                   </div>
                   <div style={{display:'flex',flexDirection:'column' as const,alignItems:'center',gap:'2px'}}>
                     <button onClick={e=>{e.stopPropagation();setDismissed([...dismissed,item.id])}} style={{fontSize:'11px',color:T.textDim,background:'none',border:'none',cursor:'pointer'}}>✕</button>
