@@ -356,7 +356,7 @@ export default function Dashboard(){
                           onMouseEnter={e=>(e.currentTarget.style.backgroundColor=T.elevated)}
                           onMouseLeave={e=>(e.currentTarget.style.backgroundColor='transparent')}>
                           <td style={{padding:'11px 16px'}}>
-                            <Link href={`/jobs/${job.id}`} style={{fontSize:'15px',fontWeight:500,color:T.primary,textDecoration:'none'}}>{job.name}</Link>
+                            <Link href={`/jobs/${job.id}`} style={{fontSize:'15px',fontWeight:500,color:T.primary,textDecoration:'none'}}>{zh?job.name:job.name.replace('的工单','Job')}</Link>
                           </td>
                           <td style={{padding:'11px 16px'}}>
                             {job.site_address&&<div style={{display:'flex',alignItems:'center',gap:'4px',marginBottom:'2px'}}>
