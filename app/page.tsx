@@ -148,6 +148,7 @@ export default function Dashboard(){
   const [userName,setUserName]=useState('Shu')
   const [date,setDate]=useState('')
   const [dismissed,setDismissed]=useState<number[]>([])
+  const [newsItems,setNewsItems]=useState<any[]>([])
   const [done,setDone]=useState<Set<string>>(new Set())
   const [menuOpen,setMenuOpen]=useState(false)
   const [jobMeta,setJobMeta]=useState<Record<string,{mat:MatStatus,pay:PayStatus}>>({})
@@ -168,6 +169,17 @@ export default function Dashboard(){
     if(menuOpen)document.addEventListener('mousedown',h)
     return()=>document.removeEventListener('mousedown',h)
   },[menuOpen])
+
+  useEffect(()=>{
+    fetch('/api/news').then(r=>r.json()).then(d=>{
+      if(d.items&&d.items.length>0) setNewsItems(d.items.map((item:any,i:number)=>({
+        id:100+i,cat:'新闻',catEn:'News',icon:'📰',
+        title:item.title,titleEn:item.title,
+        desc:item.desc||'',descEn:item.desc||'',
+        color:'#6E7681'
+      })))
+    }).catch(()=>{})
+  },[])
 
   useEffect(()=>{
     async function load(){
@@ -223,7 +235,8 @@ export default function Dashboard(){
   ]
   const todoPct=todos.length>0?Math.round((done.size/todos.length)*100):100
   const typeColor:{[k:string]:string}={danger:T.danger,warning:T.warning,info:T.primary,muted:T.textSub,success:T.success}
-  const visibleFeed=FEED.filter(f=>!dismissed.includes(f.id))
+  const allFeed=[...FEED,...newsItems]
+  const visibleFeed=allFeed.filter((f:any)=>!dismissed.includes(f.id))
 
   const navItems=[
     {href:'/',label:zh?'概览':'Overview',icon:'🏠'},
