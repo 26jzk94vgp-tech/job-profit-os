@@ -175,23 +175,7 @@ export default function Dashboard(){
     return()=>document.removeEventListener('mousedown',h)
   },[menuOpen])
 
-  useEffect(()=>{
-    // Fetch feed items from DB
-    supabase.from('feed_items').select('*').eq('active',true).then(({data})=>{
-      if(data&&data.length>0){
-        const items=data.map((f:any)=>({
-          id:1000+f.id,dbId:f.id,
-          cat:f.cat,catEn:f.cat_en,
-          icon:f.icon,
-          title:f.title,titleEn:f.title_en,
-          desc:f.desc||'',descEn:f.desc_en||'',
-          color:f.color||'#6E7681',
-          link:f.link||null
-        }))
-        setNewsItems(prev=>[...prev,...items])
-      }
-    })
-  },[])
+
 
   useEffect(()=>{
     // Fetch nearby restaurants and cafes
