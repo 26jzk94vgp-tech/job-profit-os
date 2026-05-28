@@ -142,6 +142,7 @@ export default function Dashboard(){
   const [quotes,setQuotes]=useState<any[]>([])
   const [entries,setEntries]=useState<any[]>([])
   const [greeting,setGreeting]=useState('')
+  const [userName,setUserName]=useState('Shu')
   const [date,setDate]=useState('')
   const [dismissed,setDismissed]=useState<number[]>([])
   const [done,setDone]=useState<Set<string>>(new Set())
@@ -167,6 +168,12 @@ export default function Dashboard(){
 
   useEffect(()=>{
     async function load(){
+      const {data:{user}}=await supabase.auth.getUser()
+      if(user){
+        const {data:profile}=await supabase.from('profiles').select('company_name').eq('id',user.id).single()
+        if(profile?.company_name)setUserName(profile.company_name)
+        else if(user.email)setUserName(user.email.split('@')[0])
+      }
       const [{data:jobData},{data:quoteData},{data:entryData}]=await Promise.all([
         supabase.from('job_summary').select('*'),
         supabase.from('quotes').select('*').order('created_at',{ascending:false}),
@@ -229,7 +236,7 @@ export default function Dashboard(){
           </div>
           <div style={{width:'1px',height:'18px',backgroundColor:T.border,flexShrink:0}}/>
           <div style={{minWidth:0}}>
-            <p style={{fontSize:'20px',fontWeight:700,color:T.text,margin:'0 0 4px'}}>{greeting}, Shu</p>
+            <p style={{fontSize:'20px',fontWeight:700,color:T.text,margin:'0 0 4px'}}>{greeting}, {userName}</p>
             <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
               <span style={{fontSize:'13px',color:T.textDim}}>{date}</span>
               {weather&&(
