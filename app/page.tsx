@@ -104,7 +104,7 @@ function StatusDropdown<K extends string>({value,options,onChange,T}:{value:K,op
   return(
     <div style={{position:'relative'}}>
       <button onClick={()=>setOpen(o=>!o)} style={{fontSize:'11px',fontWeight:600,padding:'3px 7px',borderRadius:'4px',backgroundColor:cfg.bg,color:cfg.color,border:`1px solid ${cfg.border}`,cursor:'pointer',display:'flex',alignItems:'center',gap:'4px',whiteSpace:'nowrap' as const}}>
-        <span>{opt.emoji}</span><span>{opt.label}</span><span style={{fontSize:'8px',opacity:0.6}}>▾</span>
+        <span>{opt.emoji}</span><span>{lang==='zh'?opt.label:opt.labelEn}</span><span style={{fontSize:'8px',opacity:0.6}}>▾</span>
       </button>
       {open&&(<>
         <div style={{position:'fixed',inset:0,zIndex:40}} onClick={()=>setOpen(false)}/>
@@ -113,7 +113,7 @@ function StatusDropdown<K extends string>({value,options,onChange,T}:{value:K,op
             const c={success:{color:T.success},muted:{color:T.textSub},warning:{color:T.warning},danger:{color:T.danger}}[o.type]
             return<button key={o.key} onClick={()=>{onChange(o.key);setOpen(false)}} style={{width:'100%',display:'flex',alignItems:'center',gap:'8px',padding:'8px 12px',border:'none',backgroundColor:o.key===value?T.overlay:'transparent',cursor:'pointer',textAlign:'left' as const,borderBottom:`1px solid ${T.borderSub}`}}>
               <span style={{fontSize:'13px'}}>{o.emoji}</span>
-              <span style={{fontSize:'12px',fontWeight:o.key===value?600:400,color:c.color}}>{o.label}</span>
+              <span style={{fontSize:'12px',fontWeight:o.key===value?600:400,color:c.color}}>{lang==='zh'?o.label:o.labelEn}</span>
               {o.key===value&&<span style={{marginLeft:'auto',fontSize:'10px',color:T.textDim}}>✓</span>}
             </button>
           })}
