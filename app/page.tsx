@@ -493,7 +493,7 @@ export default function Dashboard(){
 
           {/* Super 提醒 */}
           {superReminder&&(
-            <div style={{backgroundColor:T.surface,border:`1px solid ${T.border}`,borderLeft:`2px solid ${T.warning}`,borderRadius:'8px',padding:'12px 16px',display:'flex',alignItems:'center',gap:'12px',marginBottom:'16px',background:`linear-gradient(90deg,${T.warningGlow} 0%,${T.surface} 50%)`}}>
+            <div style={{backgroundColor:T.surface,borderTop:`1px solid ${T.border}`,borderRight:`1px solid ${T.border}`,borderBottom:`1px solid ${T.border}`,borderLeft:`2px solid ${T.warning}`,borderRadius:'8px',padding:'12px 16px',display:'flex',alignItems:'center',gap:'12px',marginBottom:'16px',background:`linear-gradient(90deg,${T.warningGlow} 0%,${T.surface} 50%)`}}>
               <PulseDot color={T.warning}/>
               <div style={{flex:1}}>
                 <p style={{fontSize:'13px',fontWeight:600,color:T.text,margin:'0 0 2px'}}>{zh?'Super 供款提醒':'Super Contribution Reminder'}</p>
@@ -508,7 +508,7 @@ export default function Dashboard(){
 
           {/* 待收款 */}
           {totalReceivable>0&&(
-            <div style={{backgroundColor:T.surface,border:`1px solid ${T.border}`,borderLeft:`2px solid ${T.danger}`,borderRadius:'8px',padding:'12px 16px',display:'flex',alignItems:'center',gap:'12px',marginBottom:'16px',background:`linear-gradient(90deg,${T.dangerGlow} 0%,${T.surface} 50%)`}}>
+            <div style={{backgroundColor:T.surface,borderTop:`1px solid ${T.border}`,borderRight:`1px solid ${T.border}`,borderBottom:`1px solid ${T.border}`,borderLeft:`2px solid ${T.danger}`,borderRadius:'8px',padding:'12px 16px',display:'flex',alignItems:'center',gap:'12px',marginBottom:'16px',background:`linear-gradient(90deg,${T.dangerGlow} 0%,${T.surface} 50%)`}}>
               <PulseDot color={T.danger}/>
               <div style={{flex:1}}>
                 <p style={{fontSize:'13px',fontWeight:600,color:T.text,margin:'0 0 2px'}}>💰 {zh?'待收款项':'Accounts Receivable'}</p>
@@ -582,7 +582,7 @@ export default function Dashboard(){
               <span style={{fontSize:'10px',color:T.textDim}}>{visibleFeed.length}</span>
             </div>
             {visibleFeed.map(item=>(
-              <div key={item.id} style={{marginBottom:'6px',backgroundColor:T.bg,borderRadius:'5px',border:`1px solid ${T.border}`,borderLeft:`2px solid ${item.color}`}}>
+              <div key={item.id} style={{marginBottom:'6px',backgroundColor:T.bg,borderRadius:'5px',borderTop:`1px solid ${T.border}`,borderRight:`1px solid ${T.border}`,borderBottom:`1px solid ${T.border}`,borderLeft:`2px solid ${item.color}`}}>
                 <div onClick={()=>{if(item.id>=6||(item as any).link)setExpanded(expanded===item.id?null:item.id)}} style={{padding:'7px 9px',cursor:'pointer',display:'flex',alignItems:'flex-start',gap:'7px'}}>
                   <span style={{fontSize:'14px',flexShrink:0}}>{item.icon}</span>
                   <div style={{flex:1,minWidth:0}}>
