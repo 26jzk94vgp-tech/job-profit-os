@@ -20,7 +20,7 @@ export default function JobMap({ jobs, isDark }: Props) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    if (mapInstanceRef.current) return
+    if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null }
 
     import('leaflet').then(L => {
       // Fix marker icons
