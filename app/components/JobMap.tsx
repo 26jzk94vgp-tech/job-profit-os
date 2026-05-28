@@ -35,8 +35,8 @@ export default function JobMap({ jobs, isDark }: Props) {
       })
 
       map = L.map(mapRef.current, {
-        center: [-25.2744, 133.7751],
-        zoom: 5,
+        center: [20, 0],
+        zoom: 2,
         zoomControl: true,
       })
 
