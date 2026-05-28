@@ -207,7 +207,7 @@ export default function Dashboard(){
       .then(d=>{
         if(d.items&&d.items.length>0) setNewsItems(d.items.slice(0,3).map((item:any,i:number)=>({
           id:100+i,cat:'新闻',catEn:'News',icon:'📰',
-          title:item.title,titleEn:item.title,
+          title:item.title,titleEn:item.title,link:item.link,
           desc:item.description?.replace(/<[^>]*>/g,'').slice(0,100)||'',
           descEn:item.description?.replace(/<[^>]*>/g,'').slice(0,100)||'',
           color:'#6E7681'
