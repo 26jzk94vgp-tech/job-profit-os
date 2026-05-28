@@ -490,7 +490,7 @@ export default function Dashboard(){
             </div>
             <span style={{fontSize:'11px',color:T.textDim}}>{weather?.city||'Perth'}</span>
           </div>
-          <div style={{margin:'10px',height:'150px',borderRadius:'4px',overflow:'hidden',border:`1px solid ${T.border}`}}>
+          <div style={{margin:'10px',height:'150px',borderRadius:'4px',border:`1px solid ${T.border}`}}>
             <JobMap jobs={activeJobs} isDark={isDark}/>
           </div>
           <div style={{padding:'0 10px 6px',display:'flex',gap:'10px',flexWrap:'wrap' as const}}>

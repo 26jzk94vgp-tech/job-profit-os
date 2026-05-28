@@ -23,12 +23,15 @@ export default function JobMap({ jobs, isDark }: Props) {
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (!mapRef.current) return
-    if (mapRef.current._leaflet_id) return
-
     const supabase = createClient()
 
     import('leaflet').then(L => {
-      if (mapRef.current._leaflet_id) return
+      // Remove existing map if any
+      if (mapRef.current._leaflet_id) {
+        mapRef.current._leaflet_map?.remove()
+        // clear leaflet id
+        Object.keys(mapRef.current).forEach(k => { if (k.startsWith('_leaflet')) delete mapRef.current[k] })
+      }
 
       delete (L.Icon.Default.prototype as any)._getIconUrl
       L.Icon.Default.mergeOptions({
@@ -105,7 +108,7 @@ export default function JobMap({ jobs, isDark }: Props) {
         mapRef.current._leaflet_map?.remove()
       }
     }
-  }, [])
+  }, [jobs])
 
   return (
     <>
