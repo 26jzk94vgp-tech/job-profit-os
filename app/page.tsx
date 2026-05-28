@@ -189,6 +189,11 @@ export default function Dashboard(){
     load()
   },[])
 
+  async function toggleDeposit(id:string, current:boolean){
+    await supabase.from('quotes').update({deposit_paid:!current}).eq('id',id)
+    setQuotes(prev=>prev.map(q=>q.id===id?{...q,deposit_paid:!current}:q))
+  }
+
   const activeJobs=jobs.filter(j=>j.status==='active'||j.status==='new')
   const unpaidInvoices=entries.filter(e=>e.type==='invoice'&&e.payment_status!=='paid')
   const totalReceivable=unpaidInvoices.reduce((s,e)=>s+Number(e.amount),0)
