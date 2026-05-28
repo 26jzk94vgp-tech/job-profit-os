@@ -430,6 +430,9 @@ export default function Dashboard(){
                   <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                     {q.total&&<span style={{fontSize:'15px',fontWeight:600,color:T.success,fontFamily:T.mono}}>${Number(q.total).toLocaleString()}</span>}
                     <Badge label={q.status==='accepted'?(zh?'已接受':'Accepted'):q.status==='sent'?(zh?'已发送':'Sent'):q.status==='rejected'?(zh?'已拒绝':'Rejected'):(zh?'草稿':'Draft')} type={q.status==='accepted'?'success':q.status==='sent'?'warning':q.status==='rejected'?'danger':'muted'} T={T} isZh={zh}/>
+                  <button onClick={()=>toggleDeposit(q.id,q.deposit_paid)} style={{fontSize:'11px',fontWeight:600,padding:'3px 8px',borderRadius:'3px',backgroundColor:q.deposit_paid?'rgba(63,185,80,0.12)':'rgba(33,38,45,1)',color:q.deposit_paid?'#3FB950':'#8B949E',border:'1px solid '+(q.deposit_paid?'rgba(63,185,80,0.12)':'#30363D'),cursor:'pointer',whiteSpace:'nowrap'}}>
+                    {q.deposit_paid?(zh?'✓ 定金已付':'✓ Deposit Paid'):(zh?'定金未付':'Deposit Unpaid')}
+                  </button>
                   </div>
                 </div>
               ))
