@@ -200,8 +200,8 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   }
 
   const timelineProgress = (() => {
-    if (!jobDates.start || !jobDates.end) return null
-    const start = new Date(jobDates.start)
+    if (!jobDates.end) return null
+    const start = jobDates.start ? new Date(jobDates.start) : new Date()
     const end = new Date(jobDates.end)
     const today = new Date()
     const total = end.getTime() - start.getTime()
