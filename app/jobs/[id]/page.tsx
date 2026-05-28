@@ -73,7 +73,8 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   }
 
   async function saveDates() {
-    await supabase.from('jobs').update({ start_date: draftStart || null, end_date: draftEnd || null }).eq('id', id)
+    const { error } = await supabase.from('jobs').update({ start_date: draftStart || null, end_date: draftEnd || null }).eq('id', id)
+    if (error) { alert('Save failed: ' + error.message); return }
     setJobDates({ start: draftStart || null, end: draftEnd || null })
     setEditingDates(false)
   }
