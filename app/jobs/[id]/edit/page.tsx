@@ -12,6 +12,7 @@ export default function EditJob({ params }: { params: Promise<{ id: string }> })
   const [name, setName] = useState('')
   const [clientName, setClientName] = useState('')
   const [notes, setNotes] = useState('')
+  const [siteAddress, setSiteAddress] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -20,6 +21,7 @@ export default function EditJob({ params }: { params: Promise<{ id: string }> })
         setName(data.name || '')
         setClientName(data.client_name || '')
         setNotes(data.notes || '')
+        setSiteAddress(data.site_address || '')
       }
     })
   }, [id])
@@ -30,7 +32,8 @@ export default function EditJob({ params }: { params: Promise<{ id: string }> })
     const { error } = await supabase.from('jobs').update({
       name,
       client_name: clientName,
-      notes: notes || null
+      notes: notes || null,
+      site_address: siteAddress || null
     }).eq('id', id)
     if (error) { alert('Error: ' + error.message) } else {
       window.location.href = '/jobs/' + id
@@ -59,6 +62,10 @@ export default function EditJob({ params }: { params: Promise<{ id: string }> })
           <div>
             <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '客户名称' : 'Client Name'}</label>
             <input className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none focus:ring-2 focus:ring-blue-500" value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="e.g. John Smith" />
+          </div>
+          <div>
+            <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '工地地址' : 'Site Address'}</label>
+            <input className="w-full border border-gray-200 dark:border-[#3A3A3C] rounded-lg p-3 mt-1 text-gray-900 dark:text-[#F2F2F7] dark:bg-[#3A3A3C] outline-none focus:ring-2 focus:ring-blue-500" value={siteAddress} onChange={(e) => setSiteAddress(e.target.value)} placeholder="e.g. 123 Murray St, Perth WA 6000" />
           </div>
           <div>
             <label className="text-gray-700 text-sm font-medium">{lang === 'zh' ? '备注' : 'Notes'}</label>
