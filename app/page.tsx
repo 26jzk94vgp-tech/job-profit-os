@@ -139,7 +139,7 @@ export default function Dashboard(){
   const supabase=createClient()
   const {lang}=useLanguage()
   const zh=lang==='zh'
-  const [isDark,setIsDark]=useState(typeof window!=='undefined'&&localStorage.getItem('darkMode')==='true')
+  const [isDark,setIsDark]=useState(false)
   const T=isDark?DARK:LIGHT
 
   const [jobs,setJobs]=useState<any[]>([])
