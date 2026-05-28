@@ -456,7 +456,12 @@ export default function Dashboard(){
                             {Number(job.revenue)>0?'+$'+Number(job.revenue).toLocaleString():'—'}
                           </td>
                           <td style={{padding:'11px 16px'}}>
-                            <Badge label={job.status==='active'?(zh?'进行中':'Active'):(zh?'新建':'New')} type={job.status==='active'?'muted':'warning'} T={T} isZh={zh}/>
+                            <Badge label={
+    daysLeft===null?(job.status==='active'?(zh?'进行中':'Active'):(zh?'新建':'New')):
+    daysLeft<0?(zh?`已超期${Math.abs(daysLeft)}天`:`${Math.abs(daysLeft)}d overdue`):
+    daysLeft===0?(zh?'今天截止':'Due today'):
+    (zh?`还有${daysLeft}天`:`${daysLeft}d left`)
+  } type={daysLeft!==null&&daysLeft<=0?'danger':daysLeft!==null&&daysLeft<=5?'warning':'muted'} T={T} isZh={zh}/>
                           </td>
                         </tr>
                       )
