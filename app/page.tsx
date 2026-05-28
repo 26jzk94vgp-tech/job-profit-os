@@ -174,8 +174,8 @@ export default function Dashboard(){
       const [{data:{user}},[{data:jobData},{data:quoteData},{data:entryData}]]=await Promise.all([
         supabase.auth.getUser(),
         Promise.all([
-          supabase.from('job_summary').select('id,name,client_name,status,revenue,profit,site_address,due_date'),
-          supabase.from('quotes').select('id,quote_number,client_name,status,total,created_at,deposit_paid').order('created_at',{ascending:false}).limit(10),
+          supabase.from('job_summary').select('*'),
+          supabase.from('quotes').select('*').order('created_at',{ascending:false}).limit(20),
           supabase.from('job_entries').select('id,job_id,type,amount,hours,hourly_rate,payment_status,payment_due_date,jobs(name)').in('type',['invoice']).limit(50),
         ])
       ])
