@@ -589,7 +589,7 @@ export default function Dashboard(){
               <span style={{fontSize:'10px',color:T.textDim}}>{visibleFeed.length}</span>
             </div>
             {visibleFeed.map(item=>(
-              <div key={item.id} style={{marginBottom:'6px',padding:'7px 9px',backgroundColor:T.bg,borderRadius:'5px',border:`1px solid ${T.border}`,borderLeft:`2px solid ${item.color}`}}>
+              <div key={item.id} onClick={()=>(item as any).link&&window.open((item as any).link,'_blank')} style={{marginBottom:'6px',padding:'7px 9px',backgroundColor:T.bg,borderRadius:'5px',border:`1px solid ${T.border}`,borderLeft:`2px solid ${item.color}`,cursor:(item as any).link?'pointer':'default'}}>
                 <div style={{display:'flex',alignItems:'flex-start',gap:'7px'}}>
                   <span style={{fontSize:'14px',flexShrink:0}}>{item.icon}</span>
                   <div style={{flex:1,minWidth:0}}>
