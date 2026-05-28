@@ -16,14 +16,17 @@ interface Props {
 
 export default function JobMap({ jobs, isDark }: Props) {
   const mapRef = useRef<any>(null)
-  const mapInstanceRef = useRef<any>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null }
+    if (!mapRef.current) return
+
+    let map: any = null
 
     import('leaflet').then(L => {
-      // Fix marker icons
+      // Check if container already has a map
+      if (mapRef.current._leaflet_id) return
+
       delete (L.Icon.Default.prototype as any)._getIconUrl
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -31,19 +34,16 @@ export default function JobMap({ jobs, isDark }: Props) {
         shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
       })
 
-      const map = L.map(mapRef.current, {
+      map = L.map(mapRef.current, {
         center: [-31.9505, 115.8605],
         zoom: 12,
         zoomControl: true,
       })
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
+        attribution: '© OpenStreetMap'
       }).addTo(map)
 
-      mapInstanceRef.current = map
-
-      // Geocode and add markers for jobs with addresses
       jobs.forEach(job => {
         if (!job.site_address) return
         fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(job.site_address + ', Perth, WA')}&format=json&limit=1`)
@@ -52,13 +52,8 @@ export default function JobMap({ jobs, isDark }: Props) {
             if (data && data[0]) {
               const lat = parseFloat(data[0].lat)
               const lon = parseFloat(data[0].lon)
-              const marker = L.marker([lat, lon]).addTo(map)
-              marker.bindPopup(`
-                <b>${job.name}</b><br/>
-                ${job.client_name || ''}<br/>
-                ${job.site_address}<br/>
-                <span style="color:green">+$${Number(job.revenue||0).toLocaleString()}</span>
-              `)
+              L.marker([lat, lon]).addTo(map)
+                .bindPopup(`<b>${job.name}</b><br/>${job.site_address}<br/><span style="color:green">+$${Number(job.revenue||0).toLocaleString()}</span>`)
             }
           })
           .catch(() => {})
@@ -66,9 +61,8 @@ export default function JobMap({ jobs, isDark }: Props) {
     })
 
     return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove()
-        mapInstanceRef.current = null
+      if (map) {
+        map.remove()
       }
     }
   }, [])
@@ -76,7 +70,7 @@ export default function JobMap({ jobs, isDark }: Props) {
   return (
     <>
       <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-      <div ref={mapRef} style={{width:'100%',height:'100%',borderRadius:'4px'}}/>
+      <div ref={mapRef} style={{width:'100%',height:'100%'}}/>
     </>
   )
 }
