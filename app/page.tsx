@@ -178,7 +178,7 @@ export default function Dashboard(){
     supabase.from('feed_items').select('*').eq('active',true).then(({data})=>{
       if(data&&data.length>0){
         const items=data.map((f:any)=>({
-          id:1000+f.id,
+          id:1000+f.id,dbId:f.id,
           cat:f.cat,catEn:f.cat_en,
           icon:f.icon,
           title:f.title,titleEn:f.title_en,
@@ -603,7 +603,7 @@ export default function Dashboard(){
                   </div>
                 </div>
                 {expanded===item.id&&<div style={{padding:'6px 9px 9px 9px',borderTop:`1px solid ${T.borderSub}`}}>
-                  {(item.id>=1000)&&<div>
+                  {((item as any).dbId>=1)&&<div>
                     {(zh?(item as any).desc:(item as any).descEn||'').split('|||').filter(Boolean).map((r:string,i:number)=>(
                       <p key={i} style={{fontSize:'11px',color:T.textSub,margin:'4px 0',paddingBottom:'4px',borderBottom:i<2?`1px solid ${T.borderSub}`:'none'}}>{item.cat==='咖啡'||item.catEn==='Coffee'?'☕':'🍽'} {r.trim()}</p>
                     ))}
