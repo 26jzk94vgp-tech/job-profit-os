@@ -193,7 +193,8 @@ export default function Dashboard(){
 
   useEffect(()=>{
     // Fetch nearby restaurants and cafes
-    if(navigator.geolocation){
+    if(navigator.geolocation && !placesLoaded.current){
+      placesLoaded.current=true
       navigator.geolocation.getCurrentPosition(pos=>{
         const {latitude:lat,longitude:lng}=pos.coords
         // placeholder
@@ -213,6 +214,12 @@ export default function Dashboard(){
           color:'#6E7681'
         })))
       }).catch(()=>{})
+  },[])
+
+  useEffect(()=>{
+    const saved=localStorage.getItem('darkMode')==='true'
+    setIsDark(saved)
+    setDarkInited(true)
   },[])
 
   useEffect(()=>{
