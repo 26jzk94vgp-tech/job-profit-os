@@ -34,6 +34,7 @@ export default function RootLayout({
       <body className="antialiased">
         <LanguageProvider>
           <ServiceWorkerRegistrar />
+          <DarkModeProvider />
           <InstallBanner />
           <MobileHeader />
           <main className="pb-20">
