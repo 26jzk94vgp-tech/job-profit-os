@@ -148,6 +148,7 @@ export default function Dashboard(){
   const [date,setDate]=useState('')
   const [dismissed,setDismissed]=useState<number[]>([])
   const [expanded,setExpanded]=useState<number|null>(null)
+  const placesLoaded=useRef(false)
   const [newsItems,setNewsItems]=useState<any[]>([])
   const [done,setDone]=useState<Set<string>>(new Set())
   const [menuOpen,setMenuOpen]=useState(false)
@@ -172,7 +173,8 @@ export default function Dashboard(){
 
   useEffect(()=>{
     // Fetch nearby restaurants and cafes
-    if(navigator.geolocation){
+    if(!placesLoaded.current){
+      placesLoaded.current=true
       navigator.geolocation.getCurrentPosition(pos=>{
         const {latitude:lat,longitude:lng}=pos.coords
         // Restaurant mock
