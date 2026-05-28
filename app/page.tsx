@@ -129,7 +129,6 @@ function StatusDropdown<K extends string>({value,options,onChange,T,isZh=false}:
 const FEED=[
   {id:1,cat:'天气',catEn:'Weather',icon:'☀️',title:'本周四五有雨',titleEn:'Rain Thu–Fri',desc:'户外工程注意安排，建议提前备料',descEn:'Plan outdoor work accordingly',color:'#58A6FF'},
   {id:2,cat:'税务',catEn:'Tax',icon:'🧾',title:'ATO BAS 截止还有 14 天',titleEn:'ATO BAS due in 14 days',desc:'记得申报本季度 GST',descEn:'Lodge quarterly GST',color:'#F85149'},
-  {id:3,cat:'餐厅',catEn:'Food',icon:'🍜',title:'附近餐厅午市优惠',titleEn:'Nearby lunch deals',desc:'Northbridge 3 家餐厅今日特惠 $12起',descEn:'3 restaurants from $12 today',color:'#FF6B6B'},
   {id:4,cat:'市场',catEn:'Market',icon:'📈',title:'Perth 建材价格上涨 3%',titleEn:'Building materials up 3%',desc:'砂浆/瓷砖本周涨价，建议提前采购',descEn:'Consider stocking up this week',color:'#D29922'},
   {id:5,cat:'工期',catEn:'Jobs',icon:'⚡',title:'2 个工地本周截止',titleEn:'2 sites due this week',desc:'注意安排人手',descEn:'Plan your crew accordingly',color:'#D29922'},
 ]
