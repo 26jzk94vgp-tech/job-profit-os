@@ -190,7 +190,26 @@ export default function Dashboard(){
             }
           }).catch(()=>{})
         // Cafes  
-        setTimeout(()=>{
+        fetch(`/api/places?lat=${lat}&lng=${lng}&query=cafe`)
+         .then(r=>r.json()).then(d=>{
+           const item=d.results?.[0]
+           setNewsItems(prev=>[...prev,{
+             id:300,cat:'咖啡',catEn:'Coffee',icon:'☕',
+             title:item?`附近: ${item.name}`:'附近有咖啡',
+             titleEn:item?`Nearby: ${item.name}`:'Coffee nearby',
+             desc:item?.location?.address||'工地附近咖啡',
+             descEn:item?.location?.address||'Coffee near your site',
+             color:'#A0522D'
+           }])
+         }).catch(()=>{
+           setNewsItems(prev=>[...prev,{
+             id:300,cat:'咖啡',catEn:'Coffee',icon:'☕',
+             title:'附近有咖啡',titleEn:'Coffee nearby',
+             desc:'工地附近咖啡',descEn:'Coffee near your site',
+             color:'#A0522D'
+           }])
+         })
+       setTimeout(()=>{
           fetch(`/api/places?lat=${lat}&lng=${lng}&query=cafe`)
             .then(r=>r.json()).then(d=>{
               if(d.results?.length>0){
