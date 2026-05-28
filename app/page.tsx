@@ -171,14 +171,17 @@ export default function Dashboard(){
   },[menuOpen])
 
   useEffect(()=>{
-    fetch('/api/news').then(r=>r.json()).then(d=>{
-      if(d.items&&d.items.length>0) setNewsItems(d.items.map((item:any,i:number)=>({
-        id:100+i,cat:'新闻',catEn:'News',icon:'📰',
-        title:item.title,titleEn:item.title,
-        desc:item.desc||'',descEn:item.desc||'',
-        color:'#6E7681'
-      })))
-    }).catch(()=>{})
+    fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.abc.net.au/news/feed/51120/rss.xml&count=5')
+      .then(r=>r.json())
+      .then(d=>{
+        if(d.items&&d.items.length>0) setNewsItems(d.items.map((item:any,i:number)=>({
+          id:100+i,cat:'新闻',catEn:'News',icon:'📰',
+          title:item.title,titleEn:item.title,
+          desc:item.description?.replace(/<[^>]*>/g,'').slice(0,100)||'',
+          descEn:item.description?.replace(/<[^>]*>/g,'').slice(0,100)||'',
+          color:'#6E7681'
+        })))
+      }).catch(()=>{})
   },[])
 
   useEffect(()=>{
