@@ -568,7 +568,7 @@ export default function Dashboard(){
             </div>
             {visibleFeed.map(item=>(
               <div key={item.id} style={{marginBottom:'6px',backgroundColor:T.bg,borderRadius:'5px',border:`1px solid ${T.border}`,borderLeft:`2px solid ${item.color}`}}>
-                <div onClick={()=>setExpanded(expanded===item.id?null:item.id)} style={{padding:'7px 9px',cursor:'pointer',display:'flex',alignItems:'flex-start',gap:'7px'}}>
+                <div onClick={()=>{if(item.id>=6||(item as any).link)setExpanded(expanded===item.id?null:item.id)}} style={{padding:'7px 9px',cursor:'pointer',display:'flex',alignItems:'flex-start',gap:'7px'}}>
                   <span style={{fontSize:'14px',flexShrink:0}}>{item.icon}</span>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:'flex',alignItems:'center',gap:'5px',marginBottom:'2px'}}>
@@ -579,7 +579,7 @@ export default function Dashboard(){
                   </div>
                   <div style={{display:'flex',flexDirection:'column' as const,alignItems:'center',gap:'2px'}}>
                     <button onClick={e=>{e.stopPropagation();setDismissed([...dismissed,item.id])}} style={{fontSize:'11px',color:T.textDim,background:'none',border:'none',cursor:'pointer'}}>✕</button>
-                    <span style={{fontSize:'9px',color:T.textDim}}>{expanded===item.id?'▲':'▼'}</span>
+                    {(item.id>=6||(item as any).link)&&<span style={{fontSize:'9px',color:T.textDim}}>{expanded===item.id?'▲':'▼'}</span>}
                   </div>
                 </div>
                 {expanded===item.id&&<div style={{padding:'4px 9px 9px 9px',borderTop:`1px solid ${T.borderSub}`}}>
