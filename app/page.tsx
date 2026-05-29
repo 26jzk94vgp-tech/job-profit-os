@@ -648,19 +648,6 @@ export default function Dashboard(){
     </div>
   )
 }
-                      {job.site_address&&<div style={{display:'flex',alignItems:'center',gap:'4px',marginBottom:'6px'}}>
-                        <span style={{fontSize:'11px'}}>📍</span>
-                        <span style={{fontSize:'12px',color:T.textSub,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{job.site_address}</span>
-                      </div>}
-                      <div style={{display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
-                        <StatusDropdown value={meta.mat} options={MAT_OPTIONS} onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],mat:s}}))} T={T} isZh={zh}/>
-                        <StatusDropdown value={meta.pay} options={PAY_OPTIONS} onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],pay:s}}))} T={T} isZh={zh}/>
-                        {daysLeft!==null&&<span style={{fontSize:'12px',fontWeight:600,color:isUrgent?T.danger:T.textDim}}>{daysLeft<=0?(zh?`超期${Math.abs(daysLeft)}天`:`${Math.abs(daysLeft)}d overdue`):(zh?`还有${daysLeft}天`:`${daysLeft}d left`)}</span>}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
               {/* 桌面 table 视图 */}
               <div className="hidden md:block" style={{overflowX:'auto'}}>
                 <table style={{width:'100%',borderCollapse:'collapse'}}>
