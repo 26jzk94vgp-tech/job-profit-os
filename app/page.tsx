@@ -407,7 +407,7 @@ export default function Dashboard(){
                     <div key={job.id} style={{borderTop:i>0?`1px solid ${T.borderSub}`:'none',padding:'12px 16px'}}>
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}}>
                         <Link href={`/jobs/${job.id}`} style={{fontSize:'15px',fontWeight:600,color:T.primary,textDecoration:'none'}}>{job.name.replace(/\s*的工单\s*$/,'')}</Link>
-                        <span style={{fontSize:'14px',fontWeight:600,color:Number(job.revenue)>0?T.success:T.textDim}}>{Number(job.revenue)>0?'+
+                        <span style={{fontSize:'14px',fontWeight:600,color:Number(job.revenue)>0?T.success:T.textDim}}>{Number(job.revenue)>0?'+$'+Number(job.revenue).toLocaleString():'—'}</span>
                   <thead>
                     <tr style={{backgroundColor:T.bg}}>
                       {[zh?'工单名称':'Job',zh?'工地 / 截止':'Site / Due',zh?'材料状态':'Material',zh?'收款状态':'Payment',zh?'收入':'Revenue',zh?'状态':'Status'].map(h=>(
