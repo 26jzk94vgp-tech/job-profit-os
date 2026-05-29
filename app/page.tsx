@@ -648,7 +648,6 @@ export default function Dashboard(){
     </div>
   )
 }
-+Number(job.revenue).toLocaleString():'—'}</span>
                       </div>
                       {job.site_address&&<div style={{display:'flex',alignItems:'center',gap:'4px',marginBottom:'6px'}}>
                         <span style={{fontSize:'11px'}}>📍</span>
