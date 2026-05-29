@@ -453,7 +453,6 @@ export default function Dashboard(){
                   </tbody>
                 </table>
               </div>
-              </>
             )}
           </Section>
 
