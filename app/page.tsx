@@ -395,9 +395,8 @@ export default function Dashboard(){
                 <p style={{color:T.textDim,fontSize:'13px'}}>{zh?'暂无进行中工单':'No active jobs yet'}</p>
                 <Link href="/jobs/new" style={{display:'inline-block',marginTop:'8px',padding:'6px 14px',borderRadius:'6px',background:T.primary,color:'white',textDecoration:'none',fontSize:'12px',fontWeight:600}}>{zh?'+ 新建工单':'+ New Job'}</Link>
               </div>
+            ):(
               <div style={{overflowX:"auto"}}>
-              <div className="hidden md:block" style={{overflowX:"auto"}}>
-                <table style={{width:"100%",borderCollapse:"collapse"}}>
                   <thead>
                     <tr style={{backgroundColor:T.bg}}>
                       {[zh?'工单名称':'Job',zh?'工地 / 截止':'Site / Due',zh?'材料状态':'Material',zh?'收款状态':'Payment',zh?'收入':'Revenue',zh?'状态':'Status'].map(h=>(
