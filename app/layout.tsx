@@ -36,11 +36,13 @@ export default function RootLayout({
         <LanguageProvider>
           <ServiceWorkerRegistrar />
           <DarkModeProvider />
-          <InstallBanner />
           <MobileHeader />
-          <main className="pb-20">
-            {children}
-          </main>
+          <div className="pt-16 md:pt-0">
+            <InstallBanner />
+            <main className="pb-20">
+              {children}
+            </main>
+          </div>
           <BottomNav />
         </LanguageProvider>
       </body>
