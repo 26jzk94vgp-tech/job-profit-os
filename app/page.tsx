@@ -648,7 +648,6 @@ export default function Dashboard(){
     </div>
   )
 }
-                      </div>
                       {job.site_address&&<div style={{display:'flex',alignItems:'center',gap:'4px',marginBottom:'6px'}}>
                         <span style={{fontSize:'11px'}}>📍</span>
                         <span style={{fontSize:'12px',color:T.textSub,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{job.site_address}</span>
