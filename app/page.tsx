@@ -407,8 +407,7 @@ export default function Dashboard(){
                       <div key={job.id} style={{borderTop:i>0?`1px solid ${T.borderSub}`:'none',padding:'12px 16px'}}>
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}}>
                           <Link href={`/jobs/${job.id}`} style={{fontSize:'15px',fontWeight:600,color:T.primary,textDecoration:'none'}}>{job.name.replace(/\s*的工单\s*$/,'')}</Link>
-                          <span style={{fontSize:'14px',fontWeight:600,color:Number(job.revenue)>0?T.success:T.textDim}}>{Number(job.revenue)>0?'+
-            )}
+                          <span style={{fontSize:'14px',fontWeight:600,color:Number(job.revenue)>0?T.success:T.textDim}}>{Number(job.revenue)>0?'+$'+Number(job.revenue).toLocaleString():'—'}</span>
           </Section>
 
           {/* Quotes */}
