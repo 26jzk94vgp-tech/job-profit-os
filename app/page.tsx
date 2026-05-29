@@ -408,6 +408,46 @@ export default function Dashboard(){
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}}>
                           <Link href={`/jobs/${job.id}`} style={{fontSize:'15px',fontWeight:600,color:T.primary,textDecoration:'none'}}>{job.name.replace(/\s*的工单\s*$/,'')}</Link>
                           <span style={{fontSize:'14px',fontWeight:600,color:Number(job.revenue)>0?T.success:T.textDim}}>{Number(job.revenue)>0?'+$'+Number(job.revenue).toLocaleString():'—'}</span>
+                        </div>
+                        {job.site_address&&<p style={{fontSize:"12px",color:T.textSub,margin:"0 0 6px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>📍 {job.site_address}</p>}
+                        <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
+                          <StatusDropdown value={meta.mat} options={MAT_OPTIONS} onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],mat:s}}))} T={T} isZh={zh}/>
+                          <StatusDropdown value={meta.pay} options={PAY_OPTIONS} onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],pay:s}}))} T={T} isZh={zh}/>
+                          {daysLeft!==null&&<span style={{fontSize:"12px",fontWeight:600,color:isUrgent?T.danger:T.textDim}}>{daysLeft<=0?(zh?`超期${Math.abs(daysLeft)}天`:`${Math.abs(daysLeft)}d over`):(zh?`还有${daysLeft}天`:`${daysLeft}d left`)}</span>}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="hidden md:block" style={{overflowX:"auto"}}>
+                  <table style={{width:"100%",borderCollapse:"collapse"}}>
+                    <thead>
+                      <tr style={{backgroundColor:T.bg}}>
+                        {[zh?"工单名称":"Job",zh?"工地 / 截止":"Site / Due",zh?"材料状态":"Material",zh?"收款状态":"Payment",zh?"收入":"Revenue",zh?"状态":"Status"].map(h=>(
+                          <th key={h} style={{padding:"8px 16px",fontSize:"10px",fontWeight:600,color:T.textDim,textAlign:"left",borderBottom:`1px solid ${T.border}`,textTransform:"uppercase",letterSpacing:"0.6px",whiteSpace:"nowrap"}}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredJobs.map((job,i)=>{
+                        const meta=jobMeta[job.id]||{mat:"pending",pay:"unpaid"}
+                        const daysLeft=job.end_date?Math.ceil((new Date(job.end_date).getTime()-Date.now())/(1000*60*60*24)):null
+                        const isUrgent=daysLeft!==null&&daysLeft<=5
+                        return(
+                          <tr key={job.id} style={{borderTop:i>0?`1px solid ${T.borderSub}`:"none",cursor:"pointer"}} onMouseEnter={e=>(e.currentTarget.style.backgroundColor=T.elevated)} onMouseLeave={e=>(e.currentTarget.style.backgroundColor="transparent")}>
+                            <td style={{padding:"11px 16px"}}><Link href={`/jobs/${job.id}`} style={{fontSize:"15px",fontWeight:500,color:T.primary,textDecoration:"none"}}>{job.name.replace(/\s*的工单\s*$/,"")}</Link></td>
+                            <td style={{padding:"11px 16px"}}>{job.site_address&&<div style={{display:"flex",alignItems:"center",gap:"4px",marginBottom:"2px"}}><span style={{fontSize:"11px"}}>📍</span><span style={{fontSize:"12px",color:T.textSub}}>{job.site_address}</span></div>}{daysLeft!==null&&<span style={{fontSize:"12px",fontWeight:600,color:isUrgent?T.danger:T.textDim}}>{isUrgent?"▲ ":""}{daysLeft}d left</span>}</td>
+                            <td style={{padding:"11px 16px"}}><StatusDropdown value={meta.mat} options={MAT_OPTIONS} onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],mat:s}}))} T={T} isZh={zh}/></td>
+                            <td style={{padding:"11px 16px"}}><StatusDropdown value={meta.pay} options={PAY_OPTIONS} onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],pay:s}}))} T={T} isZh={zh}/></td>
+                            <td style={{padding:"11px 16px",fontSize:"15px",fontWeight:600,color:Number(job.revenue)>0?T.success:T.textDim}}>{Number(job.revenue)>0?"+$"+Number(job.revenue).toLocaleString():"—"}</td>
+                            <td style={{padding:"11px 16px"}}><Badge label={daysLeft===null?(job.status==="active"?(zh?"进行中":"Active"):(zh?"新建":"New")):daysLeft<0?(zh?`已超期${Math.abs(daysLeft)}天`:`${Math.abs(daysLeft)}d overdue`):daysLeft===0?(zh?"今天截止":"Due today"):(zh?`还有${daysLeft}天`:`${daysLeft}d left`)} type={daysLeft!==null&&daysLeft<=0?"danger":daysLeft!==null&&daysLeft<=5?"warning":"muted"} T={T} isZh={zh}/></td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
           </Section>
 
           {/* Quotes */}
