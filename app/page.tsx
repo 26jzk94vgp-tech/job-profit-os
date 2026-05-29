@@ -280,7 +280,7 @@ export default function Dashboard(){
     <div style={{minHeight:'100vh',backgroundColor:T.bg,fontFamily:'-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif',color:T.text}}>
 
       {/* 顶部导航 */}
-      <div style={{position:'sticky',top:0,zIndex:50,backgroundColor:T.surface,borderBottom:`1px solid ${T.border}`,height:'70px',display:'flex',alignItems:'center',paddingLeft:'20px'}}>
+      <div className="hidden md:flex" style={{position:'sticky',top:0,zIndex:50,backgroundColor:T.surface,borderBottom:`1px solid ${T.border}`,height:'70px',alignItems:'center',paddingLeft:'20px'}}>
         <div style={{flex:1,display:'flex',alignItems:'center',gap:'16px',minWidth:0}}>
           <div style={{display:'flex',alignItems:'center',gap:'8px',flexShrink:0}}>
             <div style={{width:'28px',height:'28px',background:`linear-gradient(135deg,${T.primary},#58A6FF)`,borderRadius:'6px',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:'13px'}}>C</div>
