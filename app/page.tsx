@@ -623,8 +623,6 @@ export default function Dashboard(){
     </div>
   )
 }
-            )}
-          </Section>
 
           {/* Quotes */}
           <Section title={zh?'报价单':'Quotes'} dot={T.primary} count={quotes.length} T={T}
