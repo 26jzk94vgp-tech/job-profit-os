@@ -408,6 +408,20 @@ export default function Dashboard(){
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}}>
                         <Link href={`/jobs/${job.id}`} style={{fontSize:'15px',fontWeight:600,color:T.primary,textDecoration:'none'}}>{job.name.replace(/\s*的工单\s*$/,'')}</Link>
                         <span style={{fontSize:'14px',fontWeight:600,color:Number(job.revenue)>0?T.success:T.textDim}}>{Number(job.revenue)>0?'+$'+Number(job.revenue).toLocaleString():'—'}</span>
+                      </div>
+                      {job.site_address&&<div style={{display:"flex",alignItems:"center",gap:"4px",marginBottom:"6px"}}><span style={{fontSize:"11px"}}>📍</span><span style={{fontSize:"12px",color:T.textSub,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{job.site_address}</span></div>}
+                      <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
+                        <StatusDropdown value={meta.mat} options={MAT_OPTIONS} onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],mat:s}}))} T={T} isZh={zh}/>
+                        <StatusDropdown value={meta.pay} options={PAY_OPTIONS} onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],pay:s}}))} T={T} isZh={zh}/>
+                        {daysLeft!==null&&<span style={{fontSize:"12px",fontWeight:600,color:daysLeft<=0?T.danger:daysLeft<=5?T.warning:T.textDim}}>{daysLeft<=0?(zh?"超期"+Math.abs(daysLeft)+"天":Math.abs(daysLeft)+"d overdue"):(zh?"还有"+daysLeft+"天":daysLeft+"d left")}</span>}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              {/* 桌面 table 视图 */}
+              <div className="hidden md:block" style={{overflowX:"auto"}}>
+                <table style={{width:"100%",borderCollapse:"collapse"}}>
                   <thead>
                     <tr style={{backgroundColor:T.bg}}>
                       {[zh?'工单名称':'Job',zh?'工地 / 截止':'Site / Due',zh?'材料状态':'Material',zh?'收款状态':'Payment',zh?'收入':'Revenue',zh?'状态':'Status'].map(h=>(
