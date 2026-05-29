@@ -8,7 +8,7 @@ export default function InstallBanner() {
   useEffect(() => {
     const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches
     const dismissed = localStorage.getItem('installBannerDismissed')
-    
+
     if (!isInStandaloneMode && !dismissed) {
       setShow(true)
     }
@@ -22,13 +22,14 @@ export default function InstallBanner() {
   if (!show) return null
 
   return (
-    <div className="fixed top-10 left-0 right-0 z-40 md:hidden px-4 pt-2">
+    // 正常文档流(去掉 fixed/top/z):横幅把内容往下推,关闭后空间自动收回
+    <div className="md:hidden px-4 pt-2 pb-1">
       <div className="bg-blue-600 text-white rounded-xl p-4 shadow-lg">
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <p className="font-semibold text-sm">📲 安装到主屏幕 / Add to Home Screen</p>
             <p className="text-blue-100 text-xs mt-1">
-              点底部 分享 按钮，选「添加到主屏幕」体验更流畅 / Tap Share then Add to Home Screen for a faster experience
+              点底部 分享 按钮,选「添加到主屏幕」体验更流畅 / Tap Share then Add to Home Screen for a faster experience
             </p>
           </div>
           <button onClick={handleDismiss} className="text-blue-200 ml-3 text-lg">✕</button>
