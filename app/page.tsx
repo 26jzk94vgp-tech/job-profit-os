@@ -396,7 +396,261 @@ export default function Dashboard(){
                 <Link href="/jobs/new" style={{display:'inline-block',marginTop:'8px',padding:'6px 14px',borderRadius:'6px',background:T.primary,color:'white',textDecoration:'none',fontSize:'12px',fontWeight:600}}>{zh?'+ 新建工单':'+ New Job'}</Link>
               </div>
             ):(
-              <div style={{overflowX:'auto'}}>
+              <>
+              {/* 手机卡片视图 */}
+              <div className="md:hidden">
+                {filteredJobs.map((job,i)=>{
+                  const meta=jobMeta[job.id]||{mat:'pending',pay:'unpaid'}
+                  const daysLeft=job.end_date?Math.ceil((new Date(job.end_date).getTime()-Date.now())/(1000*60*60*24)):null
+                  const isUrgent=daysLeft!==null&&daysLeft<=5
+                  return(
+                    <div key={job.id} style={{borderTop:i>0?`1px solid ${T.borderSub}`:'none',padding:'12px 16px'}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}}>
+                        <Link href={`/jobs/${job.id}`} style={{fontSize:'15px',fontWeight:600,color:T.primary,textDecoration:'none'}}>{job.name.replace(/\s*的工单\s*$/,'')}</Link>
+                        <span style={{fontSize:'14px',fontWeight:600,color:Number(job.revenue)>0?T.success:T.textDim}}>{Number(job.revenue)>0?'+
+                  <thead>
+                    <tr style={{backgroundColor:T.bg}}>
+                      {[zh?'工单名称':'Job',zh?'工地 / 截止':'Site / Due',zh?'材料状态':'Material',zh?'收款状态':'Payment',zh?'收入':'Revenue',zh?'状态':'Status'].map(h=>(
+                        <th key={h} style={{padding:'8px 16px',fontSize:'10px',fontWeight:600,color:T.textDim,textAlign:'left' as const,borderBottom:`1px solid ${T.border}`,textTransform:'uppercase',letterSpacing:'0.6px',whiteSpace:'nowrap' as const}}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredJobs.map((job,i)=>{
+                      const meta=jobMeta[job.id]||{mat:'pending',pay:'unpaid'}
+                      const daysLeft=job.end_date?Math.ceil((new Date(job.end_date).getTime()-Date.now())/(1000*60*60*24)):null
+                      const isUrgent=daysLeft!==null&&daysLeft<=5
+                      return(
+                        <tr key={job.id} style={{borderTop:i>0?`1px solid ${T.borderSub}`:'none',cursor:'pointer'}}
+                          onMouseEnter={e=>(e.currentTarget.style.backgroundColor=T.elevated)}
+                          onMouseLeave={e=>(e.currentTarget.style.backgroundColor='transparent')}>
+                          <td style={{padding:'11px 16px'}}>
+                            <Link href={`/jobs/${job.id}`} style={{fontSize:'15px',fontWeight:500,color:T.primary,textDecoration:'none'}}>{job.name.replace(/s*的工单s*$/,'').replace(/'s Jobs*$/,'')}</Link>
+                          </td>
+                          <td style={{padding:'11px 16px'}}>
+                            {job.site_address&&<div style={{display:'flex',alignItems:'center',gap:'4px',marginBottom:'2px'}}>
+                              <span style={{fontSize:'11px'}}>📍</span>
+                              <span style={{fontSize:'12px',color:T.textSub}}>{job.site_address}</span>
+                            </div>}
+                            {daysLeft!==null&&(
+                              <span style={{fontSize:'12px',fontWeight:600,color:isUrgent?T.danger:T.textDim,fontFamily:T.mono}}>
+                                {isUrgent?'▲ ':''}{daysLeft}d left
+                              </span>
+                            )}
+                          </td>
+                          <td style={{padding:'11px 16px'}}>
+                            <StatusDropdown value={meta.mat} options={MAT_OPTIONS}
+                              onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],mat:s}}))} T={T} isZh={zh}/>
+                          </td>
+                          <td style={{padding:'11px 16px'}}>
+                            <StatusDropdown value={meta.pay} options={PAY_OPTIONS}
+                              onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],pay:s}}))} T={T} isZh={zh}/>
+                          </td>
+                          <td style={{padding:'11px 16px',fontSize:'15px',fontWeight:600,color:Number(job.revenue)>0?T.success:T.textDim,fontFamily:T.mono}}>
+                            {Number(job.revenue)>0?'+$'+Number(job.revenue).toLocaleString():'—'}
+                          </td>
+                          <td style={{padding:'11px 16px'}}>
+                            <Badge label={
+    daysLeft===null?(job.status==='active'?(zh?'进行中':'Active'):(zh?'新建':'New')):
+    daysLeft<0?(zh?`已超期${Math.abs(daysLeft)}天`:`${Math.abs(daysLeft)}d overdue`):
+    daysLeft===0?(zh?'今天截止':'Due today'):
+    (zh?`还有${daysLeft}天`:`${daysLeft}d left`)
+  } type={daysLeft!==null&&daysLeft<=0?'danger':daysLeft!==null&&daysLeft<=5?'warning':'muted'} T={T} isZh={zh}/>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              </>
+            )}
+          </Section>
+
+          {/* Quotes */}
+          <Section title={zh?'报价单':'Quotes'} dot={T.primary} count={quotes.length} T={T}
+            action={<div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+              <Link href="/quotes/new" style={{fontSize:'11px',fontWeight:600,padding:'4px 10px',borderRadius:'5px',border:`1px solid ${T.primary}`,backgroundColor:T.primaryGlow,color:T.primary,textDecoration:'none'}}>{zh?'+ 新报价单':'+ New Quote'}</Link>
+              <Link href="/quotes" style={{fontSize:'11px',color:T.primary,textDecoration:'none',fontWeight:500}}>{zh?'进入模块 →':'View all →'}</Link>
+            </div>}>
+            {quotes.length===0?(
+              <div style={{padding:'20px',textAlign:'center' as const}}>
+                <p style={{color:T.textDim,fontSize:'13px'}}>{zh?'还没有报价单':'No quotes yet'}</p>
+                <Link href="/quotes/new" style={{display:'inline-block',marginTop:'8px',padding:'6px 14px',borderRadius:'6px',background:T.primary,color:'white',textDecoration:'none',fontSize:'12px',fontWeight:600}}>{zh?'+ 新建报价单':'+ New Quote'}</Link>
+              </div>
+            ):(
+              quotes.slice(0,5).map((q,i)=>(
+                <div key={q.id} style={{padding:'10px 16px',borderTop:`1px solid ${T.borderSub}`,display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer'}}
+                  onMouseEnter={e=>(e.currentTarget.style.backgroundColor=T.elevated)}
+                  onMouseLeave={e=>(e.currentTarget.style.backgroundColor='transparent')}>
+                  <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                    <span style={{fontSize:'13px',color:T.textDim,fontFamily:T.mono,width:'44px'}}>{q.quote_number||`Q-00${i+1}`}</span>
+                    <div>
+                      <p style={{fontSize:'15px',fontWeight:500,color:T.text,margin:'0 0 1px'}}>{q.client_name||'—'}</p>
+                      <p style={{fontSize:'11px',color:T.textDim,margin:0}}>{new Date(q.created_at).toLocaleDateString(zh?'zh-CN':'en-AU')}</p>
+                    </div>
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                    {q.total&&<span style={{fontSize:'15px',fontWeight:600,color:T.success,fontFamily:T.mono}}>${Number(q.total).toLocaleString()}</span>}
+                    <Badge label={q.status==='accepted'?(zh?'已接受':'Accepted'):q.status==='sent'?(zh?'已发送':'Sent'):q.status==='rejected'?(zh?'已拒绝':'Rejected'):(zh?'草稿':'Draft')} type={q.status==='accepted'?'success':q.status==='sent'?'warning':q.status==='rejected'?'danger':'muted'} T={T} isZh={zh}/>
+                  <button onClick={()=>toggleDeposit(q.id,q.deposit_paid)} style={{fontSize:'11px',fontWeight:600,padding:'3px 8px',borderRadius:'3px',backgroundColor:q.deposit_paid?'rgba(63,185,80,0.12)':'rgba(210,153,34,0.12)',color:q.deposit_paid?'#3FB950':'#D29922',border:'1px solid '+(q.deposit_paid?'rgba(63,185,80,0.12)':'rgba(210,153,34,0.12)'),cursor:'pointer',whiteSpace:'nowrap'}}>
+                    {q.deposit_paid?(zh?'✓ 定金已付':'✓ Deposit Paid'):(zh?'定金未付':'Deposit Unpaid')}
+                  </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </Section>
+
+          {/* Super 提醒 */}
+          {superReminder&&(
+            <div style={{backgroundColor:T.surface,borderTop:`1px solid ${T.border}`,borderRight:`1px solid ${T.border}`,borderBottom:`1px solid ${T.border}`,borderLeft:`2px solid ${T.warning}`,borderRadius:'8px',padding:'12px 16px',display:'flex',alignItems:'center',gap:'12px',marginBottom:'16px',background:`linear-gradient(90deg,${T.warningGlow} 0%,${T.surface} 50%)`}}>
+              <PulseDot color={T.warning}/>
+              <div style={{flex:1}}>
+                <p style={{fontSize:'13px',fontWeight:600,color:T.text,margin:'0 0 2px'}}>{zh?'Super 供款提醒':'Super Contribution Reminder'}</p>
+                <p style={{fontSize:'11px',color:T.textDim,margin:0}}>{zh?`利润已超税务门槛 · 2024-25 供款上限 $30,000`:`Profit exceeds $${TAX_THRESHOLD.toLocaleString()} · 2024-25 cap $30,000`}</p>
+              </div>
+              <div style={{width:'60px',flexShrink:0}}><Bar pct={Math.min((totalProfit/30000)*100,100)} color={T.warning} bg={T.borderSub}/></div>
+              <Link href="/tax" style={{backgroundColor:T.warningGlow,color:T.warning,border:`1px solid ${T.warningGlow}`,borderRadius:'4px',padding:'6px 12px',fontSize:'11px',fontWeight:600,textDecoration:'none'}}>
+                {zh?'了解':'Details'}
+              </Link>
+            </div>
+          )}
+
+          {/* 待收款 */}
+          {totalReceivable>0&&(
+            <div style={{backgroundColor:T.surface,borderTop:`1px solid ${T.border}`,borderRight:`1px solid ${T.border}`,borderBottom:`1px solid ${T.border}`,borderLeft:`2px solid ${T.danger}`,borderRadius:'8px',padding:'12px 16px',display:'flex',alignItems:'center',gap:'12px',marginBottom:'16px',background:`linear-gradient(90deg,${T.dangerGlow} 0%,${T.surface} 50%)`}}>
+              <PulseDot color={T.danger}/>
+              <div style={{flex:1}}>
+                <p style={{fontSize:'13px',fontWeight:600,color:T.text,margin:'0 0 2px'}}>💰 {zh?'待收款项':'Accounts Receivable'}</p>
+                <p style={{fontSize:'11px',color:T.textDim,margin:0}}>
+                  {unpaidInvoices.length} {zh?'张未付':'unpaid'}
+                  {overdueInvoices.length>0&&<span style={{color:T.danger,marginLeft:'6px'}}>· {overdueInvoices.length} {zh?'张逾期':'overdue'}</span>}
+                </p>
+              </div>
+              <span style={{fontSize:'16px',fontWeight:700,color:T.danger,fontFamily:T.mono}}>${totalReceivable.toLocaleString()}</span>
+              <Link href="/finance" style={{backgroundColor:T.dangerGlow,color:T.danger,border:`1px solid ${T.dangerGlow}`,borderRadius:'4px',padding:'6px 12px',fontSize:'11px',fontWeight:600,textDecoration:'none'}}>
+                {zh?'查看':'View'}
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* 右侧面板 */}
+        <div className="hidden md:block" style={{width:`${PANEL_W}px`,flexShrink:0,borderLeft:`1px solid ${T.border}`,backgroundColor:T.surface,position:'sticky',top:'70px',height:'calc(100vh - 70px)',overflowY:'auto'}}>
+
+          {/* Project Map */}
+          <div style={{padding:'10px 14px',borderBottom:`1px solid ${T.border}`,backgroundColor:T.elevated,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+              <PulseDot color={T.success} size={6}/>
+              <span style={{fontSize:'12px',fontWeight:600,color:T.textSub,textTransform:'uppercase' as const,letterSpacing:'0.8px'}}>{zh?'项目地图':'Project Map'}</span>
+            </div>
+            <span style={{fontSize:'11px',color:T.textDim}}>{weather?.city||'Perth'}</span>
+          </div>
+          <div style={{margin:'10px',height:'150px',borderRadius:'4px',border:`1px solid ${T.border}`}}>
+            <JobMap jobs={activeJobs} isDark={isDark}/>
+          </div>
+          <div style={{padding:'0 10px 6px',display:'flex',gap:'10px',flexWrap:'wrap' as const}}>
+            {[{c:T.primary,l:zh?'进行中':'Active'},{c:T.warning,l:zh?'紧急':'Urgent'},{c:T.success,l:zh?'收尾':'Closing'},{c:T.textSub,l:zh?'新建':'New'}].map(l=>(
+              <div key={l.l} style={{display:'flex',alignItems:'center',gap:'4px'}}><div style={{width:'6px',height:'6px',borderRadius:'50%',backgroundColor:l.c}}/><span style={{fontSize:'10px',color:T.textDim}}>{l.l}</span></div>
+            ))}
+          </div>
+
+          <div style={{height:'1px',backgroundColor:T.border,margin:'4px 10px 10px'}}/>
+
+          {/* Today */}
+          <div style={{padding:'0 14px 4px'}}>
+            <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'6px'}}>
+              <PulseDot color={T.danger} size={6}/>
+              <span style={{fontSize:'11px',fontWeight:600,color:T.textSub,textTransform:'uppercase' as const,letterSpacing:'0.8px'}}>{zh?'今日待办':'Today'}</span>
+            </div>
+            <Bar pct={todoPct} color={todoPct===100?T.success:T.primary} bg={T.borderSub}/>
+          </div>
+          <div style={{padding:'6px 14px 4px'}}>
+            {todos.length===0&&<p style={{fontSize:'12px',color:T.textDim,textAlign:'center' as const,padding:'8px 0'}}>✅ {zh?'今日暂无待办':'All clear!'}</p>}
+            {todos.map(todo=>(
+              <div key={todo.id} style={{display:'flex',alignItems:'center',gap:'8px',padding:'6px 4px',borderRadius:'4px',marginBottom:'3px',cursor:'pointer',opacity:done.has(todo.id)?0.4:1,transition:'opacity 0.2s'}}
+                onClick={()=>setDone(d=>{const n=new Set(d);n.has(todo.id)?n.delete(todo.id):n.add(todo.id);return n})}
+                onMouseEnter={e=>(e.currentTarget.style.backgroundColor=T.elevated)}
+                onMouseLeave={e=>(e.currentTarget.style.backgroundColor='transparent')}>
+                <div style={{width:'14px',height:'14px',borderRadius:'3px',flexShrink:0,border:`1.5px solid ${done.has(todo.id)?T.success:T.border}`,backgroundColor:done.has(todo.id)?T.successGlow:'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  {done.has(todo.id)&&<span style={{fontSize:'9px',color:T.success}}>✓</span>}
+                </div>
+                <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'space-between',gap:'4px',minWidth:0}}>
+                  <p style={{fontSize:'13px',fontWeight:done.has(todo.id)?400:500,color:done.has(todo.id)?T.textDim:T.text,margin:0,textDecoration:done.has(todo.id)?'line-through':'none',whiteSpace:'nowrap' as const,overflow:'hidden',textOverflow:'ellipsis'}}>{todo.tag} {todo.text}</p>
+                  {todo.amount&&<span style={{fontSize:'12px',fontWeight:600,flexShrink:0,color:done.has(todo.id)?T.textDim:typeColor[todo.type],fontFamily:T.mono}}>{todo.amount}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{height:'1px',backgroundColor:T.border,margin:'8px 10px'}}/>
+
+          {/* Updates */}
+          <div style={{padding:'0 14px 14px'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}>
+              <span style={{fontSize:'11px',fontWeight:600,color:T.textSub,textTransform:'uppercase' as const,letterSpacing:'0.8px'}}>{zh?'资讯':'Updates'}</span>
+              <span style={{fontSize:'10px',color:T.textDim}}>{visibleFeed.length}</span>
+            </div>
+            {visibleFeed.map(item=>(
+              <div key={item.id} style={{marginBottom:'6px',backgroundColor:T.bg,borderRadius:'5px',borderTop:`1px solid ${T.border}`,borderRight:`1px solid ${T.border}`,borderBottom:`1px solid ${T.border}`,borderLeft:`2px solid ${item.color}`}}>
+                <div onClick={()=>{if(item.id>=6||(item as any).link)setExpanded(expanded===item.id?null:item.id)}} style={{padding:'7px 9px',cursor:'pointer',display:'flex',alignItems:'flex-start',gap:'7px'}}>
+                  <span style={{fontSize:'14px',flexShrink:0}}>{item.icon}</span>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:'flex',alignItems:'center',gap:'5px',marginBottom:'2px'}}>
+                      <p style={{fontSize:'12px',fontWeight:600,color:T.text,margin:0}}>{zh?item.title:item.titleEn}</p>
+                      <span style={{fontSize:'9px',padding:'1px 4px',borderRadius:'3px',backgroundColor:`${item.color}15`,color:item.color,flexShrink:0}}>{zh?item.cat:item.catEn}</span>
+                    </div>
+                    <p style={{fontSize:'11px',color:T.textSub,margin:0}}>{item.id<1000?(zh?item.desc:item.descEn):''}</p>
+                  </div>
+                  <div style={{display:'flex',flexDirection:'column' as const,alignItems:'center',gap:'2px'}}>
+                    <button onClick={e=>{e.stopPropagation();setDismissed([...dismissed,item.id])}} style={{fontSize:'11px',color:T.textDim,background:'none',border:'none',cursor:'pointer'}}>✕</button>
+                    {(item.id>=6||(item as any).link)&&<span style={{fontSize:'9px',color:T.textDim}}>{expanded===item.id?'▲':'▼'}</span>}
+                  </div>
+                </div>
+                {expanded===item.id&&<div style={{padding:'6px 9px 9px 9px',borderTop:`1px solid ${T.borderSub}`}}>
+                  {((item as any).dbId>=1)&&<div>
+                    {(zh?(item as any).desc:(item as any).descEn||'').split('|||').filter(Boolean).map((r:string,i:number)=>(
+                      <p key={i} style={{fontSize:'11px',color:T.textSub,margin:'4px 0',paddingBottom:'4px',borderBottom:i<2?`1px solid ${T.borderSub}`:'none'}}>{item.cat==='咖啡'||item.catEn==='Coffee'?'☕':'🍽'} {r.trim()}</p>
+                    ))}
+                  </div>}
+                  {(item as any).link&&<a href={(item as any).link} target="_blank" rel="noreferrer" style={{fontSize:'11px',color:T.primary,textDecoration:'none',display:'block',marginTop:'4px'}}>阅读原文 →</a>}
+                </div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 手机底部导航 */}
+      <div className="flex md:hidden" style={{position:'fixed',bottom:0,left:0,right:0,backgroundColor:T.surface,borderTop:`1px solid ${T.border}`,justifyContent:'space-around',padding:'8px 0 20px'}}>
+        {[{href:'/',icon:'🏠',label:zh?'概览':'Home'},{href:'/quotes',icon:'📋',label:zh?'报价':'Quotes'},{href:'/jobs',icon:'🔨',label:zh?'工单':'Jobs'},{href:'/finance',icon:'💰',label:zh?'财务':'Finance'},{href:'/settings',icon:'👤',label:zh?'我的':'Me'}].map(item=>(
+          <Link key={item.href} href={item.href} style={{display:'flex',flexDirection:'column' as const,alignItems:'center',gap:'2px',padding:'4px 10px',textDecoration:'none'}}>
+            <span style={{fontSize:'18px'}}>{item.icon}</span>
+            <span style={{fontSize:'10px',fontWeight:500,color:T.textDim}}>{item.label}</span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  )
+}
++Number(job.revenue).toLocaleString():'—'}</span>
+                      </div>
+                      {job.site_address&&<div style={{display:'flex',alignItems:'center',gap:'4px',marginBottom:'6px'}}>
+                        <span style={{fontSize:'11px'}}>📍</span>
+                        <span style={{fontSize:'12px',color:T.textSub,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{job.site_address}</span>
+                      </div>}
+                      <div style={{display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
+                        <StatusDropdown value={meta.mat} options={MAT_OPTIONS} onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],mat:s}}))} T={T} isZh={zh}/>
+                        <StatusDropdown value={meta.pay} options={PAY_OPTIONS} onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],pay:s}}))} T={T} isZh={zh}/>
+                        {daysLeft!==null&&<span style={{fontSize:'12px',fontWeight:600,color:isUrgent?T.danger:T.textDim}}>{daysLeft<=0?(zh?`超期${Math.abs(daysLeft)}天`:`${Math.abs(daysLeft)}d overdue`):(zh?`还有${daysLeft}天`:`${daysLeft}d left`)}</span>}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              {/* 桌面 table 视图 */}
+              <div className="hidden md:block" style={{overflowX:'auto'}}>
                 <table style={{width:'100%',borderCollapse:'collapse'}}>
                   <thead>
                     <tr style={{backgroundColor:T.bg}}>
