@@ -47,7 +47,7 @@ export default function MobileDashboard(){
   const zh = lang==='zh'
 
   const [isDark,setIsDark] = useState(true)
-  const T:Theme = isDark?DARK:LIGHT
+  const T:Theme = DARK
 
   const [jobs,setJobs] = useState<any[]>([])
   const [quotes,setQuotes] = useState<any[]>([])

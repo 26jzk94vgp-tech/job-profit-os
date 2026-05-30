@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 
 export default function InstallBanner() {
+  const pathname = usePathname()
   const [show, setShow] = useState(false)
 
   useEffect(() => {
@@ -19,7 +21,7 @@ export default function InstallBanner() {
     setShow(false)
   }
 
-  if (!show) return null
+  if (!show || pathname === '/') return null
 
   return (
     // 正常文档流(去掉 fixed/top/z):横幅把内容往下推,关闭后空间自动收回
