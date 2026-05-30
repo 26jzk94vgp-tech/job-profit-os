@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createClient } from '../utils/supabase/client'
 import Link from 'next/link'
 import { useLanguage } from '../lib/i18n/LanguageContext'
+import MobileDashboard from './components/MobileDashboard'
 import dynamic from 'next/dynamic'
 const JobMap = dynamic(() => import('./components/JobMap'), { ssr: false })
 
@@ -279,6 +280,9 @@ export default function Dashboard(){
   return(
     <div style={{minHeight:'100vh',backgroundColor:T.bg,fontFamily:'-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif',color:T.text}}>
 
+      {/* 手机端：Apple 风新版首页 */}
+      <MobileDashboard/>
+
       {/* 顶部导航 */}
       <div className="hidden md:flex" style={{position:'sticky',top:0,zIndex:50,backgroundColor:T.surface,borderBottom:`1px solid ${T.border}`,height:'70px',alignItems:'center',paddingLeft:'20px'}}>
         <div style={{flex:1,display:'flex',alignItems:'center',gap:'16px',minWidth:0}}>
@@ -353,7 +357,7 @@ export default function Dashboard(){
       <div style={{display:'flex',maxWidth:'1400px',margin:'0 auto'}}>
 
         {/* 中间内容 */}
-        <div style={{flex:1,minWidth:0,padding:'20px 20px 60px'}}>
+        <div className="hidden md:block" style={{flex:1,minWidth:0,padding:'20px 20px 60px'}}>
 
           {/* Active Jobs */}
           <Section title={zh?'进行中工单':'Active Jobs'} dot={T.primary} count={activeJobs.length} T={T}
@@ -607,7 +611,7 @@ export default function Dashboard(){
       </div>
 
       {/* 手机底部导航 */}
-      <div className="flex md:hidden" style={{position:'fixed',bottom:0,left:0,right:0,backgroundColor:T.surface,borderTop:`1px solid ${T.border}`,justifyContent:'space-around',padding:'8px 0 20px'}}>
+      <div className="hidden" style={{position:'fixed',bottom:0,left:0,right:0,backgroundColor:T.surface,borderTop:`1px solid ${T.border}`,justifyContent:'space-around',padding:'8px 0 20px'}}>
         {[{href:'/',icon:'🏠',label:zh?'概览':'Home'},{href:'/quotes',icon:'📋',label:zh?'报价':'Quotes'},{href:'/jobs',icon:'🔨',label:zh?'工单':'Jobs'},{href:'/finance',icon:'💰',label:zh?'财务':'Finance'},{href:'/settings',icon:'👤',label:zh?'我的':'Me'}].map(item=>(
           <Link key={item.href} href={item.href} style={{display:'flex',flexDirection:'column' as const,alignItems:'center',gap:'2px',padding:'4px 10px',textDecoration:'none'}}>
             <span style={{fontSize:'18px'}}>{item.icon}</span>

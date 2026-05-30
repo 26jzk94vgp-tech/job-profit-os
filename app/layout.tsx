@@ -37,7 +37,7 @@ export default function RootLayout({
           <ServiceWorkerRegistrar />
           <DarkModeProvider />
           <MobileHeader />
-          <div className="pt-16 md:pt-0">
+          <div>
             <InstallBanner />
             <main className="pb-20">
               {children}
