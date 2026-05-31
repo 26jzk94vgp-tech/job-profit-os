@@ -192,9 +192,9 @@ export default function MobileDashboard(){
 
       {/* 大标题 */}
       <div style={{padding:'8px 20px 4px'}}>
-        <div style={{fontSize:'34px',fontWeight:800,letterSpacing:'-.6px'}}>{greeting}</div>
+        <div suppressHydrationWarning style={{fontSize:'34px',fontWeight:800,letterSpacing:'-.6px'}}>{greeting}</div>
         <div style={{marginTop:'8px',display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
-          <span style={{fontSize:'14px',color:T.sub,fontWeight:600}}>{dateStr}</span>
+          <span suppressHydrationWarning style={{fontSize:'14px',color:T.sub,fontWeight:600}}>{dateStr}</span>
           {weather&&<span style={{display:'inline-flex',alignItems:'center',gap:'6px',background:T.surface,border:`1px solid ${T.line}`,padding:'4px 10px',borderRadius:'999px',fontSize:'12px',color:T.sub}}>📍 {weather.city} · {wx(weather.c)} <span style={{fontFamily:MONO,fontWeight:700,color:T.text}}>{weather.t}°</span></span>}
         </div>
       </div>
