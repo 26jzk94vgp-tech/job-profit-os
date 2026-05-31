@@ -263,7 +263,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
         <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-[#2C2C2E] p-1 rounded-xl">
           <button onClick={() => setActiveTab('overview')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'overview' ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-[#8E8E93]'}`}>{lang === 'zh' ? '概览' : 'Overview'}</button>
           <button onClick={() => setActiveTab('entries')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'entries' ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-[#8E8E93]'}`}>{lang === 'zh' ? '条目' : 'Entries'}</button>
-          <button onClick={() => setActiveTab('invoice')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'invoice' ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-[#8E8E93]'}`}>{lang === 'zh' ? '票据' : 'Billing'}</button>
+          <button onClick={() => setActiveTab('invoice')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'invoice' ? 'bg-white dark:bg-[#3A3A3C] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-[#8E8E93]'}`}>{lang === 'zh' ? '发票' : 'Invoice'}</button>
         </div>
 
         {/* ── 概览 ── */}
@@ -423,86 +423,6 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
         {/* ── 票据 Tab ── */}
         {activeTab === 'invoice' && (
           <div className="space-y-4">
-
-            {/* ── 区域1：报价单管理 ── */}
-            <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C] flex items-center justify-between">
-                <div>
-                  <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '报价单' : 'Quotes'}</h2>
-                  <p className="text-[#8E8E93] text-xs mt-0.5">
-                    {lang === 'zh' ? '管理工程报价，成交后自动生成发票条目' : 'Manage quotes — accepted ones become invoice items'}
-                  </p>
-                </div>
-                <Link
-                  href={`/quotes/new?job_id=${id}`}
-                  className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors shrink-0"
-                >
-                  + {lang === 'zh' ? '新建报价单' : 'New Quote'}
-                </Link>
-              </div>
-
-              {quotes.length === 0 ? (
-                <div className="px-6 py-10 text-center">
-                  <p className="text-2xl mb-2">📋</p>
-                  <p className="text-[#8E8E93] text-sm">{lang === 'zh' ? '还没有报价单' : 'No quotes yet'}</p>
-                  <Link href={`/quotes/new?job_id=${id}`} className="mt-3 inline-block bg-blue-600 text-white px-4 py-2 rounded-xl text-sm">
-                    + {lang === 'zh' ? '新建报价单' : 'New Quote'}
-                  </Link>
-                </div>
-              ) : (
-                <div className="divide-y divide-gray-100 dark:divide-[#3A3A3C]">
-                  {quotes.map((quote, index) => {
-                    const quoteTotal = (quote.quote_items || []).reduce((sum: number, item: any) => sum + Number(item.quantity) * Number(item.unit_price), 0)
-                    const isAccepted = quote.status === 'accepted'
-                    const isDeclined = quote.status === 'declined'
-                    const isConverting = convertingQuote === quote.id
-                    const quoteNum = index + 1
-
-                    return (
-                      <div key={quote.id} className="px-6 py-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap mb-1">
-                              <span className="text-xs font-bold bg-gray-100 dark:bg-[#3A3A3C] text-gray-500 dark:text-[#8E8E93] px-2 py-0.5 rounded-full">
-                                {lang === 'zh' ? `单${quoteNum}` : `Q${quoteNum}`}
-                              </span>
-                              <span className="text-sm font-medium text-gray-700 dark:text-[#F2F2F7]">{quote.quote_number || `Q-00${quoteNum}`}</span>
-                              {isAccepted && <span className="text-xs bg-green-100 dark:bg-[#30D158]/20 text-green-700 dark:text-[#30D158] px-2 py-0.5 rounded-full">✅ {lang === 'zh' ? '已成交' : 'Accepted'}</span>}
-                              {isDeclined && <span className="text-xs bg-red-100 dark:bg-[#FF453A]/20 text-red-600 dark:text-[#FF453A] px-2 py-0.5 rounded-full">✗ {lang === 'zh' ? '不成交' : 'Declined'}</span>}
-                              {!isAccepted && !isDeclined && <span className="text-xs bg-yellow-100 dark:bg-[#FF9F0A]/20 text-yellow-700 dark:text-[#FF9F0A] px-2 py-0.5 rounded-full">⏳ {lang === 'zh' ? '谈判中' : 'Pending'}</span>}
-                            </div>
-                            <p className="text-[#30D158] font-bold text-lg">${quoteTotal.toLocaleString()}</p>
-                            <p className="text-[#8E8E93] text-xs">{(quote.quote_items || []).length} {lang === 'zh' ? '个条目' : 'items'}</p>
-                          </div>
-                          <div className="flex flex-col gap-1.5 shrink-0">
-                            <Link href={`/quotes/${quote.id}`} className="text-xs bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93] px-3 py-1.5 rounded-xl text-center font-medium">
-                              {lang === 'zh' ? '查看' : 'View'}
-                            </Link>
-                            {!isAccepted && !isDeclined && (
-                              <>
-                                <button
-                                  onClick={() => handleQuoteWon(quote, quoteNum)}
-                                  disabled={isConverting}
-                                  className="text-xs bg-[#30D158]/20 text-[#30D158] px-3 py-1.5 rounded-xl font-medium disabled:opacity-50 transition-colors"
-                                >
-                                  {isConverting ? '...' : (lang === 'zh' ? '✓ 成交' : '✓ Won')}
-                                </button>
-                                <button
-                                  onClick={() => handleQuoteLost(quote.id)}
-                                  className="text-xs bg-[#FF453A]/10 text-[#FF453A] px-3 py-1.5 rounded-xl font-medium transition-colors"
-                                >
-                                  {lang === 'zh' ? '✗ 不成交' : '✗ Lost'}
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
 
             {/* ── 区域2：发票输出（只在有已成交报价单时显示）── */}
             {acceptedQuotes.length > 0 && (
