@@ -41,10 +41,20 @@ function daysLeft(dateStr?:string|null){
 }
 const money = (n:any)=>'$'+Number(n||0).toLocaleString()
 
+const NEWS=[{i:'📈',col:'#E3B341',t:'Perth 建材涨价 3%',d:'本周砂浆 / 瓷砖上涨，建议提前采购'},{i:'🧾',col:'#F85149',t:'BAS 还有 14 天',d:'记得申报本季度 GST'}]
+type WX={t:number,c:number,city:string}|null
+function useWeather(){
+  const[w,setW]=useState<WX>(null)
+  useEffect(()=>{const g=(la:number,lo:number,city:string)=>fetch(`https://api.open-meteo.com/v1/forecast?latitude=${la}&longitude=${lo}&current=temperature_2m,weather_code`).then(r=>r.json()).then(d=>setW({t:Math.round(d.current.temperature_2m),c:d.current.weather_code,city})).catch(()=>{});navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>fetch(`https://nominatim.openstreetmap.org/reverse?lat=${p.coords.latitude}&lon=${p.coords.longitude}&format=json`).then(r=>r.json()).then(d=>g(p.coords.latitude,p.coords.longitude,d.address?.city||d.address?.suburb||'Perth')).catch(()=>g(p.coords.latitude,p.coords.longitude,'Perth')),()=>g(-31.95,115.86,'Perth')):g(-31.95,115.86,'Perth')},[])
+  return w
+}
+function wx(c:number){return c===0?'☀️':c<=3?'⛅':c<=67?'🌧️':'⛈️'}
+
 export default function MobileDashboard(){
   const supabase = createClient()
   const { lang } = useLanguage()
-  const zh = lang==='zh'
+  const zh = true
+  const weather = useWeather()
 
   const [isDark,setIsDark] = useState(true)
   const T:Theme = DARK
@@ -183,8 +193,9 @@ export default function MobileDashboard(){
       {/* 大标题 */}
       <div style={{padding:'8px 20px 4px'}}>
         <div style={{fontSize:'34px',fontWeight:800,letterSpacing:'-.6px'}}>{greeting}</div>
-        <div style={{marginTop:'8px',display:'flex',alignItems:'center',gap:'8px'}}>
+        <div style={{marginTop:'8px',display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
           <span style={{fontSize:'14px',color:T.sub,fontWeight:600}}>{dateStr}</span>
+          {weather&&<span style={{display:'inline-flex',alignItems:'center',gap:'6px',background:T.surface,border:`1px solid ${T.line}`,padding:'4px 10px',borderRadius:'999px',fontSize:'12px',color:T.sub}}>📍 {weather.city} · {wx(weather.c)} <span style={{fontFamily:MONO,fontWeight:700,color:T.text}}>{weather.t}°</span></span>}
         </div>
       </div>
 
@@ -273,6 +284,21 @@ export default function MobileDashboard(){
       </div>
 
       {/* 悬浮：记一笔 */}
+      <div style={{marginTop:'24px'}}>
+        <div style={{padding:'0 20px 12px',fontSize:'21px',fontWeight:800}}>资讯 <span style={{color:T.dim,fontSize:'17px'}}>›</span></div>
+        <div style={{padding:'0 20px',display:'flex',flexDirection:'column',gap:'12px'}}>
+          {NEWS.map((n,k)=>(
+            <div key={k} style={{...card,padding:'14px 16px 14px 19px',position:'relative',overflow:'hidden'}}>
+              <span style={{position:'absolute',left:0,top:0,bottom:0,width:'4px',background:n.col}}/>
+              <div style={{display:'flex',gap:'10px'}}>
+                <span style={{fontSize:'18px'}}>{n.i}</span>
+                <div><div style={{fontSize:'14px',fontWeight:700}}>{n.t}</div><div style={{fontSize:'12.5px',color:T.sub,marginTop:'3px'}}>{n.d}</div></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <button onClick={()=>setSheetOpen(true)} style={{position:'fixed',left:'50%',transform:'translateX(-50%)',bottom:'22px',width:'min(404px,calc(100% - 24px))',zIndex:40,background:T.dock,backdropFilter:'blur(22px) saturate(180%)',WebkitBackdropFilter:'blur(22px) saturate(180%)',border:`1px solid ${T.line}`,borderRadius:'18px',padding:'11px 14px',display:'flex',alignItems:'center',gap:'13px',boxShadow:'0 12px 40px rgba(0,0,0,.45)',color:T.text,fontFamily:SANS,textAlign:'left',cursor:'pointer'}}>
         <span style={{width:'38px',height:'38px',borderRadius:'12px',background:T.primary,color:'#fff',fontSize:'22px',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:`0 4px 14px ${T.primary}73`}}>＋</span>
         <div>
