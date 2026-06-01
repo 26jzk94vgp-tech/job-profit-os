@@ -424,71 +424,40 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
         {activeTab === 'invoice' && (
           <div className="space-y-4">
 
-            {/* ── 区域2：发票输出（只在有已成交报价单时显示）── */}
-            {acceptedQuotes.length > 0 && (
-              <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C] flex items-center justify-between">
-                  <div>
-                    <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '发票' : 'Invoice'}</h2>
-                    <p className="text-[#8E8E93] text-xs mt-0.5">
-                      {acceptedQuotes.length} {lang === 'zh' ? '张已成交报价单' : 'accepted quote(s)'}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[#30D158] font-bold text-xl">${invoiceEntries.reduce((sum, e) => sum + Number(e.amount), 0).toLocaleString()}</p>
-                    <p className="text-[#8E8E93] text-xs">{lang === 'zh' ? '不含GST' : 'excl. GST'}</p>
-                  </div>
+                        <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C] flex items-center justify-between">
+                <div>
+                  <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '发票' : 'Invoice'}</h2>
+                  <p className="text-[#8E8E93] text-xs mt-0.5">{invoiceEntries.length} {lang === 'zh' ? '个发票条目' : 'invoice item(s)'}</p>
                 </div>
-
-                {/* 按单1/单2分组 */}
-                <div className="divide-y divide-gray-100 dark:divide-[#3A3A3C]">
-                  {acceptedQuotes.map((quote, acceptedIndex) => {
-                    const quoteNum = quotes.indexOf(quote) + 1
-                    // ✅ 兜底：quote_id 匹配优先，没有 quote_id 的条目归入第一张已成交报价单
-                    const hasLinkedEntries = invoiceEntries.some(e => e.quote_id === quote.id)
-                    const quoteEntries = hasLinkedEntries
-                      ? invoiceEntries.filter(e => e.quote_id === quote.id)
-                      : acceptedIndex === 0
-                        ? invoiceEntries.filter(e => !e.quote_id)
-                        : []
-                    const quoteTotal = quoteEntries.reduce((sum, e) => sum + Number(e.amount), 0)
-                    const unpaidAmt = quoteEntries.filter(e => e.payment_status !== 'paid').reduce((sum, e) => sum + Number(e.amount), 0)
-
-                    return (
-                      <div key={quote.id} className="px-6 py-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold bg-blue-100 dark:bg-[#0A84FF]/20 text-blue-600 dark:text-[#0A84FF] px-2 py-0.5 rounded-full">
-                              {lang === 'zh' ? `单${quoteNum}` : `Q${quoteNum}`}
-                            </span>
-                            <span className="text-sm text-gray-600 dark:text-[#8E8E93]">{quote.quote_number}</span>
-                          </div>
-                          <span className="text-[#30D158] font-semibold">${quoteTotal.toLocaleString()}</span>
-                        </div>
-                        {unpaidAmt > 0 && (
-                          <p className="text-xs text-[#FF9F0A] mb-1">💰 {lang === 'zh' ? `待收：$${unpaidAmt.toLocaleString()}` : `Outstanding: $${unpaidAmt.toLocaleString()}`}</p>
-                        )}
-                        {quoteEntries.slice(0, 3).map(e => (
-                          <p key={e.id} className="text-xs text-[#8E8E93] truncate">· {e.description}</p>
-                        ))}
-                        {quoteEntries.length > 3 && (
-                          <p className="text-xs text-[#8E8E93]">· +{quoteEntries.length - 3} {lang === 'zh' ? '更多条目' : 'more items'}</p>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-
-                <div className="px-6 py-4 border-t border-gray-100 dark:border-[#3A3A3C]">
-                  <Link
-                    href={'/jobs/' + id + '/invoice'}
-                    className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-sm font-semibold transition-colors"
-                  >
-                    🧾 {lang === 'zh' ? '查看完整发票 / 存PDF / 发送' : 'View Invoice / Save PDF / Send'}
-                  </Link>
+                <div className="text-right">
+                  <p className="text-[#30D158] font-bold text-xl">${invoiceEntries.reduce((sum, e) => sum + Number(e.amount), 0).toLocaleString()}</p>
+                  <p className="text-[#8E8E93] text-xs">{lang === 'zh' ? '不含GST' : 'excl. GST'}</p>
                 </div>
               </div>
-            )}
+              {invoiceEntries.length === 0 ? (
+                <div className="px-6 py-10 text-center">
+                  <p className="text-2xl mb-2">🧾</p>
+                  <p className="text-[#8E8E93] text-sm">{lang === 'zh' ? '还没有发票条目' : 'No invoice items yet'}</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100 dark:divide-[#3A3A3C]">
+                  {invoiceEntries.map(e => (
+                    <div key={e.id} className="px-6 py-3 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm text-gray-700 dark:text-[#F2F2F7] truncate">{e.description || (lang === 'zh' ? '发票条目' : 'Invoice item')}</p>
+                        {e.payment_status !== 'paid' && <p className="text-xs text-[#FF9F0A] mt-0.5">💰 {lang === 'zh' ? '待收款' : 'Outstanding'}</p>}
+                      </div>
+                      <span className="text-[#30D158] font-semibold shrink-0">+${Number(e.amount).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="px-6 py-4 border-t border-gray-100 dark:border-[#3A3A3C]">
+                <Link href={'/jobs/' + id + '/invoice'} className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-sm font-semibold transition-colors">🧾 {lang === 'zh' ? '查看完整发票 / 存PDF / 发送' : 'View Invoice / Save PDF / Send'}</Link>
+              </div>
+            </div>
+
           </div>
         )}
       </main>
