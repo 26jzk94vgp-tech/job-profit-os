@@ -15,7 +15,6 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   const { lang } = useLanguage()
   const [job, setJob] = useState<any>(null)
   const [entries, setEntries] = useState<any[]>([])
-  const [quotes, setQuotes] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState(typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('tab') === 'entries' ? 'entries' : 'overview')
   const [notes, setNotes] = useState('')
   const [editingNotes, setEditingNotes] = useState(false)
@@ -24,7 +23,6 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   const [editingDates, setEditingDates] = useState(false)
   const [draftStart, setDraftStart] = useState('')
   const [draftEnd, setDraftEnd] = useState('')
-  const [convertingQuote, setConvertingQuote] = useState<string | null>(null)
   const [filterMatStatus, setFilterMatStatus] = useState<string>('all')
 
   useEffect(() => {
@@ -39,21 +37,12 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
       }
     })
     supabase.from('job_entries').select('*').eq('job_id', id).order('created_at', { ascending: false }).then(({ data }) => setEntries(data || []))
-    loadQuotes()
   }, [id])
 
   
   async function toggleMaterialReceived(entryId: string, current: boolean){
     await supabase.from('job_entries').update({material_received:!current}).eq('id',entryId)
     setEntries(prev=>prev.map(e=>e.id===entryId?{...e,material_received:!current}:e))
-  }
-  async function loadQuotes() {
-    const { data } = await supabase
-      .from('quotes')
-      .select('*, quote_items(*)')
-      .eq('job_id', id)
-      .order('created_at', { ascending: true })
-    setQuotes(data || [])
   }
 
   if (!job) return <div className="p-6">Loading...</div>
@@ -111,78 +100,10 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
     URL.revokeObjectURL(url)
   }
 
-  // 成交：把报价单条目导入到工单发票
-  async function handleQuoteWon(quote: any, quoteIndex: number) {
-    setConvertingQuote(quote.id)
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
 
-      // 检查该报价单是否已导入
-      const { data: existing } = await supabase
-        .from('job_entries')
-        .select('id')
-        .eq('job_id', id)
-        .eq('quote_id', quote.id)
-      
-      if (existing && existing.length > 0) {
-        // 已导入，直接标记成交
-        await supabase.from('quotes').update({ status: 'accepted' }).eq('id', quote.id)
-        setQuotes(prev => prev.map(q => q.id === quote.id ? { ...q, status: 'accepted' } : q))
-        setConvertingQuote(null)
-        return
-      }
-
-      // 插入发票条目，带 quote_id 和 quote_index
-      const quoteItems = quote.quote_items || []
-      if (quoteItems.length > 0) {
-        const invoiceItems = quoteItems.map((item: any) => ({
-          job_id: id, owner_id: user?.id, type: 'invoice',
-          description: item.description + (item.area ? ' - ' + item.area : ''),
-          item_group: item.item_group || null,
-          area: item.area || null,
-          quantity: Number(item.quantity) || 1,
-          unit: item.unit || null,
-          unit_price: Number(item.unit_price),
-          amount: Number(item.quantity) * Number(item.unit_price),
-          gst_status: 'exclusive', tax_category: 'other_income', payment_status: 'unpaid',
-          quote_id: quote.id,
-          quote_index: quoteIndex
-        }))
-        await supabase.from('job_entries').insert(invoiceItems)
-
-        // 插入材料估算
-        const materialItems = quoteItems.filter((i: any) => Number(i.cost_price) > 0).map((item: any) => ({
-          job_id: id, owner_id: user?.id, type: 'material',
-          description: item.description + (item.area ? ' - ' + item.area : ''),
-          quantity: Number(item.quantity), unit: item.unit || null,
-          unit_price: Number(item.cost_price), amount: Number(item.quantity) * Number(item.cost_price),
-          gst_status: 'inclusive', tax_category: 'cogs_material', notes: 'QUOTE_ESTIMATE',
-          quote_id: quote.id, quote_index: quoteIndex
-        }))
-        if (materialItems.length > 0) await supabase.from('job_entries').insert(materialItems)
-      }
-
-      await supabase.from('quotes').update({ status: 'accepted' }).eq('id', quote.id)
-
-      // 刷新数据
-      const { data: newEntries } = await supabase.from('job_entries').select('*').eq('job_id', id).order('created_at', { ascending: false })
-      setEntries(newEntries || [])
-      setQuotes(prev => prev.map(q => q.id === quote.id ? { ...q, status: 'accepted' } : q))
-
-    } catch (err: any) {
-      alert('Error: ' + err.message)
-    }
-    setConvertingQuote(null)
-  }
-
-  async function handleQuoteLost(quoteId: string) {
-    await supabase.from('quotes').update({ status: 'declined' }).eq('id', quoteId)
-    setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, status: 'declined' } : q))
-  }
 
   const unpaidInvoices = entries.filter((e: any) => e.type === 'invoice' && e.payment_status !== 'paid')
   const unpaidTotal = unpaidInvoices.reduce((sum: number, e: any) => sum + Number(e.amount), 0)
-  const acceptedQuotes = quotes.filter(q => q.status === 'accepted')
   const invoiceEntries = entries.filter(e => e.type === 'invoice')
 
   const typeLabel = (type: string) => {
