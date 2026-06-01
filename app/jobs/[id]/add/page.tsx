@@ -22,6 +22,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
   const [quantity, setQuantity] = useState('')
   const [unit, setUnit] = useState('')
   const [unitPrice, setUnitPrice] = useState('')
+  const [priceMode, setPriceMode] = useState<'unit'|'total'>('unit')
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [tripFrom, setTripFrom] = useState('')
@@ -173,10 +174,16 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
       entry.hourly_rate = hourlyRate === '/' ? null : Number(hourlyRate)
       entry.amount = (hours === '/' || hourlyRate === '/') ? 0 : Number(hours) * Number(hourlyRate)
     } else if (type === 'material') {
-      entry.quantity = quantity === '/' ? null : Number(quantity)
       entry.unit = unit || null
-      entry.unit_price = unitPrice === '/' ? null : Number(unitPrice)
-      entry.amount = (quantity && unitPrice && quantity !== '/' && unitPrice !== '/') ? Number(quantity) * Number(unitPrice) : (amount === '/' ? 0 : Number(amount))
+      if (priceMode === 'total') {
+        entry.quantity = 1
+        entry.unit_price = amount === '/' ? null : Number(amount)
+        entry.amount = amount === '/' ? 0 : Number(amount)
+      } else {
+        entry.quantity = quantity === '/' ? null : Number(quantity)
+        entry.unit_price = unitPrice === '/' ? null : Number(unitPrice)
+        entry.amount = (quantity && unitPrice && quantity !== '/' && unitPrice !== '/') ? Number(quantity) * Number(unitPrice) : (amount === '/' ? 0 : Number(amount))
+      }
     } else if (type === 'fuel') {
       entry.trip_from = tripFrom; entry.trip_to = tripTo
       entry.kilometers = kilometers === '/' ? null : Number(kilometers)
@@ -332,12 +339,18 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
                   </div>
                 )}</div>
               <div className="flex gap-3">
-                <div className="flex-1"><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.quantity}</label><input type="text" className={inputCls} placeholder="e.g. 10" value={quantity} onChange={e => { setQuantity(e.target.value); validatePositive(e.target.value, 'quantity') }} />{errors.quantity && <p className={errCls}>{errors.quantity}</p>}</div>
-                <div className="w-24"><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.unit}</label><input className={inputCls} placeholder="m/kg" value={unit} onChange={e => setUnit(e.target.value)} /></div>
+                <div className="flex-1"><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.quantity}</label><input type="text" disabled={priceMode==='total'} className={inputCls} placeholder="e.g. 10" value={quantity} onChange={e => { setQuantity(e.target.value); validatePositive(e.target.value, 'quantity') }} />{errors.quantity && <p className={errCls}>{errors.quantity}</p>}</div>
+                <div className="w-24"><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.unit}</label><input list="cimoUnits" className={inputCls} placeholder="sqm" value={unit} onChange={e => setUnit(e.target.value)} /><datalist id="cimoUnits"><option value="sqm">平方米</option><option value="qbm">立方米</option><option value="L">升</option><option value="KL">千升</option><option value="KG">千克</option><option value="LM">米</option><option value="EA">个</option></datalist></div>
               </div>
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.unitPrice}</label><input type="text" className={inputCls} placeholder="e.g. 12.50" value={unitPrice} onChange={e => { setUnitPrice(e.target.value); validatePositive(e.target.value, 'unitPrice') }} />{errors.unitPrice && <p className={errCls}>{errors.unitPrice}</p>}</div>
-              {quantity && unitPrice && quantity !== '/' && unitPrice !== '/' && <p className="text-[#30D158] text-sm font-medium">{t.total}: ${(Number(quantity) * Number(unitPrice)).toLocaleString()}</p>}
-              <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.orTotal}</label><input type="text" className={inputCls} placeholder="e.g. 1200" value={amount} onChange={e => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className={errCls}>{errors.amount}</p>}</div>
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => setPriceMode('unit')} className={priceMode === 'unit' ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0A84FF] text-white' : 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-[#2C2C2E] text-gray-500 dark:text-[#8E8E93]'}>{lang === 'zh' ? '单价' : 'Unit price'}</button>
+                <button type="button" onClick={() => { setPriceMode('total'); setQuantity('1') }} className={priceMode === 'total' ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#E3B341] text-black' : 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-[#2C2C2E] text-gray-500 dark:text-[#8E8E93]'}>{lang === 'zh' ? '总价' : 'Total'}</button>
+              </div>
+              {priceMode === 'unit' ? (
+                <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{t.unitPrice}</label><input type="text" className={inputCls} placeholder="e.g. 12.50" value={unitPrice} onChange={e => { setUnitPrice(e.target.value); validatePositive(e.target.value, 'unitPrice') }} />{errors.unitPrice && <p className={errCls}>{errors.unitPrice}</p>}{quantity && unitPrice && quantity !== '/' && unitPrice !== '/' && <p className="text-[#30D158] text-sm font-medium mt-1">{t.total}: ${(Number(quantity) * Number(unitPrice)).toLocaleString()}</p>}</div>
+              ) : (
+                <div><label className="text-gray-700 dark:text-gray-300 text-sm font-medium">{lang === 'zh' ? '总价 ($) *' : 'Total ($) *'}</label><input type="text" className={inputCls} placeholder="e.g. 1200" value={amount} onChange={e => { setAmount(e.target.value); validatePositive(e.target.value, 'amount') }} />{errors.amount && <p className={errCls}>{errors.amount}</p>}<p className="text-[#8E8E93] text-xs mt-1">{lang === 'zh' ? '数量锁定为 1' : 'Qty locked to 1'}</p></div>
+              )}
             </div>
           )}
 
