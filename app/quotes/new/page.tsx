@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '../../../utils/supabase/client'
 import { useLanguage } from '../../../lib/i18n/LanguageContext'
 
-type Item = { description: string; area: string; item_type: string; item_group: string; quantity: string; unit: string; unit_price: string; cost_price: string }
+type Item = { description: string; area: string; item_type: string; item_group: string; quantity: string; unit: string; unit_price: string; cost_price: string; priceMode?: 'unit'|'total' }
 
 export default function NewQuote() {
   const supabase = createClient()
@@ -300,12 +300,13 @@ export default function NewQuote() {
                             </select>
                           </div>
                           <div className="flex gap-2">
-                            <input className={selectCls + ' w-20'} placeholder="Qty" value={item.quantity} onChange={e => updateItem(index, 'quantity', e.target.value)} />
-                            <input className={selectCls + ' w-20'} placeholder="Unit" value={item.unit} onChange={e => updateItem(index, 'unit', e.target.value)} />
+                            <input disabled={item.priceMode === 'total'} className={selectCls + ' w-20'} placeholder="Qty" value={item.quantity} onChange={e => updateItem(index, 'quantity', e.target.value)} />
+                            <input list="cimoUnits" className={selectCls + ' w-20'} placeholder="Unit" value={item.unit} onChange={e => updateItem(index, 'unit', e.target.value)} />{isFirst && <datalist id="cimoUnits"><option value="sqm">平方米</option><option value="qbm">立方米</option><option value="L">升</option><option value="KL">千升</option><option value="KG">千克</option><option value="LM">米</option><option value="EA">个</option></datalist>}
                           </div>
+                          <div className="flex items-center gap-1.5"><button type="button" onClick={() => updateItem(index, 'priceMode', 'unit')} className={item.priceMode !== 'total' ? 'px-2.5 py-1 rounded-md text-[11px] font-semibold bg-[#0A84FF] text-white' : 'px-2.5 py-1 rounded-md text-[11px] font-semibold bg-gray-100 dark:bg-[#3A3A3C] text-gray-500 dark:text-[#8E8E93]'}>{lang === 'zh' ? '单价' : 'Unit'}</button><button type="button" onClick={() => { updateItem(index, 'priceMode', 'total'); updateItem(index, 'quantity', '1') }} className={item.priceMode === 'total' ? 'px-2.5 py-1 rounded-md text-[11px] font-semibold bg-[#E3B341] text-black' : 'px-2.5 py-1 rounded-md text-[11px] font-semibold bg-gray-100 dark:bg-[#3A3A3C] text-gray-500 dark:text-[#8E8E93]'}>{lang === 'zh' ? '总价' : 'Total'}</button></div>
                           <div className="flex gap-2 items-center">
                             <div className="flex-1">
-                              <input className={isFirst && errors.firstPrice ? inputErrCls : inputCls} placeholder={lang === 'zh' ? '售价 $' : 'Rate $'} value={item.unit_price} onChange={e => { updateItem(index, 'unit_price', e.target.value); if (isFirst && errors.firstPrice) setErrors(p => ({ ...p, firstPrice: '' })) }} />
+                              <input className={isFirst && errors.firstPrice ? inputErrCls : inputCls} placeholder={item.priceMode === 'total' ? (lang === 'zh' ? '总价 $' : 'Total $') : (lang === 'zh' ? '售价 $' : 'Rate $')} value={item.unit_price} onChange={e => { updateItem(index, 'unit_price', e.target.value); if (isFirst && errors.firstPrice) setErrors(p => ({ ...p, firstPrice: '' })) }} />
                               {isFirst && errors.firstPrice && <p className={errCls}>{errors.firstPrice}</p>}
                             </div>
                             <input className="flex-1 border border-yellow-300 dark:border-yellow-700/60 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-2.5 text-gray-900 dark:text-gray-100 outline-none text-sm" placeholder={lang === 'zh' ? '成本 $' : 'Cost $'} value={item.cost_price} onChange={e => updateItem(index, 'cost_price', e.target.value)} />
