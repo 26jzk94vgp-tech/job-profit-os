@@ -148,6 +148,7 @@ export default function Dashboard(){
   const [entries,setEntries]=useState<any[]>([])
   const [greeting,setGreeting]=useState('')
   const [userName,setUserName]=useState('Shu')
+  const [userEmail,setUserEmail]=useState('')
   const [date,setDate]=useState('')
   const [dismissed,setDismissed]=useState<number[]>([])
   const [expanded,setExpanded]=useState<number|null>(null)
@@ -217,6 +218,7 @@ export default function Dashboard(){
         ])
       ])
       if(user){
+        setUserEmail(user.email||'')
         supabase.from('profiles').select('company_name').eq('id',user.id).single().then(({data:profile})=>{
           if(profile?.company_name)setUserName(profile.company_name)
           else if(user.email)setUserName(user.email.split('@')[0])
@@ -326,7 +328,7 @@ export default function Dashboard(){
               <div style={{position:'absolute',top:'calc(100% + 8px)',right:0,width:'220px',backgroundColor:T.surface,border:`1px solid ${T.border}`,borderRadius:'8px',boxShadow:`0 8px 24px rgba(0,0,0,${isDark?0.4:0.15})`,zIndex:100,overflow:'hidden'}}>
                 <div style={{padding:'12px 14px',borderBottom:`1px solid ${T.border}`,backgroundColor:T.elevated,display:'flex',alignItems:'center',gap:'10px'}}>
                   <div style={{width:'30px',height:'30px',background:`linear-gradient(135deg,${T.primary},#58A6FF)`,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:'12px'}}>S</div>
-                  <div><p style={{fontSize:'12px',fontWeight:600,color:T.text,margin:0}}>Shu</p><p style={{fontSize:'10px',color:T.textDim,margin:0}}>kkkk@qq.com</p></div>
+                  <div><p style={{fontSize:'12px',fontWeight:600,color:T.text,margin:0}}>{userName}</p><p style={{fontSize:'10px',color:T.textDim,margin:0}}>{userEmail}</p></div>
                 </div>
                 <div style={{padding:'6px'}}>
                   {navItems.map(item=>(
