@@ -72,6 +72,8 @@ export default function MobileDashboard(){
   const [eJob,setEJob] = useState('')
   const [eNote,setENote] = useState('')
   const [saving,setSaving] = useState(false)
+  const [userName,setUserName] = useState('')
+  const [userEmail,setUserEmail] = useState('')
 
   // 跟随 <html class="dark">
   useEffect(()=>{
@@ -93,6 +95,11 @@ export default function MobileDashboard(){
     setQuotes(quoteData||[])
     setEntries(entryData||[])
     setUserId(userData?.user?.id||null)
+    const _u=userData?.user
+    if(_u){
+      setUserEmail(_u.email||'')
+      supabase.from('profiles').select('company_name').eq('id',_u.id).single().then(({data:_pf})=>{ setUserName(_pf?.company_name || (_u.email? _u.email.split('@')[0] : '')) })
+    }
   }
   useEffect(()=>{ load() },[])
 
@@ -178,8 +185,8 @@ export default function MobileDashboard(){
       {menuOpen&&<div onClick={()=>setMenuOpen(false)} style={{position:'fixed',inset:0,zIndex:55,background:'rgba(0,0,0,.4)'}}/>}
       <div style={{position:'fixed',top:'64px',right:'14px',zIndex:60,width:'236px',background:T.surface,border:`1px solid ${T.line}`,borderRadius:'16px',boxShadow:'0 16px 50px rgba(0,0,0,.5)',overflow:'hidden',transformOrigin:'top right',transition:'.18s',opacity:menuOpen?1:0,transform:menuOpen?'none':'translateY(-8px) scale(.98)',pointerEvents:menuOpen?'auto':'none'}}>
         <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'13px 14px',background:T.surface2,borderBottom:`1px solid ${T.line}`}}>
-          <span style={{width:'34px',height:'34px',borderRadius:'50%',background:`linear-gradient(135deg,#2F81F7,#9D5CFF)`,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:700}}>S</span>
-          <div><div style={{fontSize:'13px',fontWeight:700}}>Shu</div><div style={{fontSize:'11px',color:T.dim}}>kkkk@qq.com</div></div>
+          <span style={{width:'34px',height:'34px',borderRadius:'50%',background:`linear-gradient(135deg,#2F81F7,#9D5CFF)`,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:700}}>{(userName||userEmail||'?').charAt(0).toUpperCase()}</span>
+          <div><div style={{fontSize:'13px',fontWeight:700}}>{userName||'—'}</div><div style={{fontSize:'11px',color:T.dim}}>{userEmail}</div></div>
         </div>
         {navItems.map(it=>(
           <Link key={it.href} href={it.href} onClick={()=>setMenuOpen(false)} style={{display:'flex',alignItems:'center',gap:'11px',padding:'11px 15px',fontSize:'14px',fontWeight:500,color:it.href==='/'?T.primary:T.text,background:it.href==='/'?T.primarySoft:'transparent',textDecoration:'none'}}>
