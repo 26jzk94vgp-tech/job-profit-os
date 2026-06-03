@@ -184,7 +184,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
             {groups.map(group => (
               <React.Fragment key={group}>
                 <tr>
-                  <td colSpan={colSpan} className="border border-gray-300 px-3 py-1.5 text-xs font-bold uppercase tracking-wider" style={{backgroundColor:'#F3F4F6', color:'#374151'}}>📁 {group}</td>
+                  <td colSpan={colSpan} className="border border-gray-300 px-3 py-1.5 text-xs font-bold uppercase tracking-wider" style={{backgroundColor:'#FFFFFF', color:'#374151'}}>📁 {group}</td>
                 </tr>
                 {quoteEntries.filter(e => e.item_group === group).map(renderRow)}
               </React.Fragment>
@@ -303,7 +303,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
         </div>
 
         {profile?.account_name && (
-          <div className="mb-4 bg-blue-50 rounded-lg p-4">
+          <div className="mb-4 bg-white border border-gray-300 rounded-lg p-4">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{lang === 'zh' ? '付款信息' : 'Payment Details'}</p>
             <p className="text-sm text-gray-700"><span className="text-gray-400">{lang === 'zh' ? '账户名: ' : 'Account Name: '}</span><span className="font-medium">{profile.account_name}</span></p>
             {profile.bsb && <p className="text-sm text-gray-700"><span className="text-gray-400">BSB: </span><span className="font-medium">{profile.bsb}</span></p>}
@@ -322,7 +322,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
         <div className="overflow-x-auto mb-6">
           <table className="w-full border-collapse" style={{minWidth:'400px'}}>
             <thead>
-              <tr className="border border-gray-400 bg-gray-100">
+              <tr className="border border-gray-400 bg-white">
                 <th className="border border-gray-400 px-3 py-2 text-left text-sm font-bold">{lang === 'zh' ? '描述' : 'DESCRIPTION'}</th>
                 {hasArea && <th className="border border-gray-400 px-3 py-2 text-center text-sm font-bold w-20">{lang === 'zh' ? '区域' : 'AREA'}</th>}
                 <th className="border border-gray-400 px-3 py-2 text-center text-sm font-bold w-16">{lang === 'zh' ? '数量' : 'QTY'}</th>
@@ -345,7 +345,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
                       <>
                         {groups.map(group => (
                           <React.Fragment key={group}>
-                            <tr><td colSpan={colSpan} className="border border-gray-300 px-3 py-1.5 text-xs font-bold uppercase tracking-wider" style={{backgroundColor:'#F3F4F6', color:'#374151'}}>📁 {group}</td></tr>
+                            <tr><td colSpan={colSpan} className="border border-gray-300 px-3 py-1.5 text-xs font-bold uppercase tracking-wider" style={{backgroundColor:'#FFFFFF', color:'#374151'}}>📁 {group}</td></tr>
                             {invoiceEntries.filter(e => e.item_group === group).map(renderRow)}
                           </React.Fragment>
                         ))}
@@ -375,8 +375,8 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
                 <td style={{border:'1px solid #D1D5DB', padding:'8px 24px', fontSize:'14px', textAlign:'right', color:'#111827', backgroundColor:'#FFFFFF'}}>${gst.toFixed(2)}</td>
               </tr>
               <tr>
-                <td style={{border:'1px solid #D1D5DB', padding:'8px 24px', fontSize:'14px', fontWeight:700, color:'#111827', backgroundColor:'#F3F4F6'}}>{lang === 'zh' ? '含GST总计' : 'Total Inc. GST'}:</td>
-                <td style={{border:'1px solid #D1D5DB', padding:'8px 24px', fontSize:'14px', fontWeight:700, textAlign:'right', color:'#111827', backgroundColor:'#F3F4F6'}}>${total.toFixed(2)}</td>
+                <td style={{border:'1px solid #D1D5DB', padding:'8px 24px', fontSize:'14px', fontWeight:700, color:'#111827', backgroundColor:'#FFFFFF'}}>{lang === 'zh' ? '含GST总计' : 'Total Inc. GST'}:</td>
+                <td style={{border:'1px solid #D1D5DB', padding:'8px 24px', fontSize:'14px', fontWeight:700, textAlign:'right', color:'#111827', backgroundColor:'#FFFFFF'}}>${total.toFixed(2)}</td>
               </tr>
             </tbody>
           </table>
