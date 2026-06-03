@@ -46,10 +46,13 @@ export default function JobMap({ jobs, isDark }: Props) {
         zoomControl: true,
       })
 
+      let userLocated = false
       // Show user location
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
           const { latitude, longitude } = pos.coords
+          map.setView([latitude, longitude], 12)
+          userLocated = true
           const userIcon = L.divIcon({
             html: '<div style="width:14px;height:14px;background:#2F81F7;border:2px solid white;border-radius:50%;box-shadow:0 0 0 4px rgba(47,129,247,0.3)"></div>',
             iconSize: [14, 14],
@@ -75,7 +78,7 @@ export default function JobMap({ jobs, isDark }: Props) {
           marker.bindPopup(`<b>${job.name}</b><br/>${job.client_name || ''}<br/>${job.site_address}<br/><span style="color:green">+$${Number(job.revenue||0).toLocaleString()}</span>`)
           bounds.push([lat, lon])
           if (bounds.length === jobs.filter(j => j.site_address).length) {
-            if (bounds.length > 0) map.fitBounds(bounds, { padding: [30, 30] })
+            if (!userLocated && bounds.length > 0) map.fitBounds(bounds, { padding: [30, 30] })
           }
         }
 
