@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
-  // Auth is handled client-side, middleware just passes through
+export async function proxy(request: NextRequest) {
+  // Auth is handled client-side, proxy just passes through
   return NextResponse.next()
 }
 
