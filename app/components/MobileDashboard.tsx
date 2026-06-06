@@ -243,7 +243,7 @@ export default function MobileDashboard(){
                 <span style={{position:'absolute',left:0,top:0,bottom:0,width:'4px',background:urgent?T.danger:(d!==null&&d<=14?T.warning:T.success)}}/>
                 <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'10px'}}>
                   <div>
-                    <div style={{fontSize:'16px',fontWeight:700}}>{job.name}</div>
+                    <div style={{fontSize:'16px',fontWeight:700}}>{job.name.replace(/\s*的工单\s*$/,'')}</div>
                     {job.site_address&&<div style={{fontSize:'12.5px',color:T.sub,marginTop:'4px'}}>📍 {job.site_address}</div>}
                   </div>
                   {Number(job.revenue)>0&&<div style={{fontFamily:MONO,fontSize:'17px',fontWeight:800,color:T.success,whiteSpace:'nowrap'}}>+{money(job.revenue)}</div>}
