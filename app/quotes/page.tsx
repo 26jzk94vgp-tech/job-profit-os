@@ -43,6 +43,8 @@ export default function Quotes() {
           clientId = newClient?.id
         }
       }
+      let jobId = freshQuote?.job_id || quote.job_id || null
+      if (!jobId) {
       const jobName = quote.client_name
         ? (lang === 'zh' ? `${quote.client_name} 的工单` : `${quote.client_name}'s Job`)
         : (lang === 'zh' ? '新工单（来自报价单）' : 'New Job (from quote)')
@@ -51,10 +53,12 @@ export default function Quotes() {
         notes: quote.notes || null, owner_id: user?.id, status: 'active'
       }).select().single()
       if (!newJob) throw new Error('Failed to create job')
+      jobId = newJob.id
+      }
       const quoteItems = quote.quote_items || []
       if (quoteItems.length > 0) {
         const invoiceItems = quoteItems.map((item: any) => ({
-          job_id: newJob.id, owner_id: user?.id, type: 'invoice',
+          job_id: jobId, owner_id: user?.id, type: 'invoice',
           description: item.description + (item.area ? ' - ' + item.area : ''),
           item_group: item.item_group || null, area: item.area || null,
           quantity: Number(item.quantity) || 1, unit: item.item_unit || item.unit || null,
@@ -64,7 +68,7 @@ export default function Quotes() {
         }))
         await supabase.from('job_entries').insert(invoiceItems)
         const materialItems = quoteItems.filter((i: any) => Number(i.cost_price) > 0).map((item: any) => ({
-          job_id: newJob.id, owner_id: user?.id, type: 'material',
+          job_id: jobId, owner_id: user?.id, type: 'material',
           description: item.description + (item.area ? ' - ' + item.area : ''),
           quantity: Number(item.quantity), unit: item.item_unit || item.unit || null,
           unit_price: Number(item.cost_price), amount: Number(item.quantity) * Number(item.cost_price),
@@ -72,8 +76,8 @@ export default function Quotes() {
         }))
         if (materialItems.length > 0) await supabase.from('job_entries').insert(materialItems)
       }
-      await supabase.from('quotes').update({ status: 'accepted', job_id: newJob.id, client_id: clientId || null, deposit_status: 'pending' }).eq('id', quote.id)
-      window.location.href = '/jobs/' + newJob.id
+      await supabase.from('quotes').update({ status: 'accepted', job_id: jobId, client_id: clientId || null, deposit_status: 'pending' }).eq('id', quote.id)
+      window.location.href = '/jobs/' + jobId
     } catch (err: any) {
       alert('Error: ' + err.message)
     }
