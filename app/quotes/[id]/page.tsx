@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment} from 'react'
 import { use } from 'react'
 import { createClient } from '../../../utils/supabase/client'
 import { useLanguage } from '../../../lib/i18n/LanguageContext'
@@ -272,8 +272,8 @@ export default function QuoteDetail({ params }: { params: Promise<{ id: string }
                   return (
                     <>
                       {groups.map(group => (
-                        <><tr key={group}><td colSpan={9} className="pt-4 pb-1.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{group}</td></tr>
-                        {items.filter(i => i.item_group === group).map(renderRow)}</>
+                        <Fragment key={group}><tr key={group}><td colSpan={9} className="pt-4 pb-1.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{group}</td></tr>
+                        {items.filter(i => i.item_group === group).map(renderRow)}</Fragment>
                       ))}
                       {noGroup.map(renderRow)}
                     </>
