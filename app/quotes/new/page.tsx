@@ -21,9 +21,9 @@ export default function NewQuote() {
     const q = siteAddress.trim()
     if (q.length < 4) { setAddrOptions([]); return }
     const tmr = setTimeout(() => {
-      fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&countrycodes=au`)
+      fetch(`/api/geocode?q=${encodeURIComponent(q)}`)
         .then(r => r.json())
-        .then((data: { display_name: string }[]) => setAddrOptions(data.map(d => d.display_name)))
+        .then((data: string[]) => setAddrOptions(data))
         .catch(() => {})
     }, 400)
     return () => clearTimeout(tmr)
@@ -259,7 +259,7 @@ export default function NewQuote() {
 
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '工地地址' : 'Site Address'}</label>
-            <input className={inputCls + ' mt-1.5'} placeholder={lang === 'zh' ? '例如：123 Smith St, Perth WA' : 'e.g. 123 Smith St, Perth WA'} list="siteAddrList" value={siteAddress} onChange={e => setSiteAddress(e.target.value)} /><datalist id="siteAddrList">{addrOptions.map((a, i) => <option key={i} value={a} />)}</datalist>
+            <input className={inputCls + ' mt-1.5'} placeholder={lang === 'zh' ? '例如：123 Smith St, Perth WA' : 'e.g. 123 Smith St, Perth WA'} value={siteAddress} onChange={e => setSiteAddress(e.target.value)} />{addrOptions.length>0 && <div className="mt-1 border border-gray-200 dark:border-[#3A3A3C] rounded-xl overflow-hidden">{addrOptions.map((a,i)=><button type="button" key={i} onClick={()=>{setSiteAddress(a);setAddrOptions([])}} className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-[#2C2C2E] text-gray-900 dark:text-gray-100">{a}</button>)}</div>}
             {!fromJob && clients.filter(c => c.address).length > 0 && (
               <select className={selectCls + ' w-full mt-1.5'} value="" onChange={e => { if (e.target.value) setSiteAddress(e.target.value) }}>
                 <option value="">{lang === 'zh' ? '或从客户地址选择...' : 'Or select from client addresses...'}</option>
