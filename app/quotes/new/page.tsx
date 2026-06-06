@@ -16,6 +16,18 @@ export default function NewQuote() {
   const [jobId, setJobId] = useState('')
   const [jobName, setJobName] = useState('')
   const [siteAddress, setSiteAddress] = useState('')
+  const [addrOptions, setAddrOptions] = useState<string[]>([])
+  useEffect(() => {
+    const q = siteAddress.trim()
+    if (q.length < 4) { setAddrOptions([]); return }
+    const tmr = setTimeout(() => {
+      fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&countrycodes=au`)
+        .then(r => r.json())
+        .then((data: { display_name: string }[]) => setAddrOptions(data.map(d => d.display_name)))
+        .catch(() => {})
+    }, 400)
+    return () => clearTimeout(tmr)
+  }, [siteAddress])
   const [notes, setNotes] = useState('')
   const [scopeOfWork, setScopeOfWork] = useState('')
   const [items, setItems] = useState<Item[]>([{ description: '', area: '', item_type: '', item_group: '', quantity: '1', unit: '', unit_price: '', cost_price: '' }])
@@ -247,7 +259,7 @@ export default function NewQuote() {
 
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{lang === 'zh' ? '工地地址' : 'Site Address'}</label>
-            <input className={inputCls + ' mt-1.5'} placeholder={lang === 'zh' ? '例如：123 Smith St, Perth WA' : 'e.g. 123 Smith St, Perth WA'} value={siteAddress} onChange={e => setSiteAddress(e.target.value)} />
+            <input className={inputCls + ' mt-1.5'} placeholder={lang === 'zh' ? '例如：123 Smith St, Perth WA' : 'e.g. 123 Smith St, Perth WA'} list="siteAddrList" value={siteAddress} onChange={e => setSiteAddress(e.target.value)} /><datalist id="siteAddrList">{addrOptions.map((a, i) => <option key={i} value={a} />)}</datalist>
             {!fromJob && clients.filter(c => c.address).length > 0 && (
               <select className={selectCls + ' w-full mt-1.5'} value="" onChange={e => { if (e.target.value) setSiteAddress(e.target.value) }}>
                 <option value="">{lang === 'zh' ? '或从客户地址选择...' : 'Or select from client addresses...'}</option>
