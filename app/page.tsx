@@ -470,7 +470,7 @@ export default function Dashboard(){
               </div>
             ):(
               quotes.slice(0,5).map((q,i)=>(
-                <div key={q.id} style={{padding:'10px 16px',borderTop:`1px solid ${T.borderSub}`,display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer'}}
+                <div key={q.id} onClick={()=>{window.location.href='/quotes/'+q.id}} style={{padding:'10px 16px',borderTop:`1px solid ${T.borderSub}`,display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer'}}
                   onMouseEnter={e=>(e.currentTarget.style.backgroundColor=T.elevated)}
                   onMouseLeave={e=>(e.currentTarget.style.backgroundColor='transparent')}>
                   <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
@@ -483,7 +483,7 @@ export default function Dashboard(){
                   <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                     {q.total&&<span style={{fontSize:'15px',fontWeight:600,color:T.success,fontFamily:T.mono}}>${Number(q.total).toLocaleString()}</span>}
                     <Badge label={q.status==='accepted'?(zh?'已接受':'Accepted'):q.status==='sent'?(zh?'已发送':'Sent'):q.status==='rejected'?(zh?'已拒绝':'Rejected'):(zh?'草稿':'Draft')} type={q.status==='accepted'?'success':q.status==='sent'?'warning':q.status==='rejected'?'danger':'muted'} T={T} isZh={zh}/>
-                  <button onClick={()=>toggleDeposit(q.id,q.deposit_paid)} style={{fontSize:'11px',fontWeight:600,padding:'3px 8px',borderRadius:'3px',backgroundColor:q.deposit_paid?'rgba(63,185,80,0.12)':'rgba(210,153,34,0.12)',color:q.deposit_paid?'#3FB950':'#D29922',border:'1px solid '+(q.deposit_paid?'rgba(63,185,80,0.12)':'rgba(210,153,34,0.12)'),cursor:'pointer',whiteSpace:'nowrap'}}>
+                  <button onClick={(e)=>{e.stopPropagation();toggleDeposit(q.id,q.deposit_paid)}} style={{fontSize:'11px',fontWeight:600,padding:'3px 8px',borderRadius:'3px',backgroundColor:q.deposit_paid?'rgba(63,185,80,0.12)':'rgba(210,153,34,0.12)',color:q.deposit_paid?'#3FB950':'#D29922',border:'1px solid '+(q.deposit_paid?'rgba(63,185,80,0.12)':'rgba(210,153,34,0.12)'),cursor:'pointer',whiteSpace:'nowrap'}}>
                     {q.deposit_paid?(zh?'✓ 定金已付':'✓ Deposit Paid'):(zh?'定金未付':'Deposit Unpaid')}
                   </button>
                   </div>

@@ -270,7 +270,7 @@ export default function MobileDashboard(){
         <div style={{margin:'0 20px',...card,overflow:'hidden'}}>
           {quotes.length===0&&<div style={{padding:'18px',textAlign:'center',color:T.dim,fontSize:'13px'}}>{zh?'还没有报价单':'No quotes yet'}</div>}
           {quotes.slice(0,5).map((q,i)=>(
-            <Link key={q.id} href="/quotes" style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 16px',borderTop:i>0?`1px solid ${T.lineSoft}`:'none',textDecoration:'none',color:T.text}}>
+            <Link key={q.id} href={'/quotes/'+q.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 16px',borderTop:i>0?`1px solid ${T.lineSoft}`:'none',textDecoration:'none',color:T.text}}>
               <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
                 <span style={{fontFamily:MONO,fontSize:'12px',color:T.dim,width:'46px'}}>{q.quote_number||`Q-${i+1}`}</span>
                 <div>
