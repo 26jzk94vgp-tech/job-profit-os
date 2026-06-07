@@ -248,13 +248,13 @@ export default function NewQuote() {
               <div className={inputCls + ' mt-1.5 bg-gray-50 dark:bg-[#3A3A3C] text-gray-500 dark:text-[#8E8E93]'}>{jobName}</div>
             ) : (
               <>
-                <input className={inputCls + ' mt-1.5'} placeholder={lang === 'zh' ? '例如：厨房翻新' : 'e.g. Kitchen Renovation'} value={jobName} onChange={e => { setJobName(e.target.value); setJobId('') }} />
                 {jobs.length > 0 && (
                   <select className={selectCls + ' w-full mt-1.5'} value={jobId} onChange={e => { setJobId(e.target.value); const found = jobs.find(j => j.id === e.target.value); if (found) setJobName(found.name) }}>
-                    <option value="">{lang === 'zh' ? '或从已有工单选择...' : 'Or select from existing jobs...'}</option>
+                    <option value="">{lang === 'zh' ? '选择已有工单（关联报价）' : 'Select an existing job'}</option>
                     {jobs.map(j => <option key={j.id} value={j.id}>{j.name}</option>)}
                   </select>
                 )}
+                <input className={inputCls + ' mt-1.5'} placeholder={lang === 'zh' ? '或输入新工单名称，例如：厨房翻新' : 'Or type a new job name'} value={jobName} onChange={e => { const v = e.target.value; setJobName(v); const m = jobs.find(j => (j.name||'').toLowerCase() === v.trim().toLowerCase()); setJobId(m ? m.id : '') }} />
               </>
             )}
           </div>
