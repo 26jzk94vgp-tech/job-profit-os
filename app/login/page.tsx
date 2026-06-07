@@ -15,12 +15,16 @@ export default function Login() {
     setLoading(true)
     setMessage('')
     if (isSignUp) {
-      const { error } = await supabase.auth.signUp({ email, password })
+      const { data, error } = await supabase.auth.signUp({ email, password })
       if (error) {
         setMessage(error.message)
       } else {
-        // 新用户 → onboarding 填公司信息
-        window.location.href = '/onboarding'
+        if (!data.session) {
+          setMessage('Account created. Please check your email to confirm, then sign in.')
+          setIsSignUp(false)
+        } else {
+          window.location.href = '/onboarding'
+        }
       }
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
