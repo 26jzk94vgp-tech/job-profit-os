@@ -148,6 +148,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
           <div className="flex gap-2">
             <button onClick={addToCalendar} className="bg-gray-100 dark:bg-[#3A3A3C] hover:bg-gray-200 text-gray-700 dark:text-[#F2F2F7] px-3 py-2 rounded-lg text-sm font-medium">📅 {lang === 'zh' ? '加入日历' : 'Add to Calendar'}</button>
             <Link href={'/jobs/' + id + '/edit'} className="bg-gray-100 dark:bg-[#3A3A3C] hover:bg-gray-200 text-gray-700 dark:text-[#F2F2F7] px-3 py-2 rounded-lg text-sm font-medium">✏️ {lang === 'zh' ? '编辑' : 'Edit'}</Link>
+            <Link href={'/quotes/new?job_id=' + id} className="bg-gray-100 dark:bg-[#3A3A3C] hover:bg-gray-200 text-gray-700 dark:text-[#F2F2F7] px-3 py-2 rounded-lg text-sm font-medium">📋 {lang === 'zh' ? '新建报价单' : 'New Quote'}</Link>
             <Link href={'/jobs/' + id + '/add'} className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg text-sm font-medium">+ {lang === 'zh' ? '添加条目' : 'Add Entry'}</Link>
           </div>
         </div>
@@ -167,7 +168,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
         {showMore && (
           <div className="md:hidden bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-[#3A3A3C] shadow-lg mb-4 overflow-hidden">
             <button onClick={() => { addToCalendar(); setShowMore(false) }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] text-sm text-gray-700 dark:text-[#F2F2F7]">📅 <span>{lang === 'zh' ? '加入日历' : 'Add to Calendar'}</span></button>
-            <div className="border-t border-gray-100 dark:border-[#3A3A3C]"><Link href={'/jobs/' + id + '/edit'} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] text-sm text-gray-700 dark:text-[#F2F2F7]">✏️ <span>{lang === 'zh' ? '编辑工单' : 'Edit Job'}</span></Link></div>
+            <div className="border-t border-gray-100 dark:border-[#3A3A3C]"><Link href={'/jobs/' + id + '/edit'} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] text-sm text-gray-700 dark:text-[#F2F2F7]">✏️ <span>{lang === 'zh' ? '编辑工单' : 'Edit Job'}</span></Link></div><div className="border-t border-gray-100 dark:border-[#3A3A3C]"><Link href={'/quotes/new?job_id=' + id} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] text-sm text-gray-700 dark:text-[#F2F2F7]">📋 <span>{lang === 'zh' ? '新建报价单' : 'New Quote'}</span></Link></div>
           </div>
         )}
 
