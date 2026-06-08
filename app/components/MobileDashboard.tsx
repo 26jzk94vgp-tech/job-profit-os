@@ -74,6 +74,11 @@ export default function MobileDashboard(){
   const [saving,setSaving] = useState(false)
   const [userName,setUserName] = useState('')
   const [userEmail,setUserEmail] = useState('')
+  const [eQty,setEQty] = useState('')
+  const [eUnit,setEUnit] = useState('')
+  const [eUnitPrice,setEUnitPrice] = useState('')
+  const [ePicked,setEPicked] = useState('')
+  const [mats,setMats] = useState<any[]>([])
 
   // 跟随 <html class="dark">
   useEffect(()=>{
@@ -149,15 +154,11 @@ export default function MobileDashboard(){
     if(!eAmount||Number(eAmount)<=0||!eJob){ alert(zh?'请填写金额并选择工单':'Enter amount and pick a job'); return }
     setSaving(true)
     try{
-      const { error } = await supabase.from('job_entries').insert({
-        job_id: eJob,
-        owner_id: userId,           // 若你的表用 RLS+default 可去掉这一行
-        type: eType,
-        amount: Number(eAmount),
-        note: eNote||null,          // 若没有 note 列请删掉这一行
-      })
+      const row:any = { job_id: eJob, owner_id: userId, type: eType, amount: Number(eAmount), note: eNote||null }
+      if(eType==='material'){ row.description=eNote||null; if(eQty)row.quantity=Number(eQty); if(eUnit)row.unit=eUnit; if(eUnitPrice)row.unit_price=Number(eUnitPrice); row.gst_status='inclusive'; row.tax_category='cogs_material' }
+      const { error } = await supabase.from('job_entries').insert(row)
       if(error) throw error
-      setSheetOpen(false); setEAmount(''); setENote('')
+      setSheetOpen(false); setEAmount(''); setENote(''); setEQty(''); setEUnit(''); setEUnitPrice(''); setEPicked('')
       await load()
     }catch(err:any){
       console.error('记一笔失败',err)
@@ -165,6 +166,17 @@ export default function MobileDashboard(){
     }finally{ setSaving(false) }
   }
 
+  useEffect(()=>{
+    if(!sheetOpen) return
+    const j = eJob || (activeJobs[0]?.id || '')
+    if(!eJob && j) setEJob(j)
+    if(!j){ setMats([]); return }
+    supabase.from('job_entries').select('description, unit, unit_price').eq('job_id', j).eq('type','material').eq('notes','QUOTE_ESTIMATE').then(({data}:any)=>setMats(data||[]))
+  },[sheetOpen,eJob,eType])
+  useEffect(()=>{
+    if(eType==='material'){ const q=Number(eQty),p=Number(eUnitPrice); if(q>0&&p>0) setEAmount(String(+(q*p).toFixed(2))) }
+  },[eQty,eUnitPrice,eType])
+  function pickMat(m:any){ setEPicked(m.description); setENote(m.description); setEUnit(m.unit||''); setEUnitPrice(m.unit_price!=null?String(m.unit_price):'') }
   const card = {background:T.surface,border:`1px solid ${T.line}`,borderRadius:'18px'} as const
 
   return (
@@ -326,6 +338,22 @@ export default function MobileDashboard(){
             return <button key={t.key} onClick={()=>setEType(t.key)} style={{flex:'0 0 auto',width:'64px',display:'flex',flexDirection:'column',alignItems:'center',gap:'5px',padding:'10px 0',borderRadius:'14px',background:on?T.primarySoft:T.surface,border:`1px solid ${on?T.primary:T.line}`,color:on?T.primary:T.sub,fontSize:'12.5px',fontWeight:600,cursor:'pointer'}}><span style={{fontSize:'20px'}}>{t.emoji}</span>{zh?t.zh:t.en}</button>
           })}
         </div>
+        {eType==='material'&&mats.length>0&&<div style={{marginBottom:'16px'}}>
+          <div style={{fontSize:'12px',color:T.sub,marginBottom:'8px'}}>{zh?'从报价带入（点一下自动填）':'From quote (tap to fill)'}</div>
+          <div style={{display:'flex',gap:'8px',overflowX:'auto'}} className="no-sb">
+            {mats.map((m,i)=>{const on=ePicked===m.description;return <button key={i} onClick={()=>pickMat(m)} style={{flex:'0 0 auto',padding:'8px 12px',borderRadius:'12px',background:on?T.primarySoft:T.surface,border:`1px solid ${on?T.primary:T.line}`,color:on?T.primary:T.text,fontSize:'12.5px',fontWeight:600,whiteSpace:'nowrap',cursor:'pointer'}}>{m.description}{m.unit_price!=null?' · $'+m.unit_price:''}</button>})}
+          </div>
+        </div>}
+        {eType==='material'&&<div style={{display:'flex',gap:'10px',marginBottom:'18px'}}>
+          <div style={{flex:1}}>
+            <div style={{fontSize:'12px',color:T.sub,marginBottom:'6px'}}>{zh?'数量':'Qty'}</div>
+            <input value={eQty} onChange={e=>setEQty(e.target.value.replace(/[^0-9.]/g,''))} inputMode="decimal" placeholder="0" style={{width:'100%',padding:'11px 13px',background:T.surface,border:`1px solid ${T.line}`,borderRadius:'12px',fontSize:'15px',color:T.text,outline:'none',fontFamily:SANS}}/>
+          </div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:'12px',color:T.sub,marginBottom:'6px'}}>{zh?'单价':'Unit price'}</div>
+            <input value={eUnitPrice} onChange={e=>setEUnitPrice(e.target.value.replace(/[^0-9.]/g,''))} inputMode="decimal" placeholder="0" style={{width:'100%',padding:'11px 13px',background:T.surface,border:`1px solid ${T.line}`,borderRadius:'12px',fontSize:'15px',color:T.text,outline:'none',fontFamily:SANS}}/>
+          </div>
+        </div>}
         <div style={{textAlign:'center',marginBottom:'20px'}}>
           <span style={{fontSize:'22px',fontWeight:700,color:T.dim,verticalAlign:'super'}}>$</span>
           <input value={eAmount} onChange={e=>setEAmount(e.target.value.replace(/[^0-9.]/g,''))} inputMode="decimal" placeholder="0" style={{fontFamily:MONO,fontSize:'46px',fontWeight:800,letterSpacing:'-1px',background:'none',border:'none',outline:'none',width:'60%',textAlign:'center',color:ENTRY_TYPES.find(t=>t.key===eType)?.income?T.success:T.text}}/>
