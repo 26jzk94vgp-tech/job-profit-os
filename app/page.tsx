@@ -4,6 +4,7 @@ import { createClient } from '../utils/supabase/client'
 import Link from 'next/link'
 import { useLanguage } from '../lib/i18n/LanguageContext'
 import MobileDashboard from './components/MobileDashboard'
+import QuickEntry from './components/QuickEntry'
 import dynamic from 'next/dynamic'
 const JobMap = dynamic(() => import('./components/JobMap'), { ssr: false })
 
@@ -361,6 +362,7 @@ export default function Dashboard(){
         {/* 中间内容 */}
         <div className="hidden md:block" style={{flex:1,minWidth:0,padding:'20px 20px 60px'}}>
 
+          <div style={{marginBottom:'16px'}}><QuickEntry/></div>
           {/* Active Jobs */}
           <Section title={zh?'进行中工单':'Active Jobs'} dot={T.primary} count={activeJobs.length} T={T}
             action={<div style={{display:'flex',alignItems:'center',gap:'8px'}}>
@@ -429,7 +431,7 @@ export default function Dashboard(){
                   <table style={{width:"100%",borderCollapse:"collapse"}}>
                     <thead>
                       <tr style={{backgroundColor:T.bg}}>
-                        {[zh?"工单名称":"Job",zh?"工地 / 截止":"Site / Due",zh?"材料状态":"Material",zh?"收款状态":"Payment",zh?"收入":"Revenue",zh?"状态":"Status"].map(h=>(
+                        {[zh?"工单名称":"Job",zh?"工地":"Site",zh?"材料状态":"Material",zh?"收款状态":"Payment",zh?"收入":"Revenue",zh?"状态":"Status"].map(h=>(
                           <th key={h} style={{padding:"8px 16px",fontSize:"10px",fontWeight:600,color:T.textDim,textAlign:"left",borderBottom:`1px solid ${T.border}`,textTransform:"uppercase",letterSpacing:"0.6px",whiteSpace:"nowrap"}}>{h}</th>
                         ))}
                       </tr>
@@ -442,7 +444,7 @@ export default function Dashboard(){
                         return(
                           <tr key={job.id} style={{borderTop:i>0?`1px solid ${T.borderSub}`:"none",cursor:"pointer"}} onMouseEnter={e=>(e.currentTarget.style.backgroundColor=T.elevated)} onMouseLeave={e=>(e.currentTarget.style.backgroundColor="transparent")}>
                             <td style={{padding:"11px 16px"}}><Link href={`/jobs/${job.id}`} style={{fontSize:"15px",fontWeight:500,color:T.primary,textDecoration:"none"}}>{job.name.replace(/\s*的工单\s*$/,"")}</Link></td>
-                            <td style={{padding:"11px 16px"}}>{job.site_address&&<div style={{display:"flex",alignItems:"center",gap:"4px",marginBottom:"2px"}}><span style={{fontSize:"11px"}}>📍</span><span style={{fontSize:"12px",color:T.textSub}}>{job.site_address}</span></div>}{daysLeft!==null&&<span style={{fontSize:"12px",fontWeight:600,color:isUrgent?T.danger:T.textDim}}>{isUrgent?"▲ ":""}{daysLeft}d left</span>}</td>
+                            <td style={{padding:"11px 16px"}}>{job.site_address&&<div style={{display:"flex",alignItems:"center",gap:"4px",marginBottom:"2px"}}><span style={{fontSize:"11px"}}>📍</span><span style={{fontSize:"12px",color:T.textSub}}>{job.site_address}</span></div>}</td>
                             <td style={{padding:"11px 16px"}}><StatusDropdown value={meta.mat} options={MAT_OPTIONS} onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],mat:s}}))} T={T} isZh={zh}/></td>
                             <td style={{padding:"11px 16px"}}><StatusDropdown value={meta.pay} options={PAY_OPTIONS} onChange={s=>setJobMeta(m=>({...m,[job.id]:{...m[job.id],pay:s}}))} T={T} isZh={zh}/></td>
                             <td style={{padding:"11px 16px",fontSize:"15px",fontWeight:600,color:Number(job.revenue)>0?T.success:T.textDim}}>{Number(job.revenue)>0?"+$"+Number(job.revenue).toLocaleString():"—"}</td>
