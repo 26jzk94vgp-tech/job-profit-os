@@ -120,6 +120,14 @@ export default function Reports() {
     lines.push('')
     lines.push(escape(lang === 'zh' ? '* 本报告仅供参考，提交申报前请咨询注册税务代理或 CPA。' : '* For reference only. Consult a registered tax agent or CPA before lodging.'))
 
+    lines.push('')
+    lines.push(escape(lang === 'zh' ? '逐笔明细' : 'Transaction Detail'))
+    lines.push([escape(lang==='zh'?'日期':'Date'), escape(lang==='zh'?'类型':'Type'), escape(lang==='zh'?'工单':'Job'), escape(lang==='zh'?'说明':'Description'), escape(lang==='zh'?'金额':'Amount'), escape('GST'), escape(lang==='zh'?'GST 额':'GST $'), escape(lang==='zh'?'税务分类':'Category')].join(','))
+    ;[...filtered].sort((a:any,b:any)=> new Date(a.entry_date||a.created_at).getTime() - new Date(b.entry_date||b.created_at).getTime()).forEach((e:any)=>{
+      const amt = e.type === 'labor' ? (Number(e.hours)||0)*(Number(e.hourly_rate)||0) : (Number(e.amount)||0)
+      const gst = e.gst_status === 'inclusive' ? amt/11 : e.gst_status === 'exclusive' ? amt*0.1 : 0
+      lines.push([escape(new Date(e.entry_date||e.created_at).toLocaleDateString('en-AU')), escape(e.type||''), escape(e.jobs?.name||''), escape(e.description||e.note||''), escape(amt.toFixed(2)), escape(e.gst_status||''), escape(gst.toFixed(2)), escape(e.tax_category||'')].join(','))
+    })
     const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a'); a.href = url; a.download = `tax-report-${new Date().toISOString().split('T')[0]}.csv`; a.click()
