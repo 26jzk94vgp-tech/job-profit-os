@@ -9,6 +9,7 @@ export default function Reports() {
   const supabase = createClient()
   const { lang } = useLanguage()
   const [entries, setEntries] = useState<any[]>([])
+  const [hoLogs, setHoLogs] = useState<any[]>([])
   const [filterType, setFilterType] = useState('all')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -22,6 +23,8 @@ export default function Reports() {
         .eq('owner_id', user?.id)
         .order('created_at', { ascending: false })
       setEntries(data || [])
+      const { data: ho } = await supabase.from('home_office_logs').select('*').eq('owner_id', user?.id)
+      setHoLogs(ho || [])
     }
     load()
   }, [])
@@ -51,6 +54,15 @@ export default function Reports() {
   }
 
   const filtered = getFilteredEntries()
+  const HO_RATE = 0.70
+  const hoFiltered = (() => {
+    if (filterType === 'all') return hoLogs
+    if (filterType === 'custom' && startDate && endDate) return hoLogs.filter((l:any) => l.log_date >= startDate && l.log_date <= endDate)
+    if (filterType.startsWith('q')) { const qi = parseInt(filterType[1]) - 1; const q = quarters[qi]; const yr = qi >= 2 ? financialYear + 1 : financialYear; return hoLogs.filter((l:any) => l.log_date >= yr + q.start && l.log_date <= yr + q.end) }
+    return hoLogs
+  })()
+  const homeOfficeHours = hoFiltered.reduce((s:number, l:any) => s + Number(l.hours || 0), 0)
+  const homeOfficeDeduction = homeOfficeHours * HO_RATE
 
   const gstCollected = filtered.filter(e => e.type === 'invoice').reduce((sum: number, e: any) => {
     if (e.gst_status === 'inclusive') return sum + Number(e.amount) / 11
@@ -114,7 +126,7 @@ export default function Reports() {
     Object.entries(categoryTotals).filter(([cat]) => cat !== 'other_income').forEach(([cat, total]) => {
       lines.push([escape(lang === 'zh' ? categoryLabels[cat]?.zh : categoryLabels[cat]?.en || cat), escape(`-$${total.toLocaleString()}`)].join(','))
     })
-    const taxableProfit = (categoryTotals['other_income'] || 0) - Object.entries(categoryTotals).filter(([cat]) => cat !== 'other_income').reduce((sum, [, v]) => sum + v, 0)
+    const taxableProfit = ((categoryTotals['other_income'] || 0) - Object.entries(categoryTotals).filter(([cat]) => cat !== 'other_income').reduce((sum, [, v]) => sum + v, 0) - homeOfficeDeduction)
     lines.push('')
     lines.push([escape(lang === 'zh' ? '应税利润' : 'Taxable Profit'), escape(`$${taxableProfit.toLocaleString()}`)].join(','))
     lines.push('')
@@ -283,6 +295,15 @@ export default function Reports() {
             {Object.entries(categoryTotals).filter(([cat]) => cat !== 'other_income').length === 0 && (
               <div className="px-6 py-3 text-[#8E8E93] text-sm italic">{lang === 'zh' ? '无支出记录' : 'No expenses recorded'}</div>
             )}
+            {homeOfficeDeduction > 0 && (
+              <div className="px-6 py-4 flex justify-between items-center">
+                <div>
+                  <p className="font-medium text-gray-900 dark:text-[#F2F2F7]">{lang === 'zh' ? '家庭办公抵扣' : 'Home Office'}</p>
+                  <p className="text-[#8E8E93] text-xs">{homeOfficeHours.toFixed(1)}h × 70c</p>
+                </div>
+                <span className="font-semibold text-[#FF453A]">-${homeOfficeDeduction.toLocaleString()}</span>
+              </div>
+            )}
             {Object.keys(categoryTotals).length > 0 && (
               <div className="px-6 py-4 flex justify-between items-center bg-gray-50 dark:bg-[#1C1C1E]">
                 <div>
@@ -290,10 +311,10 @@ export default function Reports() {
                   <p className="text-[#8E8E93] text-xs">{lang === 'zh' ? '收入 − 支出' : 'Income minus expenses'}</p>
                 </div>
                 <span className={(() => {
-                  const profit = (categoryTotals['other_income'] || 0) - Object.entries(categoryTotals).filter(([cat]) => cat !== 'other_income').reduce((sum, [, v]) => sum + v, 0)
+                  const profit = ((categoryTotals['other_income'] || 0) - Object.entries(categoryTotals).filter(([cat]) => cat !== 'other_income').reduce((sum, [, v]) => sum + v, 0) - homeOfficeDeduction)
                   return profit >= 0 ? 'font-bold text-lg text-[#30D158]' : 'font-bold text-lg text-[#FF453A]'
                 })()}>
-                  ${((categoryTotals['other_income'] || 0) - Object.entries(categoryTotals).filter(([cat]) => cat !== 'other_income').reduce((sum, [, v]) => sum + v, 0)).toLocaleString()}
+                  ${(((categoryTotals['other_income'] || 0) - Object.entries(categoryTotals).filter(([cat]) => cat !== 'other_income').reduce((sum, [, v]) => sum + v, 0) - homeOfficeDeduction)).toLocaleString()}
                 </span>
               </div>
             )}
