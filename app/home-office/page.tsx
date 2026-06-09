@@ -13,7 +13,8 @@ export default function HomeOffice() {
   const [hours, setHours] = useState('')
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
-  const RATE_PER_HOUR = 0.67
+  const [mounted, setMounted] = useState(false)
+  const RATE_PER_HOUR = 0.70
 
   async function loadLogs() {
     const { data } = await supabase.from('home_office_logs').select('*').order('log_date', { ascending: false })
@@ -36,12 +37,19 @@ export default function HomeOffice() {
   }
 
   useEffect(() => { loadLogs() }, [])
+  useEffect(() => setMounted(true), [])
 
-  const totalHours = logs.reduce((sum, l) => sum + Number(l.hours), 0)
+  const hoNow = new Date()
+  const fyStartYear = hoNow.getMonth() >= 6 ? hoNow.getFullYear() : hoNow.getFullYear() - 1
+  const fyStart = new Date(fyStartYear, 6, 1)
+  const fyEnd = new Date(fyStartYear + 1, 5, 30, 23, 59, 59)
+  const fyLabel = `FY ${fyStartYear}-${String(fyStartYear + 1).slice(2)}`
+  const fyLogs = mounted ? logs.filter(l => { const d = new Date(l.log_date); return d >= fyStart && d <= fyEnd }) : logs
+  const totalHours = fyLogs.reduce((sum, l) => sum + Number(l.hours), 0)
   const totalDeduction = totalHours * RATE_PER_HOUR
 
   const byMonth: Record<string, { hours: number, logs: any[] }> = {}
-  logs.forEach(l => {
+  fyLogs.forEach(l => {
     const key = new Date(l.log_date).toLocaleString('en-AU', { month: 'long', year: 'numeric' })
     if (!byMonth[key]) byMonth[key] = { hours: 0, logs: [] }
     byMonth[key].hours += Number(l.hours)
@@ -67,8 +75,8 @@ export default function HomeOffice() {
 
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-5">
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-2xl p-5">
-          <p className="text-blue-800 dark:text-blue-300 font-medium text-sm">💡 ATO Fixed Rate Method 2024-25</p>
-          <p className="text-blue-600 dark:text-blue-400 text-xs mt-1">{lang === 'zh' ? '每小时记录在家工作的时间，ATO 标准扣除率为 67分/小时。' : 'Record hours working from home. ATO allows 67c/hour deduction for eligible home office expenses.'}</p>
+          <p className="text-blue-800 dark:text-blue-300 font-medium text-sm">💡 ATO Fixed Rate Method · {fyLabel}</p>
+          <p className="text-blue-600 dark:text-blue-400 text-xs mt-1">{lang === 'zh' ? '记录在家工作工时 × 70¢。已含电/气/电话/网络/文具，不能再单独抵；家具设备折旧可另抵。' : 'Hours worked from home x 70c. Covers electricity, gas, phone, internet, stationery (no separate claim); furniture/equipment depreciation claimable separately.'}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -79,7 +87,7 @@ export default function HomeOffice() {
           <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent p-5">
             <p className="text-[#8E8E93] text-sm">{lang === 'zh' ? '可抵扣金额' : 'Total Deduction'}</p>
             <p className="text-3xl font-bold text-[#30D158] mt-1">${totalDeduction.toFixed(2)}</p>
-            <p className="text-[#8E8E93] text-xs mt-1">@ 67c/hr</p>
+            <p className="text-[#8E8E93] text-xs mt-1">@ 70c/hr</p>
           </div>
         </div>
 
@@ -139,7 +147,7 @@ export default function HomeOffice() {
 
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/40 rounded-2xl p-5">
           <p className="text-yellow-800 dark:text-yellow-300 font-medium text-sm">⚠️ ATO {lang === 'zh' ? '要求' : 'Requirements'}</p>
-          <p className="text-yellow-600 dark:text-yellow-400 text-xs mt-1">{lang === 'zh' ? '使用 Fixed Rate Method 需要保留记录证明您在家工作的时间。本页面的记录可以作为您的工时日志。' : 'Using the Fixed Rate Method requires you to keep records of actual hours worked from home. This log serves as your evidence.'}</p>
+          <p className="text-yellow-600 dark:text-yellow-400 text-xs mt-1">{lang === 'zh' ? '使用固定费率法需保留全年工时记录至少 5 年。CIMO 是记账计算工具，非注册税务/BAS 代理；以上为估算，报税前请核对 ATO 或咨询代理。' : 'Keep hourly records for at least 5 years. CIMO is a bookkeeping tool, not a registered tax/BAS agent. Estimates only - verify with the ATO or a registered agent before lodging.'}</p>
         </div>
       </main>
     </div>
