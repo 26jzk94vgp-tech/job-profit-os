@@ -41,7 +41,7 @@ function daysLeft(dateStr?:string|null){
 }
 const money = (n:any)=>'$'+Number(n||0).toLocaleString()
 
-const NEWS=[{i:'📈',col:'#E3B341',t:'Perth 建材涨价 3%',d:'本周砂浆 / 瓷砖上涨，建议提前采购'},{i:'🧾',col:'#F85149',t:'BAS 还有 14 天',d:'记得申报本季度 GST'}]
+const NEWS=[{i:'📈',col:'#E3B341',t:'Perth 建材涨价 3%',d:'本周砂浆 / 瓷砖上涨，建议提前采购'}]
 type WX={t:number,c:number,city:string}|null
 function useWeather(){
   const[w,setW]=useState<WX>(null)
@@ -72,6 +72,8 @@ export default function MobileDashboard(){
   const [eJob,setEJob] = useState('')
   const [eNote,setENote] = useState('')
   const [saving,setSaving] = useState(false)
+  const [mounted,setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
   const [userName,setUserName] = useState('')
   const [userEmail,setUserEmail] = useState('')
   const [eQty,setEQty] = useState('')
@@ -135,6 +137,15 @@ export default function MobileDashboard(){
     title:zh?'Super 供款窗口':'Super contribution', sub:zh?'利润已超门槛 · 上限 $30,000':'Profit over threshold',
   })
 
+  const MON_S = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  const bNow = new Date()
+  const bCands = [new Date(bNow.getFullYear(),1,28), new Date(bNow.getFullYear(),3,28), new Date(bNow.getFullYear(),6,28), new Date(bNow.getFullYear(),9,28), new Date(bNow.getFullYear()+1,1,28)]
+  const bDue = bCands.find(d=>d>=bNow) || bCands[bCands.length-1]
+  const bDays = Math.ceil((bDue.getTime()-bNow.getTime())/86400000)
+  if(mounted) focus.push({
+    kind: bDays<=7?'danger':bDays<=21?'warning':'info', tag: zh?'🧾 BAS 截止':'🧾 BAS due', accent: (zh?'还剩 ':'')+bDays+(zh?' 天':'d'),
+    title: zh?'本季 GST 申报':'Lodge quarterly BAS', sub: (zh?'截止 ':'Due ')+bDue.getDate()+' '+MON_S[bDue.getMonth()]+' '+bDue.getFullYear(),
+  })
   const kindColor = (k:string)=>k==='danger'?T.danger:k==='warning'?T.warning:T.primary
   const kindSoft  = (k:string)=>k==='danger'?T.dangerSoft:k==='warning'?T.warningSoft:T.primarySoft
 
