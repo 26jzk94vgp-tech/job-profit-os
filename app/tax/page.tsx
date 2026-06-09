@@ -23,11 +23,14 @@ export default function TaxHub() {
   const totalRevenue = jobs.reduce((sum, j) => sum + Number(j.revenue), 0)
   const totalProfit = jobs.reduce((sum, j) => sum + Number(j.profit), 0)
 
-  const gstCollected = entries.filter(e => e.type === 'invoice' && e.gst_status === 'inclusive').reduce((sum, e) => sum + Number(e.amount) / 11, 0)
-  const gstPaid = entries.filter(e => e.type !== 'invoice' && e.gst_status === 'inclusive').reduce((sum, e) => {
-    const amount = e.type === 'labor' ? Number(e.hours) * Number(e.hourly_rate) : Number(e.amount)
-    return sum + amount / 11
-  }, 0)
+  const gstOf = (e: any) => {
+    const amt = e.type === 'labor' ? Number(e.hours) * Number(e.hourly_rate) : Number(e.amount)
+    if (e.gst_status === 'inclusive') return (amt || 0) / 11
+    if (e.gst_status === 'exclusive') return (amt || 0) * 0.1
+    return 0
+  }
+  const gstCollected = entries.filter(e => e.type === 'invoice').reduce((sum, e) => sum + gstOf(e), 0)
+  const gstPaid = entries.filter(e => e.type !== 'invoice').reduce((sum, e) => sum + gstOf(e), 0)
   const netGst = gstCollected - gstPaid
 
   const fuelEntries = entries.filter(e => e.type === 'fuel')
