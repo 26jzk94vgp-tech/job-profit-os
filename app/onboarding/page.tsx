@@ -75,7 +75,7 @@ export default function OnboardingPage() {
     const {data:{user}} = await supabase.auth.getUser()
     if(!user){setLoading(false);return}
     const trialEndsAt = new Date()
-    trialEndsAt.setDate(trialEndsAt.getDate()+60)
+    trialEndsAt.setDate(trialEndsAt.getDate()+7)
     await supabase.from('profiles').upsert({
       id: user.id,
       company_name: company.trim()||'My Company',

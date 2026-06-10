@@ -92,7 +92,7 @@ export default function Pricing() {
         </div>
 
         <p className="text-center text-[#8E8E93] text-xs mt-8">
-          {lang === 'zh' ? '所有计划均含14天免费试用 · 随时取消 · 澳元计价' : 'All plans include 14-day free trial · Cancel anytime · Prices in AUD'}
+          {lang === 'zh' ? '所有计划均含7天免费试用 · 随时取消 · 澳元计价' : 'All plans include 7-day free trial · Cancel anytime · Prices in AUD'}
         </p>
       </main>
     </div>

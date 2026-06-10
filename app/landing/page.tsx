@@ -41,7 +41,7 @@ export default function Landing() {
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <Link href="/login" className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-colors">
-              Start 60-Day Free Trial
+              Start 7-Day Free Trial
             </Link>
             <Link href="/pricing" className="text-gray-500 hover:text-gray-900 text-sm font-medium px-4 py-4">
               View Pricing →
@@ -122,7 +122,7 @@ export default function Landing() {
         <section className="bg-gray-50 py-20">
           <div className="max-w-5xl mx-auto px-6">
             <h2 className="text-3xl font-bold text-gray-900 text-center mb-4">Simple pricing</h2>
-            <p className="text-gray-500 text-center mb-14">Start free for 60 days. No credit card needed.</p>
+            <p className="text-gray-500 text-center mb-14">Start free for 7 days. No credit card needed.</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               {[
                 { name: 'Free', price: '$0', period: '/mo', features: ['Up to 3 jobs', 'Basic profit tracking', 'Invoice generation', 'Quotes'], cta: 'Get Started', highlight: false, href: '/login' },
@@ -157,7 +157,7 @@ export default function Landing() {
           <h2 className="text-4xl font-bold text-gray-900 mb-4">Ready to know your numbers?</h2>
           <p className="text-gray-500 text-lg mb-10">Join Australian tradies who use CIMO to track profit, send invoices, and nail their BAS.</p>
           <Link href="/login" className="bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-2xl text-lg font-semibold transition-colors inline-block">
-            Start Your Free 60-Day Trial
+            Start Your Free 7-Day Trial
           </Link>
           <p className="text-gray-400 text-sm mt-4">No credit card required</p>
         </section>

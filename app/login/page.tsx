@@ -55,7 +55,7 @@ export default function Login() {
         {isSignUp && (
           <div className="mb-6 text-center">
             <div className="inline-block bg-[#30D158]/20 border border-[#30D158]/40 rounded-full px-3 py-1">
-              <p className="text-[#30D158] text-xs font-semibold">🎉 60-day free trial — all features unlocked</p>
+              <p className="text-[#30D158] text-xs font-semibold">🎉 7-day free trial — all features unlocked</p>
             </div>
           </div>
         )}
