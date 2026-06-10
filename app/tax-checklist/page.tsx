@@ -10,18 +10,25 @@ export default async function TaxChecklist() {
 
   if (!entries) return <div className="p-6 text-gray-900 dark:text-white">Loading...</div>
 
-  const totalRevenue = jobs?.reduce((sum, j) => sum + Number(j.revenue), 0) || 0
-  const totalProfit = jobs?.reduce((sum, j) => sum + Number(j.profit), 0) || 0
-  const gstCollected = entries.filter(e => e.type === 'invoice' && e.gst_status === 'inclusive').reduce((sum, e) => sum + Number(e.amount) / 11, 0)
-  const gstPaid = entries.filter(e => e.type !== 'invoice' && e.gst_status === 'inclusive').reduce((sum, e) => {
-    const amount = e.type === 'labor' ? Number(e.hours) * Number(e.hourly_rate) : Number(e.amount)
-    return sum + amount / 11
-  }, 0)
-  const fuelEntries = entries.filter(e => e.type === 'fuel')
+  const now = new Date()
+  const fyStartYear = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1
+  const fyStart = new Date(fyStartYear, 6, 1)
+  const fyEnd = new Date(fyStartYear + 1, 5, 30, 23, 59, 59)
+  const fyLabel = `FY ${fyStartYear}-${String(fyStartYear + 1).slice(2)}`
+  const fyEntries = entries.filter(e => { const d = new Date(e.entry_date || e.created_at); return d >= fyStart && d <= fyEnd })
+  const fyHo = (homeOfficeLogs || []).filter(l => { const d = new Date(l.log_date); return d >= fyStart && d <= fyEnd })
+  const amtOf = (e: any) => e.type === 'labor' ? Number(e.hours) * Number(e.hourly_rate) : Number(e.amount)
+  const totalRevenue = fyEntries.filter(e => e.type === 'invoice').reduce((sum, e) => sum + Number(e.amount), 0)
+  const totalExpenses = fyEntries.filter(e => e.type !== 'invoice').reduce((sum, e) => sum + amtOf(e), 0)
+  const totalProfit = totalRevenue - totalExpenses
+  const gstOf = (e: any) => { const a = amtOf(e); if (e.gst_status === 'inclusive') return a / 11; if (e.gst_status === 'exclusive') return a * 0.1; return 0 }
+  const gstCollected = fyEntries.filter(e => e.type === 'invoice').reduce((sum, e) => sum + gstOf(e), 0)
+  const gstPaid = fyEntries.filter(e => e.type !== 'invoice').reduce((sum, e) => sum + gstOf(e), 0)
+  const fuelEntries = fyEntries.filter(e => e.type === 'fuel')
   const totalFuelDeduction = fuelEntries.reduce((sum, e) => sum + Number(e.amount), 0)
   const totalKm = fuelEntries.filter(e => e.ato_method === 'cents_per_km').reduce((sum, e) => sum + Number(e.kilometers || 0), 0)
-  const totalHomeOfficeHours = homeOfficeLogs?.reduce((sum, l) => sum + Number(l.hours), 0) || 0
-  const homeOfficeDeduction = totalHomeOfficeHours * 0.67
+  const totalHomeOfficeHours = fyHo.reduce((sum, l) => sum + Number(l.hours), 0)
+  const homeOfficeDeduction = totalHomeOfficeHours * 0.70
   const categorised = entries.filter(e => e.tax_category).length
   const categoryCompleteness = entries.length > 0 ? Math.round((categorised / entries.length) * 100) : 0
   const badDebts = overdueInvoices?.filter((e: any) => e.days_overdue > 90) || []
@@ -48,7 +55,7 @@ export default async function TaxChecklist() {
         <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C]">
             <h2 className="font-semibold text-gray-900 dark:text-white">📊 年度财务概览 / Annual Summary</h2>
-            <p className="text-[#8E8E93] text-xs mt-1">Financial Year 2024-25</p>
+            <p className="text-[#8E8E93] text-xs mt-1">Financial Year {fyLabel.replace('FY ', '')}</p>
           </div>
           <div className="grid grid-cols-2 divide-x divide-gray-100 dark:divide-[#3A3A3C]">
             <div className="px-6 py-4">
@@ -93,7 +100,7 @@ export default async function TaxChecklist() {
                 <span className={totalHomeOfficeHours > 0 ? 'text-[#30D158] text-xl' : 'text-[#FF9F0A] text-xl'}>{totalHomeOfficeHours > 0 ? '✓' : '!'}</span>
                 <div>
                   <p className="font-medium text-gray-900 dark:text-[#F2F2F7]">家庭办公室 / Home Office</p>
-                  <p className="text-[#8E8E93] text-xs">{totalHomeOfficeHours.toFixed(1)}h @ 67c = ${homeOfficeDeduction.toFixed(2)}</p>
+                  <p className="text-[#8E8E93] text-xs">{totalHomeOfficeHours.toFixed(1)}h @ 70c = ${homeOfficeDeduction.toFixed(2)}</p>
                 </div>
               </div>
               <Link href="/home-office" className="text-[#0A84FF] text-sm">查看 →</Link>
@@ -129,7 +136,7 @@ export default async function TaxChecklist() {
                     <p className="text-purple-600 dark:text-purple-400 text-xs">利润超阈值，考虑供款至 $30,000</p>
                   </div>
                 </div>
-                <span className="text-purple-600 dark:text-purple-300 text-sm font-medium">15% vs 32.5%</span>
+                <Link href="/super" className="text-purple-600 dark:text-purple-300 text-sm font-medium">15% vs 30% · 查看 →</Link>
               </div>
             )}
           </div>
@@ -141,7 +148,7 @@ export default async function TaxChecklist() {
           <div className="space-y-2 text-sm">
             {[
               { label: '总收入 / Revenue', value: `$${totalRevenue.toLocaleString()}`, color: '' },
-              { label: '车辆抵扣', value: `-$${totalFuelDeduction.toFixed(2)}`, color: 'text-[#30D158]' },
+              { label: '车辆费用(已计入支出)', value: `$${totalFuelDeduction.toFixed(2)}`, color: '' },
               { label: '家庭办公室', value: `-$${homeOfficeDeduction.toFixed(2)}`, color: 'text-[#30D158]' },
               { label: '坏账抵扣', value: `-$${badDebtTotal.toLocaleString()}`, color: 'text-[#30D158]' },
               { label: '净GST应缴', value: `$${(gstCollected - gstPaid).toFixed(2)}`, color: 'text-[#FF453A]' },
@@ -153,8 +160,8 @@ export default async function TaxChecklist() {
             ))}
             <div className="flex justify-between py-2 font-bold">
               <span className="text-gray-900 dark:text-white">调整后净利润</span>
-              <span className={(totalProfit - totalFuelDeduction - homeOfficeDeduction - badDebtTotal) >= 0 ? 'text-[#30D158]' : 'text-[#FF453A]'}>
-                ${(totalProfit - totalFuelDeduction - homeOfficeDeduction - badDebtTotal).toLocaleString()}
+              <span className={(totalProfit - homeOfficeDeduction - badDebtTotal) >= 0 ? 'text-[#30D158]' : 'text-[#FF453A]'}>
+                ${(totalProfit - homeOfficeDeduction - badDebtTotal).toLocaleString()}
               </span>
             </div>
           </div>
