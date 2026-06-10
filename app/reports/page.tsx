@@ -86,6 +86,23 @@ export default function Reports() {
     categoryTotals[e.tax_category] = (categoryTotals[e.tax_category] || 0) + amount
   })
 
+  const expensesTotal = Object.entries(categoryTotals).filter(([cat]) => cat !== 'other_income').reduce((sum, [, v]) => sum + v, 0)
+  const taxableProfitNum = (categoryTotals['other_income'] || 0) - expensesTotal - homeOfficeDeduction
+  function incomeTaxAU(ti: number) {
+    if (ti <= 0) return 0
+    let t = 0
+    if (ti > 190000) t += (ti - 190000) * 0.45
+    const a1 = Math.min(ti, 190000); if (a1 > 135000) t += (a1 - 135000) * 0.37
+    const b1 = Math.min(ti, 135000); if (b1 > 45000) t += (b1 - 45000) * 0.30
+    const c1 = Math.min(ti, 45000); if (c1 > 18200) t += (c1 - 18200) * 0.16
+    return t
+  }
+  const baseTax = incomeTaxAU(taxableProfitNum)
+  const lito = taxableProfitNum <= 37500 ? 700 : taxableProfitNum <= 45000 ? Math.max(0, 700 - (taxableProfitNum - 37500) * 0.05) : taxableProfitNum <= 66667 ? Math.max(0, 325 - (taxableProfitNum - 45000) * 0.015) : 0
+  const litoApplied = Math.min(lito, baseTax)
+  const medicareLevy = taxableProfitNum > 0 ? taxableProfitNum * 0.02 : 0
+  const estIncomeTax = Math.max(0, baseTax - litoApplied) + medicareLevy
+  const effRate = taxableProfitNum > 0 ? (estIncomeTax / taxableProfitNum) * 100 : 0
   const categoryLabels: Record<string, { en: string, zh: string }> = {
     other_income: { en: 'Job Revenue', zh: '工单收入' },
     cogs_material: { en: 'Materials (Cost of Goods Sold)', zh: '材料成本' },
@@ -319,6 +336,18 @@ export default function Reports() {
               </div>
             )}
           </div>
+        </div>
+
+        <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-2">
+          <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '🧮 年度所得税估算（个体经营）' : '🧮 Income Tax Estimate (sole trader)'}</h2>
+          <p className="text-xs text-[#8E8E93]">{lang === 'zh' ? '把当前筛选的应税利润视作全年应税收入；选全年范围最准。' : 'Treats filtered taxable profit as annual taxable income; select a full-year range for accuracy.'}</p>
+          <div className="text-sm divide-y divide-gray-100 dark:divide-[#3A3A3C]">
+            <div className="flex justify-between py-2"><span className="text-[#8E8E93]">{lang === 'zh' ? '基础税（2025-26 税阶）' : 'Base tax (2025-26 brackets)'}</span><span className="text-gray-900 dark:text-white">${baseTax.toFixed(0)}</span></div>
+            {litoApplied > 0 && (<div className="flex justify-between py-2"><span className="text-[#8E8E93]">LITO</span><span className="text-[#30D158]">-${litoApplied.toFixed(0)}</span></div>)}
+            <div className="flex justify-between py-2"><span className="text-[#8E8E93]">Medicare levy 2%</span><span className="text-gray-900 dark:text-white">${medicareLevy.toFixed(0)}</span></div>
+            <div className="flex justify-between py-2"><span className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '估算应缴' : 'Estimated tax'}</span><span className="font-bold text-[#FF9F0A]">${estIncomeTax.toFixed(0)}<span className="text-xs text-[#8E8E93] font-normal"> · {effRate.toFixed(1)}%</span></span></div>
+          </div>
+          <p className="text-[11px] text-gray-400">{lang === 'zh' ? '未含 PAYG 已预缴/HELP/私保 MLS；低收入 Medicare 有减免，此处简化按 2%。估算非建议。' : 'Excludes PAYG instalments/HELP/MLS; low-income Medicare reductions not applied. Estimate only.'}</p>
         </div>
 
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/40 rounded-2xl p-5">
