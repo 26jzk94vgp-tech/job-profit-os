@@ -115,6 +115,16 @@ export default function TaxHub() {
             </div>
             <span className="text-gray-400">→</span>
           </Link>
+          <Link href="/super" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🏦</span>
+              <div>
+                <p className="font-medium text-gray-900">{lang === 'zh' ? 'Super 供款' : 'Super Contributions'}</p>
+                <p className="text-gray-400 text-xs">{lang === 'zh' ? '优惠供款 · $30k 上限追踪' : 'Concessional · $30k cap'}</p>
+              </div>
+            </div>
+            <span className="text-gray-400">→</span>
+          </Link>
 
 
 
