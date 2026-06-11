@@ -26,7 +26,7 @@ export default function HomeOffice() {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     const { error } = await supabase.from('home_office_logs').insert({ owner_id: user?.id, log_date: date, hours: Number(hours), description })
-    if (error) { alert('Error: ' + error.message) } else { setHours(''); setDescription(''); loadLogs() }
+    if (error) { console.error(error); alert('保存失败,请重试 / Save failed, please try again') } else { setHours(''); setDescription(''); loadLogs() }
     setLoading(false)
   }
 

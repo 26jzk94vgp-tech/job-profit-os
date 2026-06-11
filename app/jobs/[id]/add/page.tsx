@@ -197,7 +197,7 @@ export default function AddEntry({ params }: { params: Promise<{ id: string }> }
       }
     }
     const { error } = await supabase.from('job_entries').insert(entry)
-    if (error) { alert('Error: ' + error.message) } else { window.location.href = '/jobs/' + id }
+    if (error) { console.error(error); alert('保存失败,请重试 / Save failed, please try again') } else { window.location.href = '/jobs/' + id }
     setLoading(false)
   }
 

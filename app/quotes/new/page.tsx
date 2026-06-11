@@ -151,7 +151,7 @@ export default function NewQuote() {
       scope_of_work: scopeOfWork || null,
       owner_id: user?.id
     }).select().single()
-    if (error) { alert('Error: ' + error.message); setLoading(false); return }
+    if (error) { console.error(error); alert('保存失败,请重试 / Save failed, please try again'); setLoading(false); return }
     const quoteItems = items.filter(i => i.description && i.unit_price).map(i => ({
       quote_id: quote.id, description: i.description, area: i.area || null,
       item_type: i.item_type || null, item_group: i.item_group || null,

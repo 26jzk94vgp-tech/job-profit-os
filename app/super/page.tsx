@@ -26,7 +26,7 @@ export default function SuperTracker() {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     const { error } = await supabase.from('super_contributions').insert({ owner_id: user?.id, paid_date: date, amount: Number(amount), fund_name: fund })
-    if (error) { alert('Error: ' + error.message) } else { setAmount(''); loadRows() }
+    if (error) { console.error(error); alert('保存失败,请重试 / Save failed, please try again') } else { setAmount(''); loadRows() }
     setLoading(false)
   }
 

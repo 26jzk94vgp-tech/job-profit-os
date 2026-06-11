@@ -79,7 +79,7 @@ export default function Settings() {
       bank_name: bankName, bsb, account_number: accountNumber, account_name: accountName,
       updated_at: new Date().toISOString()
     }).eq('id', user.id)
-    if (error) { alert('Error: ' + error.message) } else { setSaved(true); setTimeout(() => setSaved(false), 3000) }
+    if (error) { console.error(error); alert('保存失败,请重试 / Save failed, please try again') } else { setSaved(true); setTimeout(() => setSaved(false), 3000) }
     setLoading(false)
   }
 

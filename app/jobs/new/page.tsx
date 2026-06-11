@@ -36,7 +36,7 @@ export default function NewJob() {
       end_date: endDate || null,
       owner_id: user?.id
     })
-    if (error) { alert('Error: ' + error.message) } else { window.location.href = '/' }
+    if (error) { console.error(error); alert('保存失败,请重试 / Save failed, please try again') } else { window.location.href = '/' }
     setLoading(false)
   }
 

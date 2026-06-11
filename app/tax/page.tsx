@@ -168,6 +168,16 @@ export default function TaxHub() {
             </div>
             <span className="text-gray-400">→</span>
           </Link>
+          <Link href="/depreciation" className="flex justify-between items-center px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#3A3A3C] border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🛠️</span>
+              <div>
+                <p className="font-medium text-gray-900">{lang === 'zh' ? '设备即时抵扣' : 'Instant Write-Off'}</p>
+                <p className="text-gray-400 text-xs">{lang === 'zh' ? '$20k/件 · 6月30日截止' : '$20k/asset · by 30 Jun'}</p>
+              </div>
+            </div>
+            <span className="text-gray-400">→</span>
+          </Link>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">

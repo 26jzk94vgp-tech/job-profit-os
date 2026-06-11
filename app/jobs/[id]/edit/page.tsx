@@ -46,7 +46,7 @@ export default function EditJob({ params }: { params: Promise<{ id: string }> })
       notes: notes || null,
       site_address: siteAddress || null
     }).eq('id', id)
-    if (error) { alert('Error: ' + error.message) } else {
+    if (error) { console.error(error); alert('保存失败,请重试 / Save failed, please try again') } else {
       window.location.href = '/jobs/' + id
     }
     setLoading(false)

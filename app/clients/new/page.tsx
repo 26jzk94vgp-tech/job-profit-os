@@ -20,7 +20,7 @@ export default function NewClient() {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     const { error } = await supabase.from('clients').insert({ name, phone, email, address, owner_id: user?.id })
-    if (error) { alert('Error: ' + error.message) } else { router.push('/clients') }
+    if (error) { console.error(error); alert('保存失败,请重试 / Save failed, please try again') } else { router.push('/clients') }
     setLoading(false)
   }
 
