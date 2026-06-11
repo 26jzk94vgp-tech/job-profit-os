@@ -40,5 +40,15 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  if (event.type === 'customer.subscription.updated') {
+    const sub = event.data.object as Stripe.Subscription
+    await supabase.from('subscriptions').update({ status: sub.status }).eq('stripe_subscription_id', sub.id)
+    const { data: subData } = await supabase.from('subscriptions').select('user_id').eq('stripe_subscription_id', sub.id).single()
+    if (subData?.user_id) {
+      const planType = (sub.status === 'active' || sub.status === 'trialing') ? 'pro' : 'trial'
+      await supabase.from('profiles').update({ plan_type: planType }).eq('id', subData.user_id)
+    }
+  }
+
   return NextResponse.json({ received: true })
 }
