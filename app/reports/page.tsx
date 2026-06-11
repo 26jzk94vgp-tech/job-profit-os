@@ -125,6 +125,7 @@ export default function Reports() {
 
     const lines: string[] = []
     const escape = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`
+    const escapeUser = (v: string | number) => { const t = String(v); return /^[=+\-@\t\r]/.test(t) ? escape("'" + t) : escape(t) }
 
     lines.push(`${escape(lang === 'zh' ? '税务报告' : 'Tax Report')},${escape(periodLabel)}`)
     lines.push(`${escape(lang === 'zh' ? '生成日期' : 'Generated')},${escape(new Date().toLocaleDateString('en-AU'))}`)
@@ -155,7 +156,7 @@ export default function Reports() {
     ;[...filtered].sort((a:any,b:any)=> new Date(a.entry_date||a.created_at).getTime() - new Date(b.entry_date||b.created_at).getTime()).forEach((e:any)=>{
       const amt = e.type === 'labor' ? (Number(e.hours)||0)*(Number(e.hourly_rate)||0) : (Number(e.amount)||0)
       const gst = e.gst_status === 'inclusive' ? amt/11 : e.gst_status === 'exclusive' ? amt*0.1 : 0
-      lines.push([escape(new Date(e.entry_date||e.created_at).toLocaleDateString('en-AU')), escape(e.type||''), escape(e.jobs?.name||''), escape(e.description||e.note||''), escape(amt.toFixed(2)), escape(e.gst_status||''), escape(gst.toFixed(2)), escape(e.tax_category||'')].join(','))
+      lines.push([escape(new Date(e.entry_date||e.created_at).toLocaleDateString('en-AU')), escape(e.type||''), escapeUser(e.jobs?.name||''), escapeUser(e.description||e.note||''), escape(amt.toFixed(2)), escape(e.gst_status||''), escape(gst.toFixed(2)), escape(e.tax_category||'')].join(','))
     })
     const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
