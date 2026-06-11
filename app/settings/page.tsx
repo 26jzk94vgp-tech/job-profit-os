@@ -73,12 +73,12 @@ export default function Settings() {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const { error } = await supabase.from('profiles').upsert({
-      id: user.id, company_name: companyName, company_email: companyEmail,
+    const { error } = await supabase.from('profiles').update({
+      company_name: companyName, company_email: companyEmail,
       company_phone: companyPhone, company_address: companyAddress, abn,
       bank_name: bankName, bsb, account_number: accountNumber, account_name: accountName,
       updated_at: new Date().toISOString()
-    })
+    }).eq('id', user.id)
     if (error) { alert('Error: ' + error.message) } else { setSaved(true); setTimeout(() => setSaved(false), 3000) }
     setLoading(false)
   }
