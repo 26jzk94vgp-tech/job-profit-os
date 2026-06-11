@@ -13,23 +13,11 @@ export default function PublicInvoice({ params }: { params: Promise<{ token: str
 
   useEffect(() => {
     async function load() {
-      const { data: jobData } = await supabase
-        .from('jobs')
-        .select('*, profiles(*)')
-        .eq('public_token', token)
-        .single()
-
-      if (!jobData) { setNotFound(true); return }
-      setJob(jobData)
-      setProfile(jobData.profiles)
-
-      const { data: entryData } = await supabase
-        .from('job_entries')
-        .select('*')
-        .eq('job_id', jobData.id)
-        .eq('type', 'invoice')
-
-      setEntries(entryData || [])
+      const { data } = await supabase.rpc('get_public_invoice', { p_token: token })
+      if (!data || !data.job) { setNotFound(true); return }
+      setJob(data.job)
+      setProfile(data.profile)
+      setEntries(data.entries || [])
     }
     load()
   }, [token])

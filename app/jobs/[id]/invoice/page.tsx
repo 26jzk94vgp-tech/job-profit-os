@@ -105,18 +105,30 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
 
   async function generateAndCopyLink() {
     setCopyingLink(true)
-    try {
+    let url = ''
+    const buildUrl = async () => {
       let token = null
       const { data: jobData } = await supabase.from('jobs').select('public_token').eq('id', id).single()
       if (jobData?.public_token) { token = jobData.public_token } else {
-        token = Math.random().toString(36).substring(2) + Date.now().toString(36)
+        token = crypto.randomUUID()
         await supabase.from('jobs').update({ public_token: token }).eq('id', id)
       }
-      const url = window.location.origin + '/invoice/' + token
-      await navigator.clipboard.writeText(url)
+      url = window.location.origin + '/invoice/' + token
+      return url
+    }
+    try {
+      if (typeof ClipboardItem !== 'undefined' && navigator.clipboard.write) {
+        const item = new ClipboardItem({ 'text/plain': buildUrl().then(u => new Blob([u], { type: 'text/plain' })) })
+        await navigator.clipboard.write([item])
+      } else {
+        await navigator.clipboard.writeText(await buildUrl())
+      }
       setLinkCopied(true)
       setTimeout(() => setLinkCopied(false), 2000)
-    } catch (e) {}
+    } catch (e) {
+      if (!url) { try { await buildUrl() } catch (e2) {} }
+      if (url) { window.prompt(lang === 'zh' ? '自动复制失败,请手动复制链接:' : 'Auto-copy failed, copy manually:', url) }
+    }
     setCopyingLink(false)
   }
 
