@@ -1,6 +1,7 @@
 import Stripe from 'stripe'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '../../../../utils/supabase/server'
+import { createClient as createAdmin } from '@supabase/supabase-js'
 
 export async function POST(request: NextRequest) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
@@ -18,6 +19,11 @@ export async function POST(request: NextRequest) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
+    if (session.metadata?.kind === 'invoice') {
+      const admin = createAdmin(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+      await admin.from('invoice_payments').insert({ job_id: session.metadata.jobId, owner_id: session.metadata.ownerId, amount: (session.amount_total || 0) / 100, stripe_session_id: session.id })
+      return NextResponse.json({ received: true })
+    }
     const userId = session.metadata?.userId
     if (userId) {
       await supabase.from('subscriptions').upsert({

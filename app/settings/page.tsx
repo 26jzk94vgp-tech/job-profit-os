@@ -19,6 +19,8 @@ export default function Settings() {
   const [companyAddress, setCompanyAddress] = useState('')
   const [abn, setAbn] = useState('')
   const [bankName, setBankName] = useState('')
+  const [stripeAcct, setStripeAcct] = useState('')
+  const [connecting, setConnecting] = useState(false)
   const [bsb, setBsb] = useState('')
   const [accountNumber, setAccountNumber] = useState('')
   const [accountName, setAccountName] = useState('')
@@ -49,6 +51,7 @@ export default function Settings() {
         setBsb(data.bsb || '')
         setAccountNumber(data.account_number || '')
         setAccountName(data.account_name || '')
+        setStripeAcct(data.stripe_account_id || '')
         setTrialEndsAt(data.trial_ends_at || null)
         setPlanType(data.plan_type || 'trial')
       }
@@ -90,6 +93,16 @@ export default function Settings() {
 
   const inputCls = "w-full border border-gray-200 dark:border-gray-700 rounded-xl p-3 mt-1 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-500/40 transition"
   const labelCls = "text-sm font-medium text-gray-700 dark:text-gray-300"
+  async function connectStripe() {
+    setConnecting(true)
+    try {
+      const res = await fetch('/api/stripe/connect', { method: 'POST' })
+      const json = await res.json()
+      if (json.url) { window.location.href = json.url } else { console.error(json.error); alert(lang === 'zh' ? '连接失败,请重试' : 'Connection failed, please try again') }
+    } catch (e) { console.error(e); alert(lang === 'zh' ? '连接失败,请重试' : 'Connection failed, please try again') }
+    setConnecting(false)
+  }
+
   const cardCls = "bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent shadow-sm p-6 space-y-4"
 
   return (
@@ -192,6 +205,15 @@ export default function Settings() {
         </div>
 
         {/* Company Profile */}
+        <div className={cardCls}>
+          <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '在线收款' : 'Online Payments'}</h2>
+          <p className="text-[#8E8E93] text-xs">{lang === 'zh' ? '连接 Stripe 后,客户的发票付款直接进入您自己的账户(含 1% 平台服务费)。未连接时走平台默认通道。' : 'Connect Stripe so invoice payments go straight to your own account (1% platform fee). Without it, the platform default channel is used.'}</p>
+          <button onClick={connectStripe} disabled={connecting} className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors">
+            {connecting ? (lang === 'zh' ? '跳转中...' : 'Redirecting...') : stripeAcct ? (lang === 'zh' ? '管理收款账户' : 'Manage payout account') : (lang === 'zh' ? '连接 Stripe 收款账户' : 'Connect Stripe account')}
+          </button>
+          {stripeAcct && <p className="text-xs text-[#30D158]">✓ {lang === 'zh' ? '已创建收款账户' : 'Payout account created'}</p>}
+        </div>
+
         <div className={cardCls}>
           <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '公司资料' : 'Company Profile'}</h2>
           <p className="text-[#8E8E93] text-xs">{lang === 'zh' ? '这些信息将自动填入发票' : 'This info will auto-fill your invoices'}</p>

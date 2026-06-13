@@ -10,6 +10,8 @@ export default function PublicInvoice({ params }: { params: Promise<{ token: str
   const [entries, setEntries] = useState<any[]>([])
   const [profile, setProfile] = useState<any>(null)
   const [notFound, setNotFound] = useState(false)
+  const [paidTotal, setPaidTotal] = useState(0)
+  const [paying, setPaying] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -18,9 +20,20 @@ export default function PublicInvoice({ params }: { params: Promise<{ token: str
       setJob(data.job)
       setProfile(data.profile)
       setEntries(data.entries || [])
+      setPaidTotal(Number(data.paid_total || 0))
     }
     load()
   }, [token])
+
+  async function payNow() {
+    setPaying(true)
+    try {
+      const res = await fetch('/api/stripe/invoice-checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) })
+      const json = await res.json()
+      if (json.url) { window.location.href = json.url } else { alert(json.error || 'Payment unavailable') }
+    } catch (e) { alert('Payment unavailable') }
+    setPaying(false)
+  }
 
   if (notFound) return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -127,6 +140,19 @@ export default function PublicInvoice({ params }: { params: Promise<{ token: str
             </tbody>
           </table>
         </div>
+
+        {(paidTotal >= total - 0.01 && total > 0) || (typeof window !== 'undefined' && window.location.search.includes('paid=1')) ? (
+          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+            <p className="text-green-700 font-bold">✓ PAID — Thank you!</p>
+          </div>
+        ) : total > 0.5 ? (
+          <div className="mb-6 text-center">
+            <button onClick={payNow} disabled={paying} className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-semibold disabled:opacity-50 transition-colors">
+              {paying ? 'Redirecting...' : '💳 Pay Online — $' + total.toFixed(2)}
+            </button>
+            <p className="text-xs text-gray-400 mt-2">Secure card payment via Stripe</p>
+          </div>
+        ) : null}
 
         {/* Footer */}
         <div className="border-t border-gray-200 pt-4 text-center">
