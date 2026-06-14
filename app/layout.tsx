@@ -9,6 +9,7 @@ import DarkModeProvider from './components/DarkModeProvider';
 export const metadata: Metadata = {
   title: "CIMO",
   description: "Construction Inventory & Management Optimizer for Australian tradies",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
