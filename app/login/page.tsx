@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '../../utils/supabase/client'
+import { isDisposableEmail } from '../../lib/disposableEmail'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -15,9 +16,19 @@ export default function Login() {
     setLoading(true)
     setMessage('')
     if (isSignUp) {
-      const { data, error } = await supabase.auth.signUp({ email, password })
+      if (isDisposableEmail(email)) {
+        setMessage('Please use a valid, non-disposable email address')
+        setLoading(false)
+        return
+      }
+      const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin + '/login' } })
       if (error) {
-        setMessage(error.message)
+        const m = error.message.toLowerCase()
+        if (m.includes('already') || m.includes('registered')) {
+          setMessage('This email is already registered. Please sign in.')
+        } else {
+          setMessage('Sign-up failed. Please try again.')
+        }
       } else {
         if (!data.session) {
           setMessage('Account created. Please check your email to confirm, then sign in.')
@@ -29,7 +40,14 @@ export default function Login() {
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {
-        setMessage(error.message)
+        const m = error.message.toLowerCase()
+        if (m.includes('not confirmed') || m.includes('not been confirmed')) {
+          setMessage('Please verify your email first — check your inbox for the activation link.')
+        } else if (m.includes('invalid')) {
+          setMessage('Invalid email or password.')
+        } else {
+          setMessage('Sign-in failed. Please try again.')
+        }
       } else {
         // 老用户 → 检查是否填过公司信息
         const { data: profile } = await supabase
