@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '../../utils/supabase/client'
+import { saveEntry as enqueueEntry } from '../../lib/offlineQueue'
 import Link from 'next/link'
 import { useLanguage } from '../../lib/i18n/LanguageContext'
 
@@ -167,9 +168,9 @@ export default function MobileDashboard(){
     try{
       const row:any = { job_id: eJob, owner_id: userId, type: eType, amount: Number(eAmount), note: eNote||null }
       if(eType==='material'){ row.description=eNote||null; if(eQty)row.quantity=Number(eQty); if(eUnit)row.unit=eUnit; if(eUnitPrice)row.unit_price=Number(eUnitPrice); row.gst_status='inclusive'; row.tax_category='cogs_material' }
-      const { error } = await supabase.from('job_entries').insert(row)
-      if(error) throw error
+      const result = await enqueueEntry('job_entries', row)
       setSheetOpen(false); setEAmount(''); setENote(''); setEQty(''); setEUnit(''); setEUnitPrice(''); setEPicked('')
+      if(result==='queued'){ alert(zh?'已离线保存,联网后自动上传':'Saved offline — will upload when back online') }
       await load()
     }catch(err:any){
       console.error('记一笔失败',err)

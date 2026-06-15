@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useLanguage } from '../../lib/i18n/LanguageContext'
 import { createClient } from '../../utils/supabase/client'
+import { saveEntry } from '../../lib/offlineQueue'
 
 const TYPES = [
   { k: 'material', zh: '材料', en: 'Material' },
@@ -69,10 +70,12 @@ export default function QuickEntry() {
       row.gst_status = 'inclusive'
       row.tax_category = 'cogs_material'
     }
-    const { error } = await supabase.from('job_entries').insert(row)
+    const result = await saveEntry('job_entries', row)
     setSaving(false)
-    if (error) { alert(error.message); return }
     setOpen(false)
+    if (result === 'queued') {
+      alert(zh ? '已离线保存,联网后自动上传' : 'Saved offline — will upload when back online')
+    }
     window.location.reload()
   }
 

@@ -4,6 +4,7 @@ import { LanguageProvider } from "../lib/i18n/LanguageContext";
 import MobileHeader from "./components/MobileHeader";
 import InstallBanner from "./components/InstallBanner";
 import ServiceWorkerRegistrar from './components/ServiceWorkerRegistrar';
+import SyncIndicator from './components/SyncIndicator';
 import DarkModeProvider from './components/DarkModeProvider';
 
 export const metadata: Metadata = {
@@ -35,6 +36,7 @@ export default function RootLayout({
       <body className="antialiased">
         <LanguageProvider>
           <ServiceWorkerRegistrar />
+          <SyncIndicator />
           <DarkModeProvider />
           <MobileHeader />
           <div>
