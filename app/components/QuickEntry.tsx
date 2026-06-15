@@ -28,6 +28,11 @@ export default function QuickEntry() {
   const [amount, setAmount] = useState('')
   const [picked, setPicked] = useState('')
   const [saving, setSaving] = useState(false)
+  const [scanning, setScanning] = useState(false)
+  const [vendor, setVendor] = useState('')
+  const [vendorId, setVendorId] = useState<string | null>(null)
+  const [receiptId, setReceiptId] = useState<string | null>(null)
+  const [isAggregate, setIsAggregate] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -55,6 +60,76 @@ export default function QuickEntry() {
     return Number(amount) || 0
   }
 
+  async function handleReceiptScan(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setScanning(true)
+    try {
+      const base64 = await new Promise<string>((res, rej) => {
+        const r = new FileReader()
+        r.onload = () => res((r.result as string).split(',')[1])
+        r.onerror = () => rej(new Error('read failed'))
+        r.readAsDataURL(file)
+      })
+      const resp = await fetch('/api/ocr', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageBase64: base64, mediaType: file.type }) })
+      const json = await resp.json()
+      if (!json.success || !json.data) { alert(zh ? '\u8bc6\u522b\u5931\u8d25,\u8bf7\u624b\u52a8\u586b\u5199' : 'Scan failed, please enter manually'); return }
+      const d = json.data
+      const vtext = String(d.vendor || '').toLowerCase()
+      const itemVendors = Array.isArray(d.items) ? d.items.map((it: any) => it.vendor).filter(Boolean) : []
+      const multiByItems = new Set(itemVendors.map((x: any) => String(x).toLowerCase())).size > 1
+      const multiByText = /multiple|various|several|mixed supplier/.test(vtext)
+      const multiBySeparator = /\s\/\s|,|;|\s&\s|\sand\s/.test(vtext) && vtext.length > 25
+      const dtext = String(d.description || '').toLowerCase()
+      const multiByDesc = /multiple items|multiple suppliers|various items/.test(dtext)
+      setIsAggregate(multiByText || multiByItems || multiBySeparator || multiByDesc)
+      if (d.type && ['material','fuel','subcontract'].includes(d.type)) setType(d.type)
+      if (d.description) setDesc(String(d.description))
+      if (d.amount != null) setAmount(String(d.amount))
+      if (d.quantity != null) setQty(String(d.quantity))
+      if (d.unit_price != null) setUnitPrice(String(d.unit_price))
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user && navigator.onLine) {
+        const { data: rec } = await supabase.from('receipts').insert({ owner_id: user.id, job_id: job || null, amount: d.amount ?? null, gst: d.gst ?? null }).select('id').single()
+        if (rec?.id) {
+          setReceiptId(rec.id)
+          const { data: ext } = await supabase.from('receipt_extractions').insert({ receipt_id: rec.id, owner_id: user.id, raw: d, model: 'claude-opus' }).select('id').single()
+          let vId: string | null = null
+          if (d.vendor) {
+            const { data: m } = await supabase.rpc('match_vendor', { input_text: String(d.vendor) })
+            const hit = Array.isArray(m) ? m[0] : m
+            if (hit?.vendor_id) { vId = hit.vendor_id; setVendorId(hit.vendor_id) }
+            setVendor(String(d.vendor))
+          }
+          if (vId) await supabase.from('receipts').update({ vendor_id: vId }).eq('id', rec.id)
+          const items = Array.isArray(d.items) ? d.items : []
+          if (items.length > 0 && ext?.id) {
+            const rows = items.map((it: any) => ({
+              owner_id: user.id, receipt_id: rec.id, extraction_id: ext.id,
+              description: it.description ?? null,
+              quantity: it.quantity ?? null,
+              unit_price: it.unit_price ?? null,
+              total: it.total ?? null,
+              tax_rate: d.gst_status === 'free' ? 0 : 0.10,
+              gst_category: d.gst_status === 'free' ? 'GST-free' : 'GST',
+              vendor_id: vId,
+              vendor_raw_text: d.vendor ? String(d.vendor) : null,
+            }))
+            await supabase.from('receipt_line_items').insert(rows)
+          }
+          const invNo = d.invoice_number ? (' #' + d.invoice_number) : ''
+          if (d.vendor) setDesc(String(d.vendor) + invNo)
+        }
+      } else if (d.vendor) { setVendor(String(d.vendor)) }
+    } catch (err) {
+      console.error('receipt scan error', err)
+      alert(zh ? '\u8bc6\u522b\u5931\u8d25,\u8bf7\u624b\u52a8\u586b\u5199' : 'Scan failed, please enter manually')
+    } finally {
+      setScanning(false)
+      e.target.value = ''
+    }
+  }
+
   const save = async () => {
     if (!job) { alert(zh ? '请选择工单' : 'Pick a job'); return }
     const amt = calcAmount()
@@ -70,6 +145,8 @@ export default function QuickEntry() {
       row.gst_status = 'inclusive'
       row.tax_category = 'cogs_material'
     }
+    if (vendorId) row.vendor_id = vendorId
+    if (receiptId) row.receipt_id = receiptId
     const result = await saveEntry('job_entries', row)
     setSaving(false)
     setOpen(false)
@@ -87,6 +164,14 @@ export default function QuickEntry() {
           <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
           <div className="relative w-full max-w-md bg-white dark:bg-[#1C1C1E] rounded-2xl border border-gray-200 dark:border-[#3A3A3C] shadow-xl p-6 max-h-[85vh] overflow-y-auto">
             <div className="text-lg font-bold text-gray-900 dark:text-white mb-4">{zh ? '记一笔' : 'Log entry'}</div>
+            <div className="mb-3">
+              <input type="file" accept="image/*" capture="environment" className="sr-only" id="receipt-scan" onChange={handleReceiptScan} />
+              <label htmlFor="receipt-scan" className={"flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium cursor-pointer transition-colors " + (scanning ? "bg-gray-100 dark:bg-[#3A3A3C] text-[#8E8E93]" : "bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 hover:bg-purple-100")}>
+                {scanning ? (zh ? '识别中...' : 'Scanning...') : (zh ? '\ud83d\udcf7 扫描收据' : '\ud83d\udcf7 Scan receipt')}
+              </label>
+              {vendor ? <div className="text-xs text-[#8E8E93] mt-1">{zh ? '供应商: ' : 'Vendor: '}{vendor}</div> : null}
+              {isAggregate ? <div className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-900/20 rounded-lg px-2.5 py-1.5 mt-1">{zh ? '检测到多供应商汇总单。已汇总为一条,明细已存档;如需逐项拆账请在财务中心整理。' : 'Multi-supplier summary detected. Saved as one entry (line items archived). Use Finance Centre to itemise.'}</div> : null}
+            </div>
             <label className="block text-xs text-gray-500 dark:text-[#8E8E93] mb-1">{zh ? '工单' : 'Job'}</label>
             <select value={job} onChange={e => setJob(e.target.value)} className="w-full px-3 py-2.5 bg-gray-50 dark:bg-[#2C2C2E] border border-gray-200 dark:border-[#3A3A3C] rounded-xl text-sm text-gray-900 dark:text-white outline-none mb-4">
               {jobs.length === 0 && <option value="">{zh ? '暂无工单' : 'No jobs'}</option>}
@@ -105,7 +190,7 @@ export default function QuickEntry() {
             )}
             <label className="block text-xs text-gray-500 dark:text-[#8E8E93] mb-1">{zh ? '名称/备注' : 'Description'}</label>
             <input value={desc} onChange={e => setDesc(e.target.value)} className="w-full px-3 py-2.5 bg-gray-50 dark:bg-[#2C2C2E] border border-gray-200 dark:border-[#3A3A3C] rounded-xl text-sm text-gray-900 dark:text-white outline-none mb-4" placeholder={zh ? '如:水泥' : 'e.g. Cement'} />
-            {type === 'material' && (
+            {type === 'material' && !isAggregate && (
               <div className="flex gap-2 mb-4">
                 <div className="flex-1">
                   <label className="block text-xs text-gray-500 dark:text-[#8E8E93] mb-1">{zh ? '数量' : 'Qty'}</label>
