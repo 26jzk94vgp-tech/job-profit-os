@@ -167,7 +167,9 @@ export default function MobileDashboard(){
     setSaving(true)
     try{
       const row:any = { job_id: eJob, owner_id: userId, type: eType, amount: Number(eAmount), note: eNote||null }
-      if(eType==='material'){ row.description=eNote||null; if(eQty)row.quantity=Number(eQty); if(eUnit)row.unit=eUnit; if(eUnitPrice)row.unit_price=Number(eUnitPrice); row.gst_status='inclusive'; row.tax_category='cogs_material' }
+      const TAX_CAT:Record<string,string> = { material:'cogs_material', fuel:'fuel_expense', subcontract:'subcontractor_expense', labor:'labor_expense' }
+      if(TAX_CAT[eType]) row.tax_category = TAX_CAT[eType]
+      if(eType==='material'){ row.description=eNote||null; if(eQty)row.quantity=Number(eQty); if(eUnit)row.unit=eUnit; if(eUnitPrice)row.unit_price=Number(eUnitPrice); row.gst_status='inclusive' }
       const result = await enqueueEntry('job_entries', row)
       setSheetOpen(false); setEAmount(''); setENote(''); setEQty(''); setEUnit(''); setEUnitPrice(''); setEPicked('')
       if(result==='queued'){ alert(zh?'已离线保存,联网后自动上传':'Saved offline — will upload when back online') }

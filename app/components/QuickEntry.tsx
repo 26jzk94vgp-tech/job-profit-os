@@ -138,12 +138,13 @@ export default function QuickEntry() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { window.location.href = '/login'; return }
     const row: Record<string, unknown> = { job_id: job, owner_id: user.id, type, description: desc || type, amount: amt }
+    const TAX_CAT: Record<string, string> = { material: 'cogs_material', fuel: 'fuel_expense', subcontract: 'subcontractor_expense', labor: 'labor_expense' }
+    if (TAX_CAT[type]) row.tax_category = TAX_CAT[type]
     if (type === 'material') {
       if (qty) row.quantity = Number(qty)
       if (unit) row.unit = unit
       if (unitPrice) row.unit_price = Number(unitPrice)
       row.gst_status = 'inclusive'
-      row.tax_category = 'cogs_material'
     }
     if (vendorId) row.vendor_id = vendorId
     if (receiptId) row.receipt_id = receiptId
