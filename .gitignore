@@ -46,3 +46,4 @@ public/sw.js.map
 
 # Serwist generated worker
 public/swe-worker-*.js
+public/sw*.js
