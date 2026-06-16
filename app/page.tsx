@@ -58,10 +58,10 @@ function useWeather(){
     }
     if(navigator.geolocation){
       navigator.geolocation.getCurrentPosition(
-        p=>{fetch(`https://nominatim.openstreetmap.org/reverse?lat=${p.coords.latitude}&lon=${p.coords.longitude}&format=json`).then(r=>r.json()).then(d=>fetch_(p.coords.latitude,p.coords.longitude,d.address?.city||d.address?.town||'My Location')).catch(()=>fetch_(p.coords.latitude,p.coords.longitude,'My Location'))},
-        ()=>fetch_(-31.9505,115.8605,'Perth')
+        p=>{fetch(`https://nominatim.openstreetmap.org/reverse?lat=${p.coords.latitude}&lon=${p.coords.longitude}&format=json`).then(r=>r.json()).then(d=>fetch_(p.coords.latitude,p.coords.longitude,d.address?.city||d.address?.town||d.address?.state||'')).catch(()=>fetch_(p.coords.latitude,p.coords.longitude,''))},
+        ()=>{}
       )
-    } else fetch_(-31.9505,115.8605,'Perth')
+    }
   },[])
   return w
 }
@@ -131,10 +131,7 @@ function StatusDropdown<K extends string>({value,options,onChange,T,isZh=false}:
 const FEED=[
   {id:1,cat:'天气',catEn:'Weather',icon:'☀️',title:'本周四五有雨',titleEn:'Rain Thu–Fri',desc:'户外工程注意安排，建议提前备料',descEn:'Plan outdoor work accordingly',color:'#58A6FF'},
   {id:2,cat:'税务',catEn:'Tax',icon:'🧾',title:'ATO BAS 截止还有 14 天',titleEn:'ATO BAS due in 14 days',desc:'记得申报本季度 GST',descEn:'Lodge quarterly GST',color:'#F85149'},
-  {id:4,cat:'市场',catEn:'Market',icon:'📈',title:'Perth 建材价格上涨 3%',titleEn:'Building materials up 3%',desc:'砂浆/瓷砖本周涨价，建议提前采购',descEn:'Consider stocking up this week',color:'#D29922'},
-  {id:5,cat:'工期',catEn:'Jobs',icon:'⚡',title:'2 个工地本周截止',titleEn:'2 sites due this week',desc:'注意安排人手',descEn:'Plan your crew accordingly',color:'#D29922'},
-  {id:6,cat:'餐厅',catEn:'Food',icon:'🍜',title:'附近餐厅午市优惠',titleEn:'Nearby lunch deals',desc:'Northbridge 3 家餐厅今日特惠 $12起',descEn:'3 restaurants from $12 today',color:'#FF6B6B'},
-  {id:7,cat:'咖啡',catEn:'Coffee',icon:'☕',title:'附近有咖啡',titleEn:'Coffee nearby',desc:'工地附近咖啡馆',descEn:'Coffee near your site',color:'#A0522D'},
+  {id:8,cat:'供应商',catEn:'Suppliers',icon:'🔖',title:'供应商比价 · 即将上线',titleEn:'Supplier prices · Coming soon',desc:'对比 Bunnings/Reece 等实时报价，买得更省',descEn:'Compare live prices across suppliers',color:'#6E7681',soon:true},
 ]
 
 export default function Dashboard(){
@@ -154,7 +151,6 @@ export default function Dashboard(){
   const [dismissed,setDismissed]=useState<number[]>([])
   const [expanded,setExpanded]=useState<number|null>(null)
   const placesLoaded=useRef(false)
-  const [newsItems,setNewsItems]=useState<any[]>([])
   const [done,setDone]=useState<Set<string>>(new Set())
   const [menuOpen,setMenuOpen]=useState(false)
   const [jobMeta,setJobMeta]=useState<Record<string,{mat:MatStatus,pay:PayStatus}>>({})
@@ -190,20 +186,6 @@ export default function Dashboard(){
   },[])
 
   useEffect(()=>{
-    fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.abc.net.au/news/feed/51120/rss.xml')
-      .then(r=>r.json())
-      .then(d=>{
-        if(d.items&&d.items.length>0) setNewsItems(d.items.slice(0,3).map((item:any,i:number)=>({
-          id:100+i,cat:'新闻',catEn:'News',icon:'📰',
-          title:item.title,titleEn:item.title,link:item.link?.replace(/&amp;/g,'&'),
-          desc:item.description?.replace(/<[^>]*>/g,'').slice(0,100)||'',
-          descEn:item.description?.replace(/<[^>]*>/g,'').slice(0,100)||'',
-          color:'#6E7681'
-        })))
-      }).catch(()=>{})
-  },[])
-
-  useEffect(()=>{
     const saved=localStorage.getItem('darkMode')==='true'
     setIsDark(saved)
   },[])
@@ -235,6 +217,22 @@ export default function Dashboard(){
     load()
   },[])
 
+  const [matFeed,setMatFeed] = useState<any[]>([])
+  useEffect(()=>{
+    async function loadMat(){
+      const {data:{user}}=await supabase.auth.getUser()
+      if(!user) return
+      const {data}=await supabase.from('receipt_line_items').select('description, unit_price, vendor_id, created_at, vendors(name)').eq('owner_id',user.id).not('unit_price','is',null).order('created_at',{ascending:false}).limit(20)
+      const seen=new Set<string>()
+      const uniq=(data||[]).filter((r:any)=>{const k=(r.description||'').toLowerCase().trim(); if(!k||seen.has(k))return false; seen.add(k); return true}).slice(0,3)
+      if(uniq.length>0){
+        const lines=uniq.map((r:any)=>`${r.description}${(r.vendors as any)?.name?' \u00b7 '+(r.vendors as any).name:''} \u00b7 $${r.unit_price}`)
+        setMatFeed([{id:3,cat:'\u6750\u6599',catEn:'Materials',icon:'\U0001F4E6',title:'\u6750\u6599\u884c\u60c5',titleEn:'Material prices',desc:lines.join('|||'),descEn:lines.join('|||'),color:'#3FB950',mat:true}])
+      }
+    }
+    loadMat()
+  },[])
+
   async function toggleDeposit(id:string, current:boolean){
     await supabase.from('quotes').update({deposit_paid:!current}).eq('id',id)
     setQuotes(prev=>prev.map(q=>q.id===id?{...q,deposit_paid:!current}:q))
@@ -263,12 +261,8 @@ export default function Dashboard(){
   ]
   const todoPct=todos.length>0?Math.round((done.size/todos.length)*100):100
   const typeColor:{[k:string]:string}={danger:T.danger,warning:T.warning,info:T.primary,muted:T.textSub,success:T.success}
-  const placeItems=newsItems.filter((f:any)=>f.cat==='餐厅'||f.cat==='咖啡'||f.catEn==='Food'||f.catEn==='Coffee')
-  const newsOnlyItems=newsItems.filter((f:any)=>f.cat==='新闻'||f.catEn==='News')
-  const dbPlaceIds=placeItems.map((f:any)=>f.id)
-  const staticFeed=dbPlaceIds.length>0?FEED.filter(f=>f.id!==6&&f.id!==7):FEED
-  const allFeed=[...staticFeed,...placeItems,...newsOnlyItems]
-  const visibleFeed=allFeed.filter((f:any)=>!dismissed.includes(f.id))
+  const feedWithMat=[...FEED.slice(0,2),...matFeed,...FEED.slice(2)]
+  const visibleFeed=feedWithMat.filter((f:any)=>!dismissed.includes(f.id))
 
   const navItems=[
     {href:'/',label:zh?'概览':'Overview',icon:'🏠'},
@@ -537,7 +531,7 @@ export default function Dashboard(){
               <PulseDot color={T.success} size={6}/>
               <span style={{fontSize:'12px',fontWeight:600,color:T.textSub,textTransform:'uppercase' as const,letterSpacing:'0.8px'}}>{zh?'项目地图':'Project Map'}</span>
             </div>
-            <span style={{fontSize:'11px',color:T.textDim}}>{weather?.city||'Perth'}</span>
+            {weather?.city&&<span style={{fontSize:'11px',color:T.textDim}}>{weather.city}</span>}
           </div>
           <div style={{margin:'10px',height:'150px',borderRadius:'4px',border:`1px solid ${T.border}`}}>
             <JobMap jobs={activeJobs} isDark={isDark}/>
