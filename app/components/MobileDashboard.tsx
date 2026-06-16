@@ -42,11 +42,10 @@ function daysLeft(dateStr?:string|null){
 }
 const money = (n:any)=>'$'+Number(n||0).toLocaleString()
 
-const NEWS=[{i:'📈',col:'#E3B341',t:'Perth 建材涨价 3%',d:'本周砂浆 / 瓷砖上涨，建议提前采购'}]
 type WX={t:number,c:number,city:string}|null
 function useWeather(){
   const[w,setW]=useState<WX>(null)
-  useEffect(()=>{const g=(la:number,lo:number,city:string)=>fetch(`https://api.open-meteo.com/v1/forecast?latitude=${la}&longitude=${lo}&current=temperature_2m,weather_code`).then(r=>r.json()).then(d=>setW({t:Math.round(d.current.temperature_2m),c:d.current.weather_code,city})).catch(()=>{});navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>fetch(`https://nominatim.openstreetmap.org/reverse?lat=${p.coords.latitude}&lon=${p.coords.longitude}&format=json`).then(r=>r.json()).then(d=>g(p.coords.latitude,p.coords.longitude,d.address?.city||d.address?.suburb||'Perth')).catch(()=>g(p.coords.latitude,p.coords.longitude,'Perth')),()=>g(-31.95,115.86,'Perth')):g(-31.95,115.86,'Perth')},[])
+  useEffect(()=>{const g=(la:number,lo:number,city:string)=>fetch(`https://api.open-meteo.com/v1/forecast?latitude=${la}&longitude=${lo}&current=temperature_2m,weather_code`).then(r=>r.json()).then(d=>setW({t:Math.round(d.current.temperature_2m),c:d.current.weather_code,city})).catch(()=>{});if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>fetch(`https://nominatim.openstreetmap.org/reverse?lat=${p.coords.latitude}&lon=${p.coords.longitude}&format=json`).then(r=>r.json()).then(d=>g(p.coords.latitude,p.coords.longitude,d.address?.city||d.address?.suburb||d.address?.town||d.address?.state||'')).catch(()=>g(p.coords.latitude,p.coords.longitude,'')),()=>{})},[])
   return w
 }
 function wx(c:number){return c===0?'☀️':c<=3?'⛅':c<=67?'🌧️':'⛈️'}
@@ -64,6 +63,15 @@ export default function MobileDashboard(){
   const [quotes,setQuotes] = useState<any[]>([])
   const [entries,setEntries] = useState<any[]>([])
   const [userId,setUserId] = useState<string|null>(null)
+  const [matPrices,setMatPrices] = useState<any[]>([])
+  useEffect(()=>{
+    if(!userId) return
+    supabase.from('receipt_line_items').select('description, unit_price, created_at').eq('owner_id',userId).not('unit_price','is',null).order('created_at',{ascending:false}).limit(40).then(({data}:any)=>{
+      const seen=new Set<string>()
+      const uniq=(data||[]).filter((r:any)=>{const k=(r.description||'').toLowerCase().trim(); if(!k||seen.has(k))return false; seen.add(k); return true}).slice(0,4)
+      setMatPrices(uniq)
+    })
+  },[userId])
   const [menuOpen,setMenuOpen] = useState(false)
 
   // 记一笔 sheet
@@ -228,7 +236,7 @@ export default function MobileDashboard(){
         <div suppressHydrationWarning style={{fontSize:'34px',fontWeight:800,letterSpacing:'-.6px'}}>{greeting}</div>
         <div style={{marginTop:'8px',display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
           <span suppressHydrationWarning style={{fontSize:'14px',color:T.sub,fontWeight:600}}>{dateStr}</span>
-          {weather&&<span style={{display:'inline-flex',alignItems:'center',gap:'6px',background:T.surface,border:`1px solid ${T.line}`,padding:'4px 10px',borderRadius:'999px',fontSize:'12px',color:T.sub}}>📍 {weather.city} · {wx(weather.c)} <span style={{fontFamily:MONO,fontWeight:700,color:T.text}}>{weather.t}°</span></span>}
+          {weather&&<span style={{display:'inline-flex',alignItems:'center',gap:'6px',background:T.surface,border:`1px solid ${T.line}`,padding:'4px 10px',borderRadius:'999px',fontSize:'12px',color:T.sub}}>{weather.city?`📍 ${weather.city} · `:''}{wx(weather.c)} <span style={{fontFamily:MONO,fontWeight:700,color:T.text}}>{weather.t}°</span></span>}
         </div>
       </div>
 
@@ -318,14 +326,17 @@ export default function MobileDashboard(){
 
       {/* 悬浮：记一笔 */}
       <div style={{marginTop:'24px'}}>
-        <div style={{padding:'0 20px 12px',fontSize:'21px',fontWeight:800}}>资讯 <span style={{color:T.dim,fontSize:'17px'}}>›</span></div>
+        <div style={{padding:'0 20px 12px',fontSize:'21px',fontWeight:800}}>{zh?'材料行情':'Material prices'} <span style={{color:T.dim,fontSize:'17px'}}>›</span></div>
         <div style={{padding:'0 20px',display:'flex',flexDirection:'column',gap:'12px'}}>
-          {NEWS.map((n,k)=>(
+          {matPrices.length===0 ? (
+            <div style={{...card,padding:'16px 19px',fontSize:'13px',color:T.sub}}>{zh?'扫描收据后，这里显示你的材料价格':'Scan receipts to see your material prices here'}</div>
+          ) : matPrices.map((m,k)=>(
             <div key={k} style={{...card,padding:'14px 16px 14px 19px',position:'relative',overflow:'hidden'}}>
-              <span style={{position:'absolute',left:0,top:0,bottom:0,width:'4px',background:n.col}}/>
-              <div style={{display:'flex',gap:'10px'}}>
-                <span style={{fontSize:'18px'}}>{n.i}</span>
-                <div><div style={{fontSize:'14px',fontWeight:700}}>{n.t}</div><div style={{fontSize:'12.5px',color:T.sub,marginTop:'3px'}}>{n.d}</div></div>
+              <span style={{position:'absolute',left:0,top:0,bottom:0,width:'4px',background:'#E3B341'}}/>
+              <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
+                <span style={{fontSize:'18px'}}>📦</span>
+                <div style={{flex:1,minWidth:0}}><div style={{fontSize:'14px',fontWeight:700,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.description||'-'}</div><div style={{fontSize:'12.5px',color:T.sub,marginTop:'3px'}}>{zh?'最近采购':'Recent purchase'}</div></div>
+                <div style={{fontSize:'15px',fontWeight:800,fontFamily:MONO,whiteSpace:'nowrap'}}>{m.unit_price!=null?'$'+m.unit_price:'-'}</div>
               </div>
             </div>
           ))}
