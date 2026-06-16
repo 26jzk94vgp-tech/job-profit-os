@@ -226,8 +226,8 @@ export default function Dashboard(){
       const seen=new Set<string>()
       const uniq=(data||[]).filter((r:any)=>{const k=(r.description||'').toLowerCase().trim(); if(!k||seen.has(k))return false; seen.add(k); return true}).slice(0,3)
       if(uniq.length>0){
-        const lines=uniq.map((r:any)=>`${r.description}${(r.vendors as any)?.name?' \u00b7 '+(r.vendors as any).name:''} \u00b7 $${r.unit_price}`)
-        setMatFeed([{id:3,cat:'\u6750\u6599',catEn:'Materials',icon:'\U0001F4E6',title:'\u6750\u6599\u884c\u60c5',titleEn:'Material prices',desc:lines.join('|||'),descEn:lines.join('|||'),color:'#3FB950',mat:true}])
+        const lines=uniq.map((r:any)=>`${r.description}${(r.vendors as any)?.name?' · '+(r.vendors as any).name:''} · $${r.unit_price}`)
+        setMatFeed([{id:3,cat:'材料',catEn:'Materials',icon:'📦',title:'材料行情',titleEn:'Material prices',desc:lines.join('|||'),descEn:lines.join('|||'),color:'#3FB950',mat:true}])
       }
     }
     loadMat()
