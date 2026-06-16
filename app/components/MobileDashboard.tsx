@@ -81,6 +81,11 @@ export default function MobileDashboard(){
   const [eJob,setEJob] = useState('')
   const [eNote,setENote] = useState('')
   const [saving,setSaving] = useState(false)
+  const [scanning,setScanning] = useState(false)
+  const [eVendor,setEVendor] = useState('')
+  const [eVendorId,setEVendorId] = useState<string|null>(null)
+  const [eReceiptId,setEReceiptId] = useState<string|null>(null)
+  const [eIsAggregate,setEIsAggregate] = useState(false)
   const [mounted,setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
   const [userName,setUserName] = useState('')
@@ -170,6 +175,56 @@ export default function MobileDashboard(){
     {href:'/settings',label:zh?'设置':'Settings',icon:'⚙️'},
   ]
 
+  async function handleReceiptScan(ev:React.ChangeEvent<HTMLInputElement>){
+    const file=ev.target.files?.[0]
+    if(!file) return
+    setScanning(true)
+    try{
+      const base64=await new Promise<string>((res,rej)=>{const r=new FileReader();r.onload=()=>res((r.result as string).split(',')[1]);r.onerror=()=>rej(new Error('read failed'));r.readAsDataURL(file)})
+      const resp=await fetch('/api/ocr',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageBase64:base64,mediaType:file.type})})
+      const json=await resp.json()
+      if(!json.success||!json.data){alert(zh?'\u8bc6\u522b\u5931\u8d25\uff0c\u8bf7\u624b\u52a8\u586b\u5199':'Scan failed, please enter manually');return}
+      const d=json.data
+      const vtext=String(d.vendor||'').toLowerCase()
+      const itemVendors=Array.isArray(d.items)?d.items.map((it:any)=>it.vendor).filter(Boolean):[]
+      const multiByItems=new Set(itemVendors.map((x:any)=>String(x).toLowerCase())).size>1
+      const multiByText=/multiple|various|several|mixed supplier/.test(vtext)
+      const multiBySeparator=/\s\/\s|,|;|\s&\s|\sand\s/.test(vtext)&&vtext.length>25
+      const dtext=String(d.description||'').toLowerCase()
+      const multiByDesc=/multiple items|multiple suppliers|various items/.test(dtext)
+      setEIsAggregate(multiByText||multiByItems||multiBySeparator||multiByDesc)
+      if(d.type&&['material','fuel','subcontract'].includes(d.type))setEType(d.type)
+      if(d.description)setENote(String(d.description))
+      if(d.amount!=null)setEAmount(String(d.amount))
+      if(d.quantity!=null)setEQty(String(d.quantity))
+      if(d.unit_price!=null)setEUnitPrice(String(d.unit_price))
+      const {data:{user}}=await supabase.auth.getUser()
+      if(user&&navigator.onLine){
+        const {data:rec}=await supabase.from('receipts').insert({owner_id:user.id,job_id:eJob||null,amount:d.amount??null,gst:d.gst??null}).select('id').single()
+        if(rec?.id){
+          setEReceiptId(rec.id)
+          const {data:ext}=await supabase.from('receipt_extractions').insert({receipt_id:rec.id,owner_id:user.id,raw:d,model:'claude-opus'}).select('id').single()
+          let vId:string|null=null
+          if(d.vendor){
+            const {data:m}=await supabase.rpc('match_vendor',{input_text:String(d.vendor)})
+            const hit=Array.isArray(m)?m[0]:m
+            if(hit?.vendor_id){vId=hit.vendor_id;setEVendorId(hit.vendor_id)}
+            setEVendor(String(d.vendor))
+          }
+          if(vId)await supabase.from('receipts').update({vendor_id:vId}).eq('id',rec.id)
+          const items=Array.isArray(d.items)?d.items:[]
+          if(items.length>0&&ext?.id){
+            const rows=items.map((it:any)=>({owner_id:user.id,receipt_id:rec.id,extraction_id:ext.id,description:it.description??null,quantity:it.quantity??null,unit_price:it.unit_price??null,total:it.total??null,tax_rate:d.gst_status==='free'?0:0.10,gst_category:d.gst_status==='free'?'GST-free':'GST',vendor_id:vId,vendor_raw_text:d.vendor?String(d.vendor):null}))
+            await supabase.from('receipt_line_items').insert(rows)
+          }
+          const invNo=d.invoice_number?(' #'+d.invoice_number):''
+          if(d.vendor)setENote(String(d.vendor)+invNo)
+        }
+      }else if(d.vendor){setEVendor(String(d.vendor))}
+    }catch(err){console.error('receipt scan error',err);alert(zh?'\u8bc6\u522b\u5931\u8d25\uff0c\u8bf7\u624b\u52a8\u586b\u5199':'Scan failed, please enter manually')}
+    finally{setScanning(false);ev.target.value=''}
+  }
+
   async function saveEntry(){
     if(!eAmount||Number(eAmount)<=0||!eJob){ alert(zh?'请填写金额并选择工单':'Enter amount and pick a job'); return }
     setSaving(true)
@@ -178,6 +233,8 @@ export default function MobileDashboard(){
       const TAX_CAT:Record<string,string> = { material:'cogs_material', fuel:'fuel_expense', subcontract:'subcontractor_expense', labor:'labor_expense' }
       if(TAX_CAT[eType]) row.tax_category = TAX_CAT[eType]
       if(eType==='material'){ row.description=eNote||null; if(eQty)row.quantity=Number(eQty); if(eUnit)row.unit=eUnit; if(eUnitPrice)row.unit_price=Number(eUnitPrice); row.gst_status='inclusive' }
+      if(eVendorId) row.vendor_id = eVendorId
+      if(eReceiptId) row.receipt_id = eReceiptId
       const result = await enqueueEntry('job_entries', row)
       setSheetOpen(false); setEAmount(''); setENote(''); setEQty(''); setEUnit(''); setEUnitPrice(''); setEPicked('')
       if(result==='queued'){ alert(zh?'已离线保存,联网后自动上传':'Saved offline — will upload when back online') }
@@ -357,6 +414,12 @@ export default function MobileDashboard(){
       <div style={{position:'fixed',left:'50%',bottom:0,zIndex:75,width:'100%',maxWidth:'440px',background:T.bg==='#000000'?'#0B0D10':T.surface,borderTopLeftRadius:'22px',borderTopRightRadius:'22px',borderTop:`1px solid ${T.line}`,padding:'10px 20px 26px',transition:'transform .3s cubic-bezier(.32,.72,0,1)',transform:sheetOpen?'translate(-50%,0)':'translate(-50%,100%)'}}>
         <div style={{width:'40px',height:'5px',borderRadius:'3px',background:T.line,margin:'0 auto 14px'}}/>
         <div style={{fontSize:'19px',fontWeight:800,marginBottom:'16px'}}>{zh?'记一笔':'Log entry'}</div>
+        <div style={{marginBottom:'14px'}}>
+          <input type="file" accept="image/*" capture="environment" style={{display:'none'}} id="m-receipt-scan" onChange={handleReceiptScan}/>
+          <label htmlFor="m-receipt-scan" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',padding:'12px',borderRadius:'14px',background:scanning?T.surface:T.primarySoft,border:`1px solid ${scanning?T.line:T.primary}`,color:scanning?T.sub:T.primary,fontSize:'14px',fontWeight:700,cursor:'pointer'}}>{scanning?(zh?'识别中...':'Scanning...'):(zh?'\ud83d\udcf7 扫描收据':'\ud83d\udcf7 Scan receipt')}</label>
+          {eVendor?<div style={{fontSize:'12px',color:T.sub,marginTop:'8px'}}>{zh?'供应商: ':'Vendor: '}{eVendor}</div>:null}
+          {eIsAggregate?<div style={{fontSize:'12px',color:'#D29922',background:'#D2992218',borderRadius:'10px',padding:'8px 11px',marginTop:'8px',lineHeight:1.5}}>{zh?'检测到多供应商汇总单。已汇总为一条,明细已存档;如需逐项拆账请在财务中心整理。':'Multi-supplier summary detected. Saved as one entry. Use Finance Centre to itemise.'}</div>:null}
+        </div>
         <div style={{display:'flex',gap:'8px',overflowX:'auto',marginBottom:'18px'}} className="no-sb">
           {ENTRY_TYPES.map(t=>{
             const on = eType===t.key
@@ -369,7 +432,7 @@ export default function MobileDashboard(){
             {mats.map((m,i)=>{const on=ePicked===m.description;return <button key={i} onClick={()=>pickMat(m)} style={{flex:'0 0 auto',padding:'8px 12px',borderRadius:'12px',background:on?T.primarySoft:T.surface,border:`1px solid ${on?T.primary:T.line}`,color:on?T.primary:T.text,fontSize:'12.5px',fontWeight:600,whiteSpace:'nowrap',cursor:'pointer'}}>{m.description}{m.unit_price!=null?' · $'+m.unit_price:''}</button>})}
           </div>
         </div>}
-        {eType==='material'&&<div style={{display:'flex',gap:'10px',marginBottom:'18px'}}>
+        {eType==='material'&&!eIsAggregate&&<div style={{display:'flex',gap:'10px',marginBottom:'18px'}}>
           <div style={{flex:1}}>
             <div style={{fontSize:'12px',color:T.sub,marginBottom:'6px'}}>{zh?'数量':'Qty'}</div>
             <input value={eQty} onChange={e=>setEQty(e.target.value.replace(/[^0-9.]/g,''))} inputMode="decimal" placeholder="0" style={{width:'100%',padding:'11px 13px',background:T.surface,border:`1px solid ${T.line}`,borderRadius:'12px',fontSize:'15px',color:T.text,outline:'none',fontFamily:SANS}}/>
