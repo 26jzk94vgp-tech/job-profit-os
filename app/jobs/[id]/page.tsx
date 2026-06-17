@@ -31,6 +31,9 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   const [builderGstMode, setBuilderGstMode] = useState<'exclusive'|'inclusive'>('exclusive')
   const [builderDef, setBuilderDef] = useState('')
   const [builderSaving, setBuilderSaving] = useState(false)
+  const [planEditing, setPlanEditing] = useState(false)
+  const [planDraft, setPlanDraft] = useState<any[]>([])
+  const [planSaving, setPlanSaving] = useState(false)
 
   useEffect(() => {
     supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }) => setJob(data))
@@ -133,6 +136,33 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
       window.location.href = '/jobs/'+id+'/invoice?stage='+stageJustCreated
     }catch(err:any){ alert('Error: '+err.message) }
     finally{ setBuilderSaving(false) }
+  }
+
+  function openPlanEditor(){
+    setPlanDraft(claimPlan.map((pl:any,i:number)=>({ stage:pl.stage??i+1, label:pl.label||'', labelEn:pl.labelEn||'', percent:Math.round(Number(pl.percent)*100) })))
+    setPlanEditing(true)
+  }
+  function updatePlanRow(idx:number, field:string, val:string){
+    setPlanDraft(prev=>prev.map((r:any,i:number)=> i===idx ? {...r,[field]: field==='percent'? val.replace(/[^0-9.]/g,'') : val} : r))
+  }
+  function addPlanRow(){
+    setPlanDraft(prev=>[...prev,{ stage:prev.length+1, label:'', labelEn:'', percent:'' }])
+  }
+  function removePlanRow(idx:number){
+    setPlanDraft(prev=>prev.filter((_:any,i:number)=>i!==idx).map((r:any,i:number)=>({...r,stage:i+1})))
+  }
+  async function savePlan(){
+    const sum = planDraft.reduce((s:number,r:any)=>s+(Number(r.percent)||0),0)
+    if(Math.abs(sum-100)>0.01){ alert(lang==='zh'?('\u6bd4\u4f8b\u5408\u8ba1\u987b\u4e3a100%\uff0c\u5f53\u524d'+sum+'%'):('Percentages must total 100%, now '+sum+'%')); return }
+    if(planDraft.some((r:any)=>!r.label.trim())){ alert(lang==='zh'?'\u6bcf\u671f\u9700\u586b\u9636\u6bb5\u540d':'Each stage needs a label'); return }
+    setPlanSaving(true)
+    try{
+      const newPlan = planDraft.map((r:any,i:number)=>({ stage:i+1, label:r.label.trim(), labelEn:(r.labelEn||r.label).trim(), percent:Number(r.percent)/100 }))
+      if(quote?.id){ const { error } = await supabase.from('quotes').update({ claim_plan:newPlan }).eq('id', quote.id); if(error) throw new Error(error.message) }
+      setClaimPlan(newPlan)
+      setPlanEditing(false)
+    }catch(err:any){ alert('Error: '+err.message) }
+    finally{ setPlanSaving(false) }
   }
 
   async function saveDates() {
@@ -279,7 +309,10 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
             return (
               <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent p-5 mb-4">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="font-semibold text-gray-900 dark:text-white">{lang==='zh'?'进度收款':'Progress Claims'}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-gray-900 dark:text-white">{lang==='zh'?'进度收款':'Progress Claims'}</p>
+                    <button onClick={openPlanEditor} className="text-xs text-[#0A84FF]">✏️ {lang==='zh'?'编辑':'Edit'}</button>
+                  </div>
                   <span className="text-xs text-gray-400">{lang==='zh'?'合同':'Contract'} ${contractTotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm mb-1.5">
@@ -540,6 +573,43 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
                 <div className="flex justify-between py-2 mt-1 border-t border-gray-200 dark:border-[#3A3A3C] font-bold text-gray-900 dark:text-white"><span>{lang==='zh'?'总计':'Total'}</span><span>${tot.toLocaleString(undefined,{minimumFractionDigits:2})}</span></div>
               </div>
               <button onClick={generateClaim} disabled={builderSaving} className="w-full py-3 rounded-xl bg-[#0A84FF] text-white font-semibold text-sm disabled:opacity-50">{builderSaving?(lang==='zh'?'生成中...':'Generating...'):(lang==='zh'?'生成发票':'Generate Invoice')}</button>
+            </div>
+          </>
+          )
+        })()}
+        {planEditing && (() => {
+          const sumPct = planDraft.reduce((s:number,r:any)=>s+(Number(r.percent)||0),0)
+          const ok = Math.abs(sumPct-100)<0.01
+          const claimedStages = new Set(invoiceEntries.filter((e:any)=>e.claim_stage).map((e:any)=>Number(e.claim_stage)))
+          return (
+          <>
+            <div onClick={()=>setPlanEditing(false)} style={{position:'fixed',inset:0,zIndex:60,background:'rgba(0,0,0,.5)'}}/>
+            <div className="bg-white dark:bg-[#1C1C1E]" style={{position:'fixed',left:'50%',bottom:0,zIndex:65,width:'100%',maxWidth:'480px',transform:'translateX(-50%)',borderTopLeftRadius:'22px',borderTopRightRadius:'22px',maxHeight:'90vh',overflowY:'auto',padding:'8px 20px 28px'}}>
+              <div style={{width:'40px',height:'5px',borderRadius:'3px',background:'#ccc',margin:'8px auto 16px'}}/>
+              <p className="text-lg font-bold text-gray-900 dark:text-white mb-1">{lang==='zh'?'编辑进度计划':'Edit Claim Plan'}</p>
+              <p className="text-xs text-gray-400 mb-4">{lang==='zh'?'已开票的期不可修改；比例合计须为 100%':'Invoiced stages are locked; percentages must total 100%'}</p>
+              <div className="space-y-2 mb-3">
+                {planDraft.map((r:any,idx:number)=>{
+                  const locked = claimedStages.has(r.stage)
+                  return (
+                  <div key={idx} className="rounded-xl border border-gray-200 dark:border-[#3A3A3C] p-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 shrink-0 rounded-full bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 text-xs flex items-center justify-center">{idx+1}</span>
+                      <input disabled={locked} value={r.label} onChange={e=>updatePlanRow(idx,'label',e.target.value)} placeholder={lang==='zh'?'阶段名':'Stage name'} className="flex-1 min-w-0 px-2 py-1.5 rounded-lg text-sm bg-gray-50 dark:bg-[#2C2C2E] text-gray-900 dark:text-white border border-gray-200 dark:border-[#3A3A3C] outline-none disabled:opacity-50"/>
+                      <input disabled={locked} value={r.percent} onChange={e=>updatePlanRow(idx,'percent',e.target.value)} inputMode="decimal" className="w-14 px-2 py-1.5 rounded-lg text-sm text-right bg-gray-50 dark:bg-[#2C2C2E] text-gray-900 dark:text-white border border-gray-200 dark:border-[#3A3A3C] outline-none disabled:opacity-50"/>
+                      <span className="text-gray-400 text-sm">%</span>
+                      {locked ? <span className="text-xs text-[#30D158] shrink-0">{lang==='zh'?'已开票':'Invoiced'}</span>
+                        : <button onClick={()=>removePlanRow(idx)} className="text-gray-400 text-sm shrink-0">✕</button>}
+                    </div>
+                  </div>
+                  )
+                })}
+              </div>
+              <button onClick={addPlanRow} className="w-full py-2 mb-3 rounded-lg text-xs font-medium border border-dashed border-gray-300 dark:border-[#3A3A3C] text-gray-600">+ {lang==='zh'?'加一期':'Add stage'}</button>
+              <div className={`flex justify-between items-center px-3 py-2 rounded-lg mb-4 text-sm ${ok?'bg-[#30D158]/10 text-[#30D158]':'bg-[#FF9F0A]/10 text-[#FF9F0A]'}`}>
+                <span>{lang==='zh'?'合计':'Total'}</span><span className="font-bold">{sumPct}%</span>
+              </div>
+              <button onClick={savePlan} disabled={planSaving||!ok} className="w-full py-3 rounded-xl bg-[#0A84FF] text-white font-semibold text-sm disabled:opacity-50">{planSaving?'...':(lang==='zh'?'保存计划':'Save Plan')}</button>
             </div>
           </>
           )
