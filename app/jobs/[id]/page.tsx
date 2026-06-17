@@ -26,6 +26,11 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   const [filterMatStatus, setFilterMatStatus] = useState<string>('all')
   const [quote, setQuote] = useState<any>(null)
   const [claimPlan, setClaimPlan] = useState<any[]>([])
+  const [builderStage, setBuilderStage] = useState<any>(null)
+  const [builderLines, setBuilderLines] = useState<any[]>([])
+  const [builderGstMode, setBuilderGstMode] = useState<'exclusive'|'inclusive'>('exclusive')
+  const [builderDef, setBuilderDef] = useState('')
+  const [builderSaving, setBuilderSaving] = useState(false)
 
   useEffect(() => {
     supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }) => setJob(data))
@@ -42,9 +47,9 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
     supabase.from('quotes').select('*').eq('job_id', id).limit(1).then(({ data }) => {
       const q = (data || [])[0]
       const DEFAULT_PLAN = [
-        { stage: 1, label: '\u7b7e\u7ea6\u5b9a\u91d1', labelEn: 'Deposit', percent: 0.20 },
-        { stage: 2, label: '\u5b8c\u6210 50%', labelEn: '50% Complete', percent: 0.50 },
-        { stage: 3, label: '\u5b8c\u5de5', labelEn: 'Completion', percent: 0.30 },
+        { stage: 1, label: '签约定金', labelEn: 'Deposit', percent: 0.20 },
+        { stage: 2, label: '完成 50%', labelEn: '50% Complete', percent: 0.50 },
+        { stage: 3, label: '完工', labelEn: 'Completion', percent: 0.30 },
       ]
       if (q) { setQuote(q); setClaimPlan(Array.isArray(q.claim_plan) && q.claim_plan.length > 0 ? q.claim_plan : DEFAULT_PLAN) }
       else { setClaimPlan(DEFAULT_PLAN) }
@@ -72,6 +77,62 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
     if (received !== undefined) update.payment_received = received
     await supabase.from('job_entries').update(update).eq('id', entryId)
     setEntries((prev: any[]) => prev.map((e: any) => e.id === entryId ? { ...e, payment_status: status, payment_received: received ?? e.payment_received } : e))
+  }
+
+  function openClaimBuilder(st:any){
+    const contractTotal = Number(job.revenue) || 0
+    const suggested = Math.round(contractTotal * Number(st.percent) * 100)/100
+    setBuilderStage(st)
+    setBuilderDef('')
+    setBuilderGstMode('exclusive')
+    setBuilderLines([{ id:Date.now(), kind:'deposit', desc:'', qty:'', unit:'', amount:String(suggested||'') }])
+  }
+  function addLine(kind:'deposit'|'normal'){
+    setBuilderLines(prev=>[...prev,{ id:Date.now()+Math.random(), kind, desc:'', qty:'', unit:'', amount:'' }])
+  }
+  function removeLine(lid:any){
+    setBuilderLines(prev=>prev.filter(l=>l.id!==lid))
+  }
+  function updateLine(lid:any, field:string, val:string){
+    setBuilderLines(prev=>prev.map(l=>{
+      if(l.id!==lid) return l
+      const nl:any={...l,[field]:val}
+      if(nl.kind==='normal' && (field==='qty'||field==='unit')){
+        const q=Number(nl.qty)||0, u=Number(nl.unit)||0
+        nl.amount = q&&u ? String(Math.round(q*u*100)/100) : nl.amount
+      }
+      return nl
+    }))
+  }
+  async function generateClaim(){
+    if(!builderStage) return
+    const valid = builderLines.filter(l=>l.desc.trim() && Number(l.amount)>0)
+    if(valid.length===0){ alert(lang==='zh'?'请至少填写一行明细':'Add at least one line'); return }
+    setBuilderSaving(true)
+    try{
+      const { data:{ user } } = await supabase.auth.getUser()
+      const subtotal = builderLines.reduce((sm:number,l:any)=>sm+(Number(l.amount)||0),0)
+      const rows = valid.map((l:any)=>({
+        job_id:id, owner_id:user?.id, type:'invoice',
+        description: l.desc.trim(),
+        quantity: l.kind==='normal' && l.qty ? Number(l.qty) : null,
+        unit_price: l.kind==='normal' && l.unit ? Number(l.unit) : null,
+        amount: Number(l.amount),
+        claim_stage: builderStage.stage,
+        claim_label: builderStage.label,
+        claim_percent: Number(builderStage.percent),
+        gst_status: builderGstMode,
+        tax_category:'other_income',
+        payment_status:'unpaid',
+        notes: builderDef ? ('STAGE_DEF:'+builderDef) : null,
+      }))
+      const { error } = await supabase.from('job_entries').insert(rows)
+      if(error) throw new Error(error.message)
+      const { data:fresh } = await supabase.from('job_entries').select('*').eq('job_id', id).order('created_at',{ascending:false})
+      setEntries(fresh||[])
+      setBuilderStage(null); setBuilderLines([])
+    }catch(err:any){ alert('Error: '+err.message) }
+    finally{ setBuilderSaving(false) }
   }
 
   async function saveDates() {
@@ -239,8 +300,8 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
                       <div className="flex items-center gap-2 shrink-0">
                         <span className="text-sm font-medium text-gray-900 dark:text-white">${Number(st.amount).toLocaleString()}</span>
                         {st.paid ? <span className="text-xs text-[#30D158]">{lang==='zh'?'已收':'Paid'} ✅</span>
-                          : st.claimed ? <span className="text-xs text-[#FF9F0A]">{lang==='zh'?'待收':'Unpaid'}</span>
-                          : <span className="text-xs text-gray-400">{lang==='zh'?'待建':'Pending'}</span>}
+                          : st.claimed ? <a href={'/jobs/'+id+'/invoice?stage='+st.stage} className="text-xs text-[#0A84FF] font-medium">{lang==='zh'?'查看发票':'View'} →</a>
+                          : <button onClick={()=>openClaimBuilder(st)} className="text-xs bg-[#0A84FF] text-white px-2.5 py-1 rounded-lg font-medium">{lang==='zh'?'建立':'Create'}</button>}
                       </div>
                     </div>
                   ))}
@@ -425,6 +486,64 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
 
           </div>
         )}
+        {builderStage && (() => {
+          const sub = builderLines.reduce((s:number,l:any)=>s+(Number(l.amount)||0),0)
+          const gstV = builderGstMode==='exclusive' ? sub*0.1 : sub/11
+          const tot = builderGstMode==='exclusive' ? sub+gstV : sub
+          return (
+          <>
+            <div onClick={()=>setBuilderStage(null)} style={{position:'fixed',inset:0,zIndex:60,background:'rgba(0,0,0,.5)'}}/>
+            <div className="bg-white dark:bg-[#1C1C1E]" style={{position:'fixed',left:'50%',bottom:0,zIndex:65,width:'100%',maxWidth:'520px',transform:'translateX(-50%)',borderTopLeftRadius:'22px',borderTopRightRadius:'22px',maxHeight:'90vh',overflowY:'auto',padding:'8px 20px 28px'}}>
+              <div style={{width:'40px',height:'5px',borderRadius:'3px',background:'#ccc',margin:'8px auto 16px'}}/>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{lang==='zh'?'建立 Claim':'Create Claim'} #{builderStage.stage}</p>
+                <span className="text-xs text-gray-400">{lang==='zh'?builderStage.label:(builderStage.labelEn||builderStage.label)} · {Math.round(Number(builderStage.percent)*100)}%</span>
+              </div>
+              <input value={builderDef} onChange={e=>setBuilderDef(e.target.value)} placeholder={lang==='zh'?'阶段说明(可选,如:材料到场+基层完成)':'Stage definition (optional)'} className="w-full mt-2 mb-3 px-3 py-2 rounded-lg text-sm bg-gray-50 dark:bg-[#2C2C2E] text-gray-900 dark:text-white border border-gray-200 dark:border-[#3A3A3C] outline-none"/>
+              <div className="flex gap-2 mb-3">
+                <button onClick={()=>setBuilderGstMode('exclusive')} className={`flex-1 py-2 rounded-lg text-xs font-medium ${builderGstMode==='exclusive'?'bg-[#0A84FF] text-white':'bg-gray-100 dark:bg-[#2C2C2E] text-gray-600 dark:text-[#8E8E93]'}`}>GST {lang==='zh'?'另加':'exclusive'}</button>
+                <button onClick={()=>setBuilderGstMode('inclusive')} className={`flex-1 py-2 rounded-lg text-xs font-medium ${builderGstMode==='inclusive'?'bg-[#0A84FF] text-white':'bg-gray-100 dark:bg-[#2C2C2E] text-gray-600 dark:text-[#8E8E93]'}`}>GST {lang==='zh'?'含税':'inclusive'}</button>
+              </div>
+              <div className="space-y-2 mb-3">
+                {builderLines.map((l:any)=>(
+                  <div key={l.id} className="rounded-xl border border-gray-200 dark:border-[#3A3A3C] p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${l.kind==='deposit'?'bg-[#FF9F0A]/15 text-[#FF9F0A]':'bg-[#0A84FF]/15 text-[#0A84FF]'}`}>{l.kind==='deposit'?(lang==='zh'?'金额':'Amount'):(lang==='zh'?'计量':'Qty')}</span>
+                      <input value={l.desc} onChange={e=>updateLine(l.id,'desc',e.target.value)} placeholder={lang==='zh'?'项目描述':'Description'} className="flex-1 min-w-0 px-2 py-1.5 rounded-lg text-sm bg-gray-50 dark:bg-[#2C2C2E] text-gray-900 dark:text-white border border-gray-200 dark:border-[#3A3A3C] outline-none"/>
+                      <button onClick={()=>removeLine(l.id)} className="text-gray-400 text-sm shrink-0">✕</button>
+                    </div>
+                    {l.kind==='normal' ? (
+                      <div className="flex items-center gap-2">
+                        <input value={l.qty} onChange={e=>updateLine(l.id,'qty',e.target.value.replace(/[^0-9.]/g,''))} inputMode="decimal" placeholder={lang==='zh'?'数量':'Qty'} className="w-16 px-2 py-1.5 rounded-lg text-sm bg-gray-50 dark:bg-[#2C2C2E] text-gray-900 dark:text-white border border-gray-200 dark:border-[#3A3A3C] outline-none"/>
+                        <span className="text-gray-400 text-xs">×</span>
+                        <input value={l.unit} onChange={e=>updateLine(l.id,'unit',e.target.value.replace(/[^0-9.]/g,''))} inputMode="decimal" placeholder={lang==='zh'?'单价':'Unit'} className="w-20 px-2 py-1.5 rounded-lg text-sm bg-gray-50 dark:bg-[#2C2C2E] text-gray-900 dark:text-white border border-gray-200 dark:border-[#3A3A3C] outline-none"/>
+                        <span className="text-gray-400 text-xs">=</span>
+                        <span className="flex-1 text-right text-sm font-medium text-gray-900 dark:text-white">${(Number(l.amount)||0).toLocaleString()}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400 text-sm">$</span>
+                        <input value={l.amount} onChange={e=>updateLine(l.id,'amount',e.target.value.replace(/[^0-9.]/g,''))} inputMode="decimal" placeholder="0.00" className="flex-1 px-2 py-1.5 rounded-lg text-sm bg-gray-50 dark:bg-[#2C2C2E] text-gray-900 dark:text-white border border-gray-200 dark:border-[#3A3A3C] outline-none"/>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2 mb-4">
+                <button onClick={()=>addLine('deposit')} className="flex-1 py-2 rounded-lg text-xs font-medium border border-dashed border-gray-300 dark:border-[#3A3A3C] text-gray-600 dark:text-[#8E8E93]">+ {lang==='zh'?'金额行':'Amount'}</button>
+                <button onClick={()=>addLine('normal')} className="flex-1 py-2 rounded-lg text-xs font-medium border border-dashed border-gray-300 dark:border-[#3A3A3C] text-gray-600 dark:text-[#8E8E93]">+ {lang==='zh'?'计量行':'Qty line'}</button>
+              </div>
+              <p className="text-xs text-gray-400 dark:text-[#8E8E93] mb-4 leading-relaxed">{lang==='zh'?'金额行：直接填总额（如定金、进度款）· 计量行：数量 × 单价 自动算':'Amount: enter a lump sum (deposit / progress) · Qty line: quantity × unit price'}</p>
+              <div className="rounded-xl bg-gray-50 dark:bg-[#2C2C2E] p-3 mb-4 text-sm">
+                <div className="flex justify-between py-1 text-gray-600 dark:text-[#8E8E93]"><span>{lang==='zh'?'小计':'Subtotal'}</span><span>${sub.toLocaleString(undefined,{minimumFractionDigits:2})}</span></div>
+                <div className="flex justify-between py-1 text-gray-600 dark:text-[#8E8E93]"><span>GST (10%)</span><span>${gstV.toLocaleString(undefined,{minimumFractionDigits:2})}</span></div>
+                <div className="flex justify-between py-2 mt-1 border-t border-gray-200 dark:border-[#3A3A3C] font-bold text-gray-900 dark:text-white"><span>{lang==='zh'?'总计':'Total'}</span><span>${tot.toLocaleString(undefined,{minimumFractionDigits:2})}</span></div>
+              </div>
+              <button onClick={generateClaim} disabled={builderSaving} className="w-full py-3 rounded-xl bg-[#0A84FF] text-white font-semibold text-sm disabled:opacity-50">{builderSaving?(lang==='zh'?'生成中...':'Generating...'):(lang==='zh'?'生成发票':'Generate Invoice')}</button>
+            </div>
+          </>
+          )
+        })()}
       </main>
     </div>
   )
