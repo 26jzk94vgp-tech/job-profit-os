@@ -128,9 +128,9 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
       }))
       const { error } = await supabase.from('job_entries').insert(rows)
       if(error) throw new Error(error.message)
-      const { data:fresh } = await supabase.from('job_entries').select('*').eq('job_id', id).order('created_at',{ascending:false})
-      setEntries(fresh||[])
+      const stageJustCreated = builderStage.stage
       setBuilderStage(null); setBuilderLines([])
+      window.location.href = '/jobs/'+id+'/invoice?stage='+stageJustCreated
     }catch(err:any){ alert('Error: '+err.message) }
     finally{ setBuilderSaving(false) }
   }
@@ -300,7 +300,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
                       <div className="flex items-center gap-2 shrink-0">
                         <span className="text-sm font-medium text-gray-900 dark:text-white">${Number(st.amount).toLocaleString()}</span>
                         {st.paid ? <span className="text-xs text-[#30D158]">{lang==='zh'?'已收':'Paid'} ✅</span>
-                          : st.claimed ? <a href={'/jobs/'+id+'/invoice?stage='+st.stage} className="text-xs text-[#0A84FF] font-medium">{lang==='zh'?'查看发票':'View'} →</a>
+                          : st.claimed ? <a href={'/jobs/'+id+'/invoice?stage='+st.stage} className="text-xs bg-[#0A84FF]/10 text-[#0A84FF] px-2.5 py-1 rounded-lg font-medium">📄 {lang==='zh'?'查看发票':'Invoice'}</a>
                           : <button onClick={()=>openClaimBuilder(st)} className="text-xs bg-[#0A84FF] text-white px-2.5 py-1 rounded-lg font-medium">{lang==='zh'?'建立':'Create'}</button>}
                       </div>
                     </div>

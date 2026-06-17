@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { use } from 'react'
 import { createClient } from '../../../../utils/supabase/client'
 import Link from 'next/link'
@@ -11,6 +12,9 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   const { id } = use(params)
   const supabase = createClient()
   const { lang } = useLanguage()
+  const searchParams = useSearchParams()
+  const stageParam = searchParams.get('stage')
+  const stageNum = stageParam ? Number(stageParam) : null
   const [job, setJob] = useState<any>(null)
   const [entries, setEntries] = useState<any[]>([])
   const [quotes, setQuotes] = useState<any[]>([])
@@ -138,7 +142,11 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
     </div>
   )
 
-  const invoiceEntries = entries.filter(e => e.type === 'invoice')
+  const allInvoiceEntries = entries.filter(e => e.type === 'invoice')
+  const invoiceEntries = stageNum ? allInvoiceEntries.filter(e => Number(e.claim_stage) === stageNum) : allInvoiceEntries
+  const stageMeta = stageNum ? allInvoiceEntries.find(e => Number(e.claim_stage) === stageNum) : null
+  const stageDef = stageMeta?.notes && String(stageMeta.notes).startsWith('STAGE_DEF:') ? String(stageMeta.notes).slice(10) : ''
+  const totalStages = [...new Set(allInvoiceEntries.filter(e=>e.claim_stage).map(e=>Number(e.claim_stage)))].length
   const exclusiveTotal = invoiceEntries.filter(e => e.gst_status === 'exclusive' || !e.gst_status).reduce((sum, e) => sum + Number(e.amount), 0)
   const inclusiveTotal = invoiceEntries.filter(e => e.gst_status === 'inclusive').reduce((sum, e) => sum + Number(e.amount), 0)
   const gst = exclusiveTotal * 0.1 + inclusiveTotal / 11
@@ -311,8 +319,19 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
             <p className="text-sm mt-2" style={{color:'#4B5563'}}><span style={{color:'#9CA3AF'}}>{lang === 'zh' ? '发票编号: ' : 'Invoice #: '}</span><span className="font-bold">{invoiceNumber}</span></p>
             <p className="text-sm" style={{color:'#4B5563'}}><span style={{color:'#9CA3AF'}}>{lang === 'zh' ? '日期: ' : 'Date: '}</span><span className="font-medium">{new Date().toLocaleDateString('en-AU')}</span></p>
             {dueDate && <p className="text-sm" style={{color:'#4B5563'}}><span style={{color:'#9CA3AF'}}>{lang === 'zh' ? '到期日: ' : 'Due Date: '}</span><span className="font-medium">{dueDate}</span></p>}
+            {stageNum && stageMeta && (
+              <div className="mt-2 inline-block px-3 py-1 rounded-full" style={{backgroundColor:'#EFF6FF'}}>
+                <span className="text-xs font-bold" style={{color:'#1D4ED8'}}>{lang === 'zh' ? '第' : 'Stage '}{stageNum}{lang === 'zh' ? '期' : ''}{totalStages>0 ? (lang==='zh' ? ' / 共'+totalStages+'期' : ' of '+totalStages) : ''} · {stageMeta.claim_label || ''}{stageMeta.claim_percent ? ' · '+Math.round(Number(stageMeta.claim_percent)*100)+'%' : ''}</span>
+              </div>
+            )}
           </div>
         </div>
+        {stageNum && stageDef && (
+          <div className="mb-6 rounded-lg p-3" style={{backgroundColor:'#F9FAFB', border:'1px solid #E5E7EB'}}>
+            <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:'#9CA3AF'}}>{lang === 'zh' ? '本期说明' : 'Stage Definition'}</p>
+            <p className="text-sm" style={{color:'#4B5563'}}>{stageDef}</p>
+          </div>
+        )}
 
         {profile?.account_name && (
           <div className="mb-4 bg-white border border-gray-300 rounded-lg p-4">
