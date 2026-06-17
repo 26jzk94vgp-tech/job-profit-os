@@ -24,6 +24,8 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   const [draftStart, setDraftStart] = useState('')
   const [draftEnd, setDraftEnd] = useState('')
   const [filterMatStatus, setFilterMatStatus] = useState<string>('all')
+  const [quote, setQuote] = useState<any>(null)
+  const [claimPlan, setClaimPlan] = useState<any[]>([])
 
   useEffect(() => {
     supabase.from('job_summary').select('*').eq('id', id).single().then(({ data }) => setJob(data))
@@ -37,6 +39,16 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
       }
     })
     supabase.from('job_entries').select('*').eq('job_id', id).order('created_at', { ascending: false }).then(({ data }) => setEntries(data || []))
+    supabase.from('quotes').select('*').eq('job_id', id).limit(1).then(({ data }) => {
+      const q = (data || [])[0]
+      const DEFAULT_PLAN = [
+        { stage: 1, label: '\u7b7e\u7ea6\u5b9a\u91d1', labelEn: 'Deposit', percent: 0.20 },
+        { stage: 2, label: '\u5b8c\u6210 50%', labelEn: '50% Complete', percent: 0.50 },
+        { stage: 3, label: '\u5b8c\u5de5', labelEn: 'Completion', percent: 0.30 },
+      ]
+      if (q) { setQuote(q); setClaimPlan(Array.isArray(q.claim_plan) && q.claim_plan.length > 0 ? q.claim_plan : DEFAULT_PLAN) }
+      else { setClaimPlan(DEFAULT_PLAN) }
+    })
   }, [id])
 
   
@@ -190,6 +202,52 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
 
         {/* ── 概览 ── */}
         {activeTab === 'overview' && (<>
+          {(() => {
+            const contractTotal = Number(job.revenue) || invoiceEntries.reduce((sum:number,e:any)=>sum+Number(e.amount),0)
+            const claimRows = invoiceEntries.filter((e:any)=>e.claim_stage)
+            const stages = claimPlan.map((pl:any)=>{
+              const rows = claimRows.filter((e:any)=>e.claim_stage===pl.stage)
+              const claimed = rows.length>0
+              const amount = claimed ? rows.reduce((sm:number,e:any)=>sm+Number(e.amount),0) : contractTotal*Number(pl.percent)
+              const paid = claimed && rows.every((e:any)=>e.payment_status==='paid')
+              return { ...pl, claimed, amount, paid }
+            })
+            const paidTotal = stages.filter((x:any)=>x.paid).reduce((sm:number,x:any)=>sm+x.amount,0)
+            const recvTotal = contractTotal - paidTotal
+            const pct = contractTotal>0 ? Math.round(paidTotal/contractTotal*100) : 0
+            return (
+              <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent p-5 mb-4">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="font-semibold text-gray-900 dark:text-white">{lang==='zh'?'进度收款':'Progress Claims'}</p>
+                  <span className="text-xs text-gray-400">{lang==='zh'?'合同':'Contract'} ${contractTotal.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-sm mb-1.5">
+                  <span className="text-[#30D158] font-medium">{lang==='zh'?'已收':'Paid'} ${paidTotal.toLocaleString()}</span>
+                  <span className="text-gray-500 dark:text-[#8E8E93]">{lang==='zh'?'待收':'Due'} ${recvTotal.toLocaleString()}</span>
+                </div>
+                <div className="h-2 rounded-full bg-gray-100 dark:bg-[#3A3A3C] overflow-hidden mb-4">
+                  <div className="h-full bg-[#30D158] rounded-full" style={{width:pct+'%'}}/>
+                </div>
+                <div className="space-y-2">
+                  {stages.map((st:any)=>(
+                    <div key={st.stage} className="flex items-center justify-between py-2 border-t border-gray-100 dark:border-[#3A3A3C]">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-5 h-5 shrink-0 rounded-full bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93] text-xs flex items-center justify-center font-medium">{st.stage}</span>
+                        <span className="text-sm text-gray-900 dark:text-white truncate">{lang==='zh'?st.label:(st.labelEn||st.label)}</span>
+                        <span className="text-xs text-gray-400 shrink-0">{Math.round(Number(st.percent)*100)}%</span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">${Number(st.amount).toLocaleString()}</span>
+                        {st.paid ? <span className="text-xs text-[#30D158]">{lang==='zh'?'已收':'Paid'} ✅</span>
+                          : st.claimed ? <span className="text-xs text-[#FF9F0A]">{lang==='zh'?'待收':'Unpaid'}</span>
+                          : <span className="text-xs text-gray-400">{lang==='zh'?'待建':'Pending'}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
           {unpaidTotal > 0 && (
             <div className="bg-yellow-50 dark:bg-[#2C2100] border border-yellow-200 dark:border-[#FF9F0A]/20 rounded-xl p-4 mb-6 flex justify-between items-center">
               <div>
@@ -209,21 +267,6 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
               <p className={`text-2xl font-bold mt-1 ${profit >= 0 ? 'text-[#30D158]' : 'text-[#FF453A]'}`}>${profit.toLocaleString()} ({margin}%)</p>
             </div>
           </div>
-          {revenue > 0 && (
-            <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent p-5 mb-4">
-              <div className="flex justify-between items-center mb-2">
-                <p className="text-gray-500 dark:text-[#8E8E93] text-sm">{lang === 'zh' ? '收款进度' : 'Payment Progress'}</p>
-                <p className="text-sm font-medium text-gray-700 dark:text-[#F2F2F7]">${(revenue - unpaidTotal).toLocaleString()} / ${revenue.toLocaleString()}</p>
-              </div>
-              <div className="w-full bg-gray-100 dark:bg-[#3A3A3C] rounded-full h-3">
-                <div className="bg-[#30D158] h-3 rounded-full transition-all" style={{ width: `${Math.min(100, ((revenue - unpaidTotal) / revenue) * 100).toFixed(0)}%` }} />
-              </div>
-              <div className="flex justify-between mt-1">
-                <p className="text-xs text-[#30D158]">{lang === 'zh' ? '已收' : 'Received'}: ${(revenue - unpaidTotal).toLocaleString()}</p>
-                {unpaidTotal > 0 && <p className="text-xs text-[#FF453A]">{lang === 'zh' ? '未收' : 'Unpaid'}: ${unpaidTotal.toLocaleString()}</p>}
-              </div>
-            </div>
-          )}
           <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent p-5 mb-4">
             <div className="flex justify-between items-center mb-3">
               <p className="text-gray-500 dark:text-[#8E8E93] text-sm">{lang === 'zh' ? '工期' : 'Timeline'}</p>
