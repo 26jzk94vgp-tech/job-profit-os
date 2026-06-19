@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '../../utils/supabase/client'
 import Link from 'next/link'
 import { useLanguage } from '../../lib/i18n/LanguageContext'
+import { HOME_OFFICE_RATE } from '../../lib/tax'
 
 export default function HomeOffice() {
   const supabase = createClient()
@@ -14,7 +15,7 @@ export default function HomeOffice() {
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const RATE_PER_HOUR = 0.70
+  const RATE_PER_HOUR = HOME_OFFICE_RATE
 
   async function loadLogs() {
     const { data } = await supabase.from('home_office_logs').select('*').order('log_date', { ascending: false })

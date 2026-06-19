@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '../../utils/supabase/client'
 import Link from 'next/link'
 import { useLanguage } from '../../lib/i18n/LanguageContext'
+import { HOME_OFFICE_RATE } from '../../lib/tax'
 
 export default function TaxHub() {
   const supabase = createClient()
@@ -38,7 +39,7 @@ export default function TaxHub() {
   const totalKm = fuelEntries.filter(e => e.ato_method === 'cents_per_km').reduce((sum, e) => sum + Number(e.kilometers || 0), 0)
 
   const totalHomeOfficeHours = homeOfficeLogs.reduce((sum, l) => sum + Number(l.hours), 0)
-  const homeOfficeDeduction = totalHomeOfficeHours * 0.67
+  const homeOfficeDeduction = totalHomeOfficeHours * HOME_OFFICE_RATE
 
   const categorised = entries.filter(e => e.tax_category).length
   const categoryCompleteness = entries.length ? Math.round((categorised / entries.length) * 100) : 0

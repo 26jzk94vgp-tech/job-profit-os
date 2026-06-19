@@ -1,5 +1,6 @@
 import { createClient } from '../../utils/supabase/server'
 import Link from 'next/link'
+import { HOME_OFFICE_RATE } from '../../lib/tax'
 
 export default async function TaxChecklist() {
   const supabase = await createClient()
@@ -28,7 +29,7 @@ export default async function TaxChecklist() {
   const totalFuelDeduction = fuelEntries.reduce((sum, e) => sum + Number(e.amount), 0)
   const totalKm = fuelEntries.filter(e => e.ato_method === 'cents_per_km').reduce((sum, e) => sum + Number(e.kilometers || 0), 0)
   const totalHomeOfficeHours = fyHo.reduce((sum, l) => sum + Number(l.hours), 0)
-  const homeOfficeDeduction = totalHomeOfficeHours * 0.70
+  const homeOfficeDeduction = totalHomeOfficeHours * HOME_OFFICE_RATE
   const categorised = entries.filter(e => e.tax_category).length
   const categoryCompleteness = entries.length > 0 ? Math.round((categorised / entries.length) * 100) : 0
   const badDebts = overdueInvoices?.filter((e: any) => e.days_overdue > 90) || []
