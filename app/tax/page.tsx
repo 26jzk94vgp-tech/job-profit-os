@@ -31,7 +31,7 @@ export default function TaxHub() {
     return 0
   }
   const gstCollected = entries.filter(e => e.type === 'invoice').reduce((sum, e) => sum + gstOf(e), 0)
-  const gstPaid = entries.filter(e => e.type !== 'invoice').reduce((sum, e) => sum + gstOf(e), 0)
+  const gstPaid = entries.filter(e => e.type !== 'invoice' && e.type !== 'labor').reduce((sum, e) => sum + gstOf(e), 0)  // labor不参与GST credit
   const netGst = gstCollected - gstPaid
 
   const fuelEntries = entries.filter(e => e.type === 'fuel')

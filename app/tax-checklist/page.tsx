@@ -24,7 +24,7 @@ export default async function TaxChecklist() {
   const totalProfit = totalRevenue - totalExpenses
   const gstOf = (e: any) => { const a = amtOf(e); if (e.gst_status === 'inclusive') return a / 11; if (e.gst_status === 'exclusive') return a * 0.1; return 0 }
   const gstCollected = fyEntries.filter(e => e.type === 'invoice').reduce((sum, e) => sum + gstOf(e), 0)
-  const gstPaid = fyEntries.filter(e => e.type !== 'invoice').reduce((sum, e) => sum + gstOf(e), 0)
+  const gstPaid = fyEntries.filter(e => e.type !== 'invoice' && e.type !== 'labor').reduce((sum, e) => sum + gstOf(e), 0)  // labor不参与GST credit
   const fuelEntries = fyEntries.filter(e => e.type === 'fuel')
   const totalFuelDeduction = fuelEntries.reduce((sum, e) => sum + Number(e.amount), 0)
   const totalKm = fuelEntries.filter(e => e.ato_method === 'cents_per_km').reduce((sum, e) => sum + Number(e.kilometers || 0), 0)

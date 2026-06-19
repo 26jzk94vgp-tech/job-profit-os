@@ -63,7 +63,7 @@ export default function BASReport() {
     return 0
   }
   const gstCollected = invoiceEntries.reduce((sum,e)=>sum+gstOf(e),0)
-  const gstPaid = [...costEntries, ...laborEntries].reduce((sum,e)=>sum+gstOf(e),0)
+  const gstPaid = [...costEntries].reduce((sum,e)=>sum+gstOf(e),0)  // labor(人工)不参与GST credit:工资非taxable supply
   const netGST = gstCollected - gstPaid
 
   const salesExGST = totalSales - gstCollected
