@@ -306,6 +306,11 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
             const paidTotal = stages.filter((x:any)=>x.paid).reduce((sm:number,x:any)=>sm+x.amount,0)
             const recvTotal = contractTotal - paidTotal
             const pct = contractTotal>0 ? Math.round(paidTotal/contractTotal*100) : 0
+            const CLAIM_EXCLUDE = ['cancelled','void','draft']
+            const claimedTotal = invoiceEntries.filter((e:any)=>!CLAIM_EXCLUDE.includes(String(e.payment_status||'').toLowerCase())).reduce((sm:number,e:any)=>sm+Number(e.amount||0),0)
+            const remaining = contractTotal - claimedTotal
+            const claimedPct = contractTotal>0 ? Math.round(claimedTotal/contractTotal*100) : 0
+            const barPct = Math.min(Math.max(claimedPct,0), 100)
             return (
               <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent p-5 mb-4">
                 <div className="flex items-center justify-between mb-3">
@@ -316,12 +321,13 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
                   <span className="text-xs text-gray-400">{lang==='zh'?'合同':'Contract'} ${contractTotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm mb-1.5">
-                  <span className="text-[#30D158] font-medium">{lang==='zh'?'已收':'Paid'} ${paidTotal.toLocaleString()}</span>
-                  <span className="text-gray-500 dark:text-[#8E8E93]">{lang==='zh'?'待收':'Due'} ${recvTotal.toLocaleString()}</span>
+                  <span className="text-[#0A84FF] font-medium">{lang==='zh'?'已开票':'Claimed'} ${claimedTotal.toLocaleString()}</span>
+                  <span className={remaining<0?'text-[#FF453A] font-medium':'text-gray-500 dark:text-[#8E8E93]'}>{lang==='zh'?'剩余':'Remaining'} ${remaining.toLocaleString()}</span>
                 </div>
-                <div className="h-2 rounded-full bg-gray-100 dark:bg-[#3A3A3C] overflow-hidden mb-4">
-                  <div className="h-full bg-[#30D158] rounded-full" style={{width:pct+'%'}}/>
+                <div className="h-2 rounded-full bg-gray-100 dark:bg-[#3A3A3C] overflow-hidden mb-1.5">
+                  <div className={`h-full rounded-full ${claimedPct>100?'bg-[#FF453A]':'bg-[#0A84FF]'}`} style={{width:barPct+'%'}}/>
                 </div>
+                <p className="text-xs text-gray-400 mb-4">{claimedPct}% {lang==='zh'?'已开票':'Claimed'}{claimedPct>100?(lang==='zh'?'（超合同额）':' (over contract)'):''}</p>
                 <div className="space-y-2">
                   {stages.map((st:any)=>(
                     <div key={st.stage} className="flex items-center justify-between py-2 border-t border-gray-100 dark:border-[#3A3A3C]">
