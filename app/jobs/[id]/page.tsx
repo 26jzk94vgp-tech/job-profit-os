@@ -98,12 +98,12 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
     setEditingContract(false)
   }
   function openClaimBuilder(st:any){
-    const contractTotal = Number(job.revenue) || 0
-    const suggested = Math.round(contractTotal * Number(st.percent) * 100)/100
+    const ct = (job.contract_value != null ? Number(job.contract_value) : null) ?? contractValue
+    const suggested = ct != null ? Math.round((ct as number) * Number(st.percent) * 100)/100 : null
     setBuilderStage(st)
     setBuilderDef('')
     setBuilderGstMode('exclusive')
-    setBuilderLines([{ id:Date.now(), kind:'deposit', desc:'', qty:'', unit:'', amount:String(suggested||'') }])
+    setBuilderLines([{ id:Date.now(), kind:'deposit', desc:'', qty:'', unit:'', amount: suggested != null ? String(suggested) : '' }])
   }
   function addLine(kind:'deposit'|'normal'){
     setBuilderLines(prev=>[...prev,{ id:Date.now()+Math.random(), kind, desc:'', qty:'', unit:'', amount:'' }])
