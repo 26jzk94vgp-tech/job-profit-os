@@ -152,6 +152,13 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   const gst = exclusiveTotal * 0.1 + inclusiveTotal / 11
   const subTotal = exclusiveTotal + inclusiveTotal
   const total = exclusiveTotal + exclusiveTotal * 0.1 + inclusiveTotal
+  const contractSum = Number(job?.revenue) || 0
+  const CLAIM_EXCLUDE = ['cancelled','void','draft']
+  const validClaims = allInvoiceEntries.filter((e:any)=>!CLAIM_EXCLUDE.includes(String(e.payment_status||'').toLowerCase()))
+  const currentClaim = stageNum ? invoiceEntries.reduce((sm:number,e:any)=>sm+Number(e.amount||0),0) : 0
+  const previousClaims = stageNum ? validClaims.filter((e:any)=>e.claim_stage && Number(e.claim_stage)<stageNum).reduce((sm:number,e:any)=>sm+Number(e.amount||0),0) : 0
+  const totalClaimed = previousClaims + currentClaim
+  const remainingBalance = contractSum - totalClaimed
   const hasArea = invoiceEntries.some(e => e.area)
   const colSpan = hasArea ? 5 : 4
 
@@ -412,6 +419,28 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
             </tbody>
           </table>
         </div>
+
+        {stageNum && contractSum > 0 && (
+          <div className="mb-6 rounded-lg p-4" style={{backgroundColor:'#F9FAFB', border:'1px solid #E5E7EB'}}>
+            <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{color:'#6B7280'}}>{lang === 'zh' ? '进度累进' : 'Claim Progress'}</p>
+            <div className="flex justify-between text-sm py-1" style={{color:'#6B7280'}}>
+              <span>{lang === 'zh' ? '之前各期' : 'Previous Claims'}</span>
+              <span style={{fontVariantNumeric:'tabular-nums'}}>${previousClaims.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
+            </div>
+            <div className="flex justify-between text-sm py-1 font-semibold" style={{color:'#111827'}}>
+              <span>{lang === 'zh' ? '本期' : 'Current Claim'}</span>
+              <span style={{fontVariantNumeric:'tabular-nums'}}>${currentClaim.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
+            </div>
+            <div className="flex justify-between text-sm py-1.5 mt-1 font-bold" style={{color:'#111827', borderTop:'1px solid #E5E7EB'}}>
+              <span>{lang === 'zh' ? '累计已开票' : 'Total Claimed'}</span>
+              <span style={{fontVariantNumeric:'tabular-nums'}}>${totalClaimed.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
+            </div>
+            <div className="flex justify-between text-sm py-1" style={{color: remainingBalance < 0 ? '#DC2626' : '#6B7280'}}>
+              <span>{lang === 'zh' ? '合同剩余' : 'Remaining Balance'}</span>
+              <span style={{fontVariantNumeric:'tabular-nums'}}>${remainingBalance.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
+            </div>
+          </div>
+        )}
 
         {note && (
           <div className="mt-4 pt-4 border-t border-gray-300">
