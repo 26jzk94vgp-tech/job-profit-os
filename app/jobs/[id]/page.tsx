@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { use } from 'react'
 import { createClient } from '../../../utils/supabase/client'
+import { getContractTotal, getClaimedTotal, isActiveClaim } from '../../../lib/contract'
 import Link from 'next/link'
 import JobStatusToggle from './JobStatusToggle'
 import DeleteEntry from './DeleteEntry'
@@ -91,14 +92,22 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   }
 
   async function saveContractValue(){
-    const v = Number(contractDraft)
-    if(!contractDraft.trim() || isNaN(v) || v<0){ setEditingContract(false); return }
+    const raw = contractDraft.trim()
+    if(!raw){
+      if(confirm(lang==='zh'?'清空合同额?':'Clear contract value?')){
+        await supabase.from('jobs').update({ contract_value: null }).eq('id', id)
+        setJob((j:any)=> j ? {...j, contract_value: null} : j)
+      }
+      setEditingContract(false); return
+    }
+    const v = Number(raw)
+    if(isNaN(v) || v<0){ setEditingContract(false); return }
     await supabase.from('jobs').update({ contract_value: v }).eq('id', id)
     setJob((j:any)=> j ? {...j, contract_value: v} : j)
     setEditingContract(false)
   }
   function openClaimBuilder(st:any){
-    const ct = (job.contract_value != null ? Number(job.contract_value) : null) ?? contractValue
+    const ct = getContractTotal(job, contractValue)
     const suggested = ct != null ? Math.round((ct as number) * Number(st.percent) * 100)/100 : null
     setBuilderStage(st)
     setBuilderDef('')
@@ -309,20 +318,20 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
         {/* ── 概览 ── */}
         {activeTab === 'overview' && (<>
           {(() => {
-            const contractTotal = (job.contract_value != null ? Number(job.contract_value) : null) ?? contractValue
+            const contractTotal = getContractTotal(job, contractValue)
             const claimRows = invoiceEntries.filter((e:any)=>e.claim_stage)
             const stages = claimPlan.map((pl:any)=>{
               const rows = claimRows.filter((e:any)=>e.claim_stage===pl.stage)
-              const claimed = rows.length>0
-              const amount = claimed ? rows.reduce((sm:number,e:any)=>sm+Number(e.amount),0) : (contractTotal!=null ? (contractTotal as number)*Number(pl.percent) : null)
-              const paid = claimed && rows.every((e:any)=>e.payment_status==='paid')
+              const activeRows = rows.filter(isActiveClaim)
+              const claimed = activeRows.length>0
+              const amount = claimed ? activeRows.reduce((sm:number,e:any)=>sm+Number(e.amount),0) : (contractTotal!=null ? (contractTotal as number)*Number(pl.percent) : null)
+              const paid = claimed && activeRows.every((e:any)=>e.payment_status==='paid')
               return { ...pl, claimed, amount, paid }
             })
             const paidTotal = stages.filter((x:any)=>x.paid).reduce((sm:number,x:any)=>sm+x.amount,0)
             const recvTotal = contractTotal!=null ? (contractTotal as number) - paidTotal : null
             const pct = (contractTotal!=null && contractTotal>0) ? Math.round(paidTotal/(contractTotal as number)*100) : 0
-            const CLAIM_EXCLUDE = ['cancelled','void','draft']
-            const claimedTotal = invoiceEntries.filter((e:any)=>!CLAIM_EXCLUDE.includes(String(e.payment_status||'').toLowerCase())).reduce((sm:number,e:any)=>sm+Number(e.amount||0),0)
+            const claimedTotal = getClaimedTotal(invoiceEntries)
             const hasContract = contractTotal != null && contractTotal > 0
             const remaining = hasContract ? (contractTotal as number) - claimedTotal : null
             const claimedPct = hasContract ? Math.round(claimedTotal/(contractTotal as number)*100) : null
