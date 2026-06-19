@@ -27,6 +27,8 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   const [quote, setQuote] = useState<any>(null)
   const [claimPlan, setClaimPlan] = useState<any[]>([])
   const [contractValue, setContractValue] = useState<number|null>(null)
+  const [editingContract, setEditingContract] = useState(false)
+  const [contractDraft, setContractDraft] = useState('')
   const [builderStage, setBuilderStage] = useState<any>(null)
   const [builderLines, setBuilderLines] = useState<any[]>([])
   const [builderGstMode, setBuilderGstMode] = useState<'exclusive'|'inclusive'>('exclusive')
@@ -88,6 +90,13 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
     setEntries((prev: any[]) => prev.map((e: any) => e.id === entryId ? { ...e, payment_status: status, payment_received: received ?? e.payment_received } : e))
   }
 
+  async function saveContractValue(){
+    const v = Number(contractDraft)
+    if(!contractDraft.trim() || isNaN(v) || v<0){ setEditingContract(false); return }
+    await supabase.from('jobs').update({ contract_value: v }).eq('id', id)
+    setJob((j:any)=> j ? {...j, contract_value: v} : j)
+    setEditingContract(false)
+  }
   function openClaimBuilder(st:any){
     const contractTotal = Number(job.revenue) || 0
     const suggested = Math.round(contractTotal * Number(st.percent) * 100)/100
@@ -300,7 +309,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
         {/* ── 概览 ── */}
         {activeTab === 'overview' && (<>
           {(() => {
-            const contractTotal = contractValue
+            const contractTotal = (job.contract_value != null ? Number(job.contract_value) : null) ?? contractValue
             const claimRows = invoiceEntries.filter((e:any)=>e.claim_stage)
             const stages = claimPlan.map((pl:any)=>{
               const rows = claimRows.filter((e:any)=>e.claim_stage===pl.stage)
@@ -325,16 +334,23 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
                     <p className="font-semibold text-gray-900 dark:text-white">{lang==='zh'?'进度收款':'Progress Claims'}</p>
                     <button onClick={openPlanEditor} className="text-xs text-[#0A84FF]">✏️ {lang==='zh'?'编辑':'Edit'}</button>
                   </div>
-                  <span className="text-xs text-gray-400">{lang==='zh'?'合同':'Contract'} {contractTotal!=null ? '$'+(contractTotal as number).toLocaleString() : '—'}</span>
+                  {editingContract ? (
+                    <span className="flex items-center gap-1">
+                      <span className="text-xs text-gray-400">$</span>
+                      <input autoFocus value={contractDraft} onChange={e=>setContractDraft(e.target.value.replace(/[^0-9.]/g,''))} onBlur={saveContractValue} onKeyDown={e=>{if(e.key==='Enter')saveContractValue()}} placeholder={lang==='zh'?'合同额':'Amount'} className="w-24 text-xs px-2 py-1 rounded-lg bg-gray-50 dark:bg-[#2C2C2E] border border-[#0A84FF] outline-none text-gray-900 dark:text-white"/>
+                    </span>
+                  ) : (
+                    <button onClick={()=>{setContractDraft(contractTotal!=null?String(contractTotal):'');setEditingContract(true)}} className="text-xs text-gray-400 hover:text-[#0A84FF]">{lang==='zh'?'合同':'Contract'} {contractTotal!=null ? '$'+(contractTotal as number).toLocaleString() : (lang==='zh'?'设置 ✏️':'Set ✏️')}</button>
+                  )}
                 </div>
                 <div className="flex justify-between text-sm mb-1.5">
                   <span className="text-[#0A84FF] font-medium">{lang==='zh'?'已开票':'Claimed'} ${claimedTotal.toLocaleString()}</span>
                   <span className={(remaining!=null && remaining<0)?'text-[#FF453A] font-medium':'text-gray-500 dark:text-[#8E8E93]'}>{lang==='zh'?'剩余':'Remaining'} {remaining!=null ? '$'+remaining.toLocaleString() : '—'}</span>
                 </div>
                 <div className="h-2 rounded-full bg-gray-100 dark:bg-[#3A3A3C] overflow-hidden mb-1.5">
-                  <div className={`h-full rounded-full ${(claimedPct!=null&&claimedPct>100)?'bg-[#FF453A]':'bg-[#0A84FF]'}`} style={{width:barPct+'%'}}/>
+                  <div className={`h-full rounded-full ${(claimedPct!=null&&claimedPct>100)?'bg-[#FF9F0A]':'bg-[#0A84FF]'}`} style={{width:barPct+'%'}}/>
                 </div>
-                <p className="text-xs text-gray-400 mb-4">{claimedPct!=null ? (claimedPct+'% '+(lang==='zh'?'已开票':'Claimed')+(claimedPct>100?(lang==='zh'?'（超合同额）':' (over contract)'):'')) : (lang==='zh'?'设置报价后显示合同进度':'Set a quote to track contract progress')}</p>
+                <p className="text-xs mb-4" style={{color: (claimedPct!=null&&claimedPct>100)?'#B45309':'#9CA3AF'}}>{claimedPct!=null ? (claimedPct+'% '+(lang==='zh'?'已开票':'Claimed')+((claimedPct>100 && remaining!=null)?(lang==='zh'?(' · 超合同 $'+Math.abs(remaining).toLocaleString()):(' · $'+Math.abs(remaining).toLocaleString()+' above contract')):'')) : (lang==='zh'?'点上方设置合同额以显示进度':'Set a contract value above to track progress')}</p>
                 <div className="space-y-2">
                   {stages.map((st:any)=>(
                     <div key={st.stage} className="flex items-center justify-between py-2 border-t border-gray-100 dark:border-[#3A3A3C]">
