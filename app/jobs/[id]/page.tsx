@@ -26,6 +26,7 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
   const [filterMatStatus, setFilterMatStatus] = useState<string>('all')
   const [quote, setQuote] = useState<any>(null)
   const [claimPlan, setClaimPlan] = useState<any[]>([])
+  const [contractValue, setContractValue] = useState<number|null>(null)
   const [builderStage, setBuilderStage] = useState<any>(null)
   const [builderLines, setBuilderLines] = useState<any[]>([])
   const [builderGstMode, setBuilderGstMode] = useState<'exclusive'|'inclusive'>('exclusive')
@@ -54,7 +55,12 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
         { stage: 2, label: '完成 50%', labelEn: '50% Complete', percent: 0.50 },
         { stage: 3, label: '完工', labelEn: 'Completion', percent: 0.30 },
       ]
-      if (q) { setQuote(q); setClaimPlan(Array.isArray(q.claim_plan) && q.claim_plan.length > 0 ? q.claim_plan : DEFAULT_PLAN) }
+      if (q) {
+        setQuote(q); setClaimPlan(Array.isArray(q.claim_plan) && q.claim_plan.length > 0 ? q.claim_plan : DEFAULT_PLAN)
+        supabase.from('quote_items').select('quantity,unit_price').eq('quote_id', q.id).then(({ data: qis }: { data: any }) => {
+          if (qis && qis.length > 0) setContractValue(qis.reduce((sm:number,it:any)=>sm+Number(it.quantity||0)*Number(it.unit_price||0), 0))
+        })
+      }
       else { setClaimPlan(DEFAULT_PLAN) }
     })
   }, [id])
@@ -294,23 +300,24 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
         {/* ── 概览 ── */}
         {activeTab === 'overview' && (<>
           {(() => {
-            const contractTotal = Number(job.revenue) || invoiceEntries.reduce((sum:number,e:any)=>sum+Number(e.amount),0)
+            const contractTotal = contractValue
             const claimRows = invoiceEntries.filter((e:any)=>e.claim_stage)
             const stages = claimPlan.map((pl:any)=>{
               const rows = claimRows.filter((e:any)=>e.claim_stage===pl.stage)
               const claimed = rows.length>0
-              const amount = claimed ? rows.reduce((sm:number,e:any)=>sm+Number(e.amount),0) : contractTotal*Number(pl.percent)
+              const amount = claimed ? rows.reduce((sm:number,e:any)=>sm+Number(e.amount),0) : (contractTotal!=null ? (contractTotal as number)*Number(pl.percent) : null)
               const paid = claimed && rows.every((e:any)=>e.payment_status==='paid')
               return { ...pl, claimed, amount, paid }
             })
             const paidTotal = stages.filter((x:any)=>x.paid).reduce((sm:number,x:any)=>sm+x.amount,0)
-            const recvTotal = contractTotal - paidTotal
-            const pct = contractTotal>0 ? Math.round(paidTotal/contractTotal*100) : 0
+            const recvTotal = contractTotal!=null ? (contractTotal as number) - paidTotal : null
+            const pct = (contractTotal!=null && contractTotal>0) ? Math.round(paidTotal/(contractTotal as number)*100) : 0
             const CLAIM_EXCLUDE = ['cancelled','void','draft']
             const claimedTotal = invoiceEntries.filter((e:any)=>!CLAIM_EXCLUDE.includes(String(e.payment_status||'').toLowerCase())).reduce((sm:number,e:any)=>sm+Number(e.amount||0),0)
-            const remaining = contractTotal - claimedTotal
-            const claimedPct = contractTotal>0 ? Math.round(claimedTotal/contractTotal*100) : 0
-            const barPct = Math.min(Math.max(claimedPct,0), 100)
+            const hasContract = contractTotal != null && contractTotal > 0
+            const remaining = hasContract ? (contractTotal as number) - claimedTotal : null
+            const claimedPct = hasContract ? Math.round(claimedTotal/(contractTotal as number)*100) : null
+            const barPct = claimedPct != null ? Math.min(Math.max(claimedPct,0), 100) : 0
             return (
               <div className="bg-white dark:bg-[#2C2C2E] rounded-xl border border-gray-200 dark:border-transparent p-5 mb-4">
                 <div className="flex items-center justify-between mb-3">
@@ -318,16 +325,16 @@ export default function JobDetail({ params }: { params: Promise<{ id: string }> 
                     <p className="font-semibold text-gray-900 dark:text-white">{lang==='zh'?'进度收款':'Progress Claims'}</p>
                     <button onClick={openPlanEditor} className="text-xs text-[#0A84FF]">✏️ {lang==='zh'?'编辑':'Edit'}</button>
                   </div>
-                  <span className="text-xs text-gray-400">{lang==='zh'?'合同':'Contract'} ${contractTotal.toLocaleString()}</span>
+                  <span className="text-xs text-gray-400">{lang==='zh'?'合同':'Contract'} {contractTotal!=null ? '$'+(contractTotal as number).toLocaleString() : '—'}</span>
                 </div>
                 <div className="flex justify-between text-sm mb-1.5">
                   <span className="text-[#0A84FF] font-medium">{lang==='zh'?'已开票':'Claimed'} ${claimedTotal.toLocaleString()}</span>
-                  <span className={remaining<0?'text-[#FF453A] font-medium':'text-gray-500 dark:text-[#8E8E93]'}>{lang==='zh'?'剩余':'Remaining'} ${remaining.toLocaleString()}</span>
+                  <span className={(remaining!=null && remaining<0)?'text-[#FF453A] font-medium':'text-gray-500 dark:text-[#8E8E93]'}>{lang==='zh'?'剩余':'Remaining'} {remaining!=null ? '$'+remaining.toLocaleString() : '—'}</span>
                 </div>
                 <div className="h-2 rounded-full bg-gray-100 dark:bg-[#3A3A3C] overflow-hidden mb-1.5">
-                  <div className={`h-full rounded-full ${claimedPct>100?'bg-[#FF453A]':'bg-[#0A84FF]'}`} style={{width:barPct+'%'}}/>
+                  <div className={`h-full rounded-full ${(claimedPct!=null&&claimedPct>100)?'bg-[#FF453A]':'bg-[#0A84FF]'}`} style={{width:barPct+'%'}}/>
                 </div>
-                <p className="text-xs text-gray-400 mb-4">{claimedPct}% {lang==='zh'?'已开票':'Claimed'}{claimedPct>100?(lang==='zh'?'（超合同额）':' (over contract)'):''}</p>
+                <p className="text-xs text-gray-400 mb-4">{claimedPct!=null ? (claimedPct+'% '+(lang==='zh'?'已开票':'Claimed')+(claimedPct>100?(lang==='zh'?'（超合同额）':' (over contract)'):'')) : (lang==='zh'?'设置报价后显示合同进度':'Set a quote to track contract progress')}</p>
                 <div className="space-y-2">
                   {stages.map((st:any)=>(
                     <div key={st.stage} className="flex items-center justify-between py-2 border-t border-gray-100 dark:border-[#3A3A3C]">
