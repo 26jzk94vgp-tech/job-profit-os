@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { use } from 'react'
 import { createClient } from '../../../../utils/supabase/client'
+import { getContractTotal, getClaimedTotal, isActiveClaim } from '../../../../lib/contract'
 import Link from 'next/link'
 import { useLanguage } from '../../../../lib/i18n/LanguageContext'
 
@@ -31,6 +32,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   const [linkCopied, setLinkCopied] = useState(false)
   const [importing, setImporting] = useState(false)
   const [importDone, setImportDone] = useState(false)
+  const [contractValue, setContractValue] = useState<number|null>(null)
 
   useEffect(() => {
     async function load() {
@@ -53,6 +55,13 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
         .eq('status', 'accepted')
         .order('created_at', { ascending: true })
       setQuotes(quotesData || [])
+
+      // 合同额:查quote_items(与job页一致,单一来源)
+      const { data: qForContract } = await supabase.from('quotes').select('id').eq('job_id', id).limit(1).single()
+      if (qForContract?.id) {
+        const { data: qis } = await supabase.from('quote_items').select('quantity,unit_price').eq('quote_id', qForContract.id)
+        if (qis && qis.length > 0) setContractValue(qis.reduce((sm:number,it:any)=>sm+Number(it.quantity||0)*Number(it.unit_price||0), 0))
+      }
 
       const { data: entryData } = await supabase.from('job_entries').select('*').eq('job_id', id)
       const allEntries = entryData || []
@@ -152,13 +161,12 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
   const gst = exclusiveTotal * 0.1 + inclusiveTotal / 11
   const subTotal = exclusiveTotal + inclusiveTotal
   const total = exclusiveTotal + exclusiveTotal * 0.1 + inclusiveTotal
-  const contractSum = Number(job?.revenue) || 0
-  const CLAIM_EXCLUDE = ['cancelled','void','draft']
-  const validClaims = allInvoiceEntries.filter((e:any)=>!CLAIM_EXCLUDE.includes(String(e.payment_status||'').toLowerCase()))
+  const contractSum = getContractTotal(job, contractValue)
+  const validClaims = allInvoiceEntries.filter(isActiveClaim)
   const currentClaim = stageNum ? invoiceEntries.reduce((sm:number,e:any)=>sm+Number(e.amount||0),0) : 0
   const previousClaims = stageNum ? validClaims.filter((e:any)=>e.claim_stage && Number(e.claim_stage)<stageNum).reduce((sm:number,e:any)=>sm+Number(e.amount||0),0) : 0
   const totalClaimed = previousClaims + currentClaim
-  const remainingBalance = contractSum - totalClaimed
+  const remainingBalance = contractSum != null ? contractSum - totalClaimed : null
   const hasArea = invoiceEntries.some(e => e.area)
   const colSpan = hasArea ? 5 : 4
 
@@ -420,7 +428,7 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
           </table>
         </div>
 
-        {stageNum && contractSum > 0 && (
+        {stageNum && contractSum != null && contractSum > 0 && (
           <div className="mb-6 rounded-lg p-4" style={{backgroundColor:'#F9FAFB', border:'1px solid #E5E7EB'}}>
             <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{color:'#6B7280'}}>{lang === 'zh' ? '进度累进' : 'Claim Progress'}</p>
             <div className="flex justify-between text-sm py-1" style={{color:'#6B7280'}}>
@@ -435,9 +443,9 @@ export default function Invoice({ params }: { params: Promise<{ id: string }> })
               <span>{lang === 'zh' ? '累计已开票' : 'Total Claimed'}</span>
               <span style={{fontVariantNumeric:'tabular-nums'}}>${totalClaimed.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
             </div>
-            <div className="flex justify-between text-sm py-1" style={{color: remainingBalance < 0 ? '#DC2626' : '#6B7280'}}>
+            <div className="flex justify-between text-sm py-1" style={{color: (remainingBalance!=null && remainingBalance < 0) ? '#DC2626' : '#6B7280'}}>
               <span>{lang === 'zh' ? '合同剩余' : 'Remaining Balance'}</span>
-              <span style={{fontVariantNumeric:'tabular-nums'}}>${remainingBalance.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
+              <span style={{fontVariantNumeric:'tabular-nums'}}>{remainingBalance!=null ? '$'+remainingBalance.toLocaleString(undefined,{minimumFractionDigits:2}) : '—'}</span>
             </div>
           </div>
         )}
