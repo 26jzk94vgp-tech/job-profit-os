@@ -5,6 +5,7 @@ import { createClient } from '../../utils/supabase/client'
 import Link from 'next/link'
 import { useLanguage } from '../../lib/i18n/LanguageContext'
 import { formatDate } from '../../lib/utils'
+import { VEHICLE_CENTS_PER_KM, VEHICLE_KM_CAP } from '../../lib/tax'
 
 export default function VehicleLog() {
   const supabase = createClient()
@@ -21,7 +22,7 @@ export default function VehicleLog() {
     supabase.from('job_entries').select('*, jobs(name)').eq('type', 'fuel').order('created_at', { ascending: false }).then(({ data }) => setEntries(data || []))
   }, [])
 
-  const RATE = 0.88, CAP = 5000
+  const RATE = VEHICLE_CENTS_PER_KM, CAP = VEHICLE_KM_CAP
   const fyNow = new Date()
   const fyStartYear = fyNow.getMonth() >= 6 ? fyNow.getFullYear() : fyNow.getFullYear() - 1
   const fyStart = new Date(fyStartYear, 6, 1)

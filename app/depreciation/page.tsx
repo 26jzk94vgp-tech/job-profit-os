@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useLanguage } from '../../lib/i18n/LanguageContext'
+import { INSTANT_WRITEOFF_THRESHOLD, CAR_DEPRECIATION_LIMIT } from '../../lib/tax'
 
 export default function Depreciation() {
   const { lang } = useLanguage()
@@ -13,8 +14,8 @@ export default function Depreciation() {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
-  const THRESHOLD = 20000
-  const CAR_LIMIT = 69674
+  const THRESHOLD = INSTANT_WRITEOFF_THRESHOLD
+  const CAR_LIMIT = CAR_DEPRECIATION_LIMIT
   const now = new Date()
   const fyStartYear = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1
   const fyEnd = new Date(fyStartYear + 1, 5, 30)
