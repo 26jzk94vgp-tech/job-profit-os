@@ -119,7 +119,7 @@ export default function VehicleLog() {
         <div className="bg-gray-100/60 dark:bg-[#2C2C2E] border border-gray-200 dark:border-[#3A3A3C] rounded-2xl px-4 py-3">
           <p className="text-[11px] text-gray-500 dark:text-[#8E8E93] leading-relaxed">{lang === 'zh' ? 'CIMO 是记账计算工具，非注册税务/BAS 代理。以上为估算，报税前请咨询注册税务代理或核对 ATO。' : 'CIMO is a bookkeeping tool, not a registered tax/BAS agent. Estimates only — consult a registered tax agent or the ATO before lodging.'}</p>
         </div>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent p-4">
             <p className="text-[#8E8E93] text-xs">{lang === 'zh' ? '总公里数' : 'Total KM'}</p>
             <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">{totalKm.toFixed(0)}km</p>

@@ -136,7 +136,7 @@ export default function ClientDetail({ params }: { params: Promise<{ id: string 
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent p-4 text-center">
             <p className="text-[10px] font-medium text-[#8E8E93] uppercase tracking-wide mb-1">{lang === 'zh' ? '总收入' : 'Revenue'}</p>
             <p className={`text-lg font-bold ${totalRevenue > 0 ? 'text-[#30D158]' : 'text-[#8E8E93]'}`}>${totalRevenue.toLocaleString()}</p>

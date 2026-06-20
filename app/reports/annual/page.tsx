@@ -72,7 +72,7 @@ export default function AnnualReport() {
           {years.map(y => <button key={y} onClick={() => setSelectedYear(y)} className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${y === selectedYear ? 'bg-[#0A84FF] text-white' : 'bg-gray-100 dark:bg-[#3A3A3C] text-gray-600 dark:text-[#8E8E93]'}`}>{y}</button>)}
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent p-4"><p className="text-[#8E8E93] text-xs">{lang === 'zh' ? '年度收入' : 'Annual Revenue'}</p><p className="text-xl font-bold text-[#30D158] mt-1">${revenue.toLocaleString()}</p></div>
           <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent p-4"><p className="text-[#8E8E93] text-xs">{lang === 'zh' ? '年度支出' : 'Annual Expenses'}</p><p className="text-xl font-bold text-[#FF453A] mt-1">${totalExpenses.toLocaleString()}</p></div>
           <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl border border-gray-200 dark:border-transparent p-4"><p className="text-[#8E8E93] text-xs">{lang === 'zh' ? '年度利润' : 'Annual Profit'}</p><p className={`text-xl font-bold mt-1 ${profit >= 0 ? 'text-[#30D158]' : 'text-[#FF453A]'}`}>${profit.toLocaleString()}</p><p className="text-[#8E8E93] text-xs">{lang === 'zh' ? '利润率' : 'Margin'}: {margin}%</p></div>
