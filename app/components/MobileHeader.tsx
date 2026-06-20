@@ -32,7 +32,7 @@ export default function MobileHeader() {
   return (
     <>
       <div className="md:hidden fixed top-0 left-0 right-0 bg-white dark:bg-[#1C1C1E] border-b border-gray-200 dark:border-[#3A3A3C] px-4 py-3 z-50 flex justify-between items-center">
-        <span className="font-semibold text-gray-900 dark:text-white text-sm">CIMO</span>
+        <Link href="/" className="font-semibold text-gray-900 dark:text-white text-sm">CIMO</Link>
         <button onClick={() => setOpen(true)} aria-label="menu" className="w-9 h-9 rounded-lg border border-gray-200 dark:border-[#3A3A3C] bg-gray-100 dark:bg-[#2C2C2E] flex flex-col items-center justify-center gap-1">
           <span className="block w-4 h-px bg-gray-600 dark:bg-[#8E8E93]" />
           <span className="block w-4 h-px bg-gray-600 dark:bg-[#8E8E93]" />
