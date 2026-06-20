@@ -56,18 +56,18 @@ export default function Finance() {
           <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '财务中心' : 'Finance'}</h1>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 flex justify-between items-center sm:block">
             <p className="text-gray-500 text-xs">{lang === 'zh' ? '总收入' : 'Revenue'}</p>
-            <p className="text-xl font-bold text-green-600 mt-1">${totalRevenue.toLocaleString()}</p>
+            <p className="text-lg sm:text-xl font-bold text-green-600 sm:mt-1">${totalRevenue.toLocaleString()}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 flex justify-between items-center sm:block">
             <p className="text-gray-500 text-xs">{lang === 'zh' ? '总支出' : 'Expenses'}</p>
-            <p className="text-xl font-bold text-red-500 mt-1">${totalCosts.toLocaleString()}</p>
+            <p className="text-lg sm:text-xl font-bold text-red-500 sm:mt-1">${totalCosts.toLocaleString()}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 flex justify-between items-center sm:block">
             <p className="text-gray-500 text-xs">{lang === 'zh' ? '净利润' : 'Net Profit'}</p>
-            <p className={totalProfit >= 0 ? 'text-xl font-bold text-green-600 mt-1' : 'text-xl font-bold text-red-600 mt-1'}>${totalProfit.toLocaleString()}</p>
+            <p className={(totalProfit >= 0 ? 'text-green-600' : 'text-red-600') + ' text-lg sm:text-xl font-bold sm:mt-1'}>${totalProfit.toLocaleString()}</p>
           </div>
         </div>
 
