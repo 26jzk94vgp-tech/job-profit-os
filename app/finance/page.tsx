@@ -56,7 +56,7 @@ export default function Finance() {
           <h1 className="font-semibold text-gray-900">{lang === 'zh' ? '财务中心' : 'Finance'}</h1>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <p className="text-gray-500 text-xs">{lang === 'zh' ? '总收入' : 'Revenue'}</p>
             <p className="text-xl font-bold text-green-600 mt-1">${totalRevenue.toLocaleString()}</p>
