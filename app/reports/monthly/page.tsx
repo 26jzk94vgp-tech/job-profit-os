@@ -98,7 +98,7 @@ export default function MonthlyReport() {
           <div className="px-6 py-4 border-b border-gray-100 dark:border-[#3A3A3C]">
             <h2 className="font-semibold text-gray-900 dark:text-white">{lang === 'zh' ? '期间汇总' : 'Period Summary'}</h2>
           </div>
-          <div className="grid grid-cols-3 divide-x divide-gray-100 dark:divide-[#3A3A3C]">
+          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-gray-100 dark:divide-[#3A3A3C]">
             <div className="px-6 py-4"><p className="text-[#8E8E93] text-sm">{lang === 'zh' ? '总收入' : 'Revenue'}</p><p className="text-2xl font-bold text-[#30D158]">${yearTotal.revenue.toLocaleString()}</p></div>
             <div className="px-6 py-4"><p className="text-[#8E8E93] text-sm">{lang === 'zh' ? '总支出' : 'Expenses'}</p><p className="text-2xl font-bold text-[#FF453A]">${(yearTotal.labor + yearTotal.material + yearTotal.subcontract + yearTotal.fuel).toLocaleString()}</p></div>
             <div className="px-6 py-4"><p className="text-[#8E8E93] text-sm">{lang === 'zh' ? '净利润' : 'Net Profit'}</p><p className={`text-2xl font-bold ${yearTotal.profit >= 0 ? 'text-[#30D158]' : 'text-[#FF453A]'}`}>${yearTotal.profit.toLocaleString()}</p></div>
